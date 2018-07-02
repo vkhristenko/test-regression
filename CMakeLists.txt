@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.8.0)
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 # project name
 project(test-regression)
 
@@ -19,7 +21,7 @@ include_directories("${ROOT_INCLUDE_DIRS}")
 
 # eigen
 message (EIGEN_HOME = ${EIGEN_HOME})
-include_directories(${EIGEN_HOME} SYSTEM)
+include_directories(${EIGEN_HOME})
 if (CUDA_FOUND)
     cuda_include_directories(${EIGEN_HOME})
 endif()
@@ -28,3 +30,4 @@ endif()
 include_directories(${PROJECT_SOURCE_DIR})
 
 add_subdirectory(gen)
+add_subdirectory(multifit_cpu)
