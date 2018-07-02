@@ -8,11 +8,11 @@ project(test-regression)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
 # cuda
-find_package(CUDA)
-add_definitions(-DUSE_CUDA)
-include_directories(${CUDA_INCLUDE_DIRS} SYSTEM)
-cuda_include_directories(${CUDA_INCLUDE_DIRS})
-find_package(NVVM)
+#find_package(CUDA)
+#add_definitions(-DUSE_CUDA)
+#include_directories(${CUDA_INCLUDE_DIRS} SYSTEM)
+#cuda_include_directories(${CUDA_INCLUDE_DIRS})
+#find_package(NVVM)
 
 # root
 find_package(ROOT REQUIRED)
