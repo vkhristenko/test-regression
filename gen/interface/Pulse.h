@@ -133,11 +133,11 @@ void Pulse::SetFNAMESHAPE ( std::string name ) {
 void Pulse::Init() {
   
   _filePS = new TFile(_FNAMESHAPE.Data());
-  TTree *trPS = (TTree*)_filePS->Get("Tail");
+  TTree *trPS = (TTree*)_filePS->Get("PulseShape/Tail");
   trPS->SetBranchAddress("timeMin",      &_tMin);
   trPS->SetBranchAddress("expAmplitude", &_fPar0);
   trPS->SetBranchAddress("expTime",      &_fPar1);
-  trPS->SetBranchAddress("tau",      &_TAU);
+//  trPS->SetBranchAddress("tau",      &_TAU);
   trPS->GetEntry(0);
   
   TFile* tempFile = new TFile("temp.root","RECREATE");
