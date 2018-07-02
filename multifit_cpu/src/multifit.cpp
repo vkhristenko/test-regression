@@ -175,6 +175,8 @@ void run(std::string inputFile, std::string outFile)
     
     h01->Fill(aMax - amplitudeTruth);
   }
+  fout->cd();
+  newtree->Write();
   std::cout << "  Mean of REC-MC = " << h01->GetMean() << " GeV" << std::endl;
   std::cout << "   RMS of REC-MC = " << h01->GetRMS() << " GeV" << std::endl;
 }
