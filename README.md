@@ -7,5 +7,5 @@ testing cms hcal/ecal regression
 - `cmake ../ -DEIGEN_HOME=<path to eigen root dir>`
 
 ## to run
-- generate pulses `./gen/gen_data `
-- run multifit `./multifit_cpu/multifit ../data/mysample_100_0.000_0.000_10_25.00_10.00_0.00_1.000_1.00_CRRC43_0.00_slew_1.00.root `
+- generate pulses `./gen/gen_data -13`
+- run multifit `./multifit_cpu/multifit ../data/mysample_100_-13.000_0.000_10_25.00_10.00_0.00_1.000_1.00_0.00_slew_1.00.root `

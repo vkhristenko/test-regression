@@ -145,7 +145,8 @@ int main(int argc, char** argv) {
   
   // make sure these inputs are what you really want
   //TFile *file = new TFile("data/EmptyFileCRRC43.root");
-  std::string wf_file_name = ((std::string) "../data/EmptyFile") + ((std::string) wf_name) + ((std::string) ".root");
+//   std::string wf_file_name = ((std::string) "../data/EmptyFile") + ((std::string) wf_name) + ((std::string) ".root");
+  std::string wf_file_name = ((std::string) "../data/EmptyFile") + ((std::string) ".root");
   
   std::cout << " wf_file_name = " << wf_file_name << std::endl;
   
@@ -166,19 +167,20 @@ int main(int argc, char** argv) {
   TString filenameOutput;
   if (correlation_flag == 0.0) {
     filenameOutput =
-    Form("../data/mysample_%d_%.3f_%.3f_%d_%.2f_%.2f_%.2f_%.3f_%.2f_%s_NoiseUncorrelated.root", 
-         nEventsTotal, real_pulse_shift, pileup_shift, NSAMPLES, NFREQ, signalAmplitude, nPU, sigmaNoiseScale, puFactor, wf_name);
+    Form("../data/mysample_%d_%.3f_%.3f_%d_%.2f_%.2f_%.2f_%.3f_%.2f_NoiseUncorrelated.root", 
+         nEventsTotal, real_pulse_shift, pileup_shift, NSAMPLES, NFREQ, signalAmplitude, nPU, sigmaNoiseScale, puFactor);
   } else if (correlation_flag == 1.0) {
     filenameOutput =
-    Form("../data/mysample_%d_%.3f_%.3f_%d_%.2f_%.2f_%.2f_%.3f_%.2f_%s_NoiseFullyCorrelated.root", 
-         nEventsTotal, real_pulse_shift, pileup_shift, NSAMPLES, NFREQ, signalAmplitude, nPU, sigmaNoiseScale, puFactor, wf_name);
+    Form("../data/mysample_%d_%.3f_%.3f_%d_%.2f_%.2f_%.2f_%.3f_%.2f_NoiseFullyCorrelated.root", 
+         nEventsTotal, real_pulse_shift, pileup_shift, NSAMPLES, NFREQ, signalAmplitude, nPU, sigmaNoiseScale, puFactor);
   } else {
     filenameOutput =
-    Form("../data/mysample_%d_%.3f_%.3f_%d_%.2f_%.2f_%.2f_%.3f_%.2f_%s_%.2f_slew_%.2f.root", 
-         nEventsTotal, real_pulse_shift, pileup_shift, NSAMPLES, NFREQ, signalAmplitude, nPU, sigmaNoiseScale, puFactor, wf_name, pedestal, distortion_sample_4);
+    Form("../data/mysample_%d_%.3f_%.3f_%d_%.2f_%.2f_%.2f_%.3f_%.2f_%.2f_slew_%.2f.root", 
+         nEventsTotal, real_pulse_shift, pileup_shift, NSAMPLES, NFREQ, signalAmplitude, nPU, sigmaNoiseScale, puFactor, pedestal, distortion_sample_4);
   }
   TFile *fileOut = new TFile(filenameOutput.Data(),"recreate");
   
+  std::cout << " filenameOutput = " << filenameOutput.Data() << std::endl;
   
   // Get PDF for pileup
   int indx = 10 * fabs(eta) / 0.1;
