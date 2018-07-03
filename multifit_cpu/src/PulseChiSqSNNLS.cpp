@@ -3,6 +3,15 @@
 #include <math.h>
 #include <iostream>
 
+struct DoFitArgs {
+  SampleVector samples;
+  SampleMatrix samplecor;
+  double pederr;
+  BXVector bxs;
+  FullSampleVector fullpulse;
+  FullSampleMatrix fullpulsecov;
+}
+
 PulseChiSqSNNLS::PulseChiSqSNNLS() :
 _chisq(0.),
 _computeErrors(true)
@@ -16,7 +25,16 @@ PulseChiSqSNNLS::~PulseChiSqSNNLS() {
   
 }
 
-bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, double pederr, const BXVector &bxs, const FullSampleVector &fullpulse, const FullSampleMatrix &fullpulsecov) {
+__device__
+bool PulseChiSqSNNLS::gpuDoFIt(DoFitArgs* parameters){
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+    auto args = parameters[i];
+    return DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
+}
+
+bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, double pederr, 
+                            const BXVector &bxs, const FullSampleVector &fullpulse,
+                            const FullSampleMatrix &fullpulsecov) {
   
   const unsigned int nsample = SampleVector::RowsAtCompileTime;
   const unsigned int npulse = bxs.rows();
