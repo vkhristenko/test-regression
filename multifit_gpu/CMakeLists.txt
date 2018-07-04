@@ -7,5 +7,5 @@ if (CUDA_FOUND)
     target_link_libraries(multifit_gpu_kernels)
 endif()
 
-add_executable(multifit_gpu src/multifit.cpp src/PulseChiSqSNNLS.cpp)
+add_executable(multifit_gpu src/multifit.cpp src/PulseChiSqSNNLS.cpp src/GPUPulseChiSqSNNLS.cu)
 target_link_libraries(multifit_gpu ${ROOT_LIBRARIES} ${CUDA_LIBRARIES} multifit_gpu_kernels)
