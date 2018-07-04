@@ -3,6 +3,7 @@
 #include <math.h>
 #include <iostream>
 
+/*
 struct DoFitArgs {
   SampleVector samples;
   SampleMatrix samplecor;
@@ -11,6 +12,7 @@ struct DoFitArgs {
   FullSampleVector fullpulse;
   FullSampleMatrix fullpulsecov;
 }
+*/
 
 PulseChiSqSNNLS::PulseChiSqSNNLS() :
 _chisq(0.),
@@ -25,12 +27,14 @@ PulseChiSqSNNLS::~PulseChiSqSNNLS() {
   
 }
 
+/*
 __device__
 bool PulseChiSqSNNLS::gpuDoFIt(DoFitArgs* parameters){
     int i = blockIdx.x*blockDim.x + threadIdx.x;
     auto args = parameters[i];
     return DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
 }
+*/
 
 bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, double pederr, 
                             const BXVector &bxs, const FullSampleVector &fullpulse,

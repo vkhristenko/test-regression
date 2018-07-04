@@ -8,11 +8,13 @@ project(test-regression)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
 # cuda
-# find_package(CUDA)
-# add_definitions(-DUSE_CUDA)
-# include_directories(${CUDA_INCLUDE_DIRS} SYSTEM)
-# cuda_include_directories(${CUDA_INCLUDE_DIRS})
-# find_package(NVVM)
+find_package(CUDA)
+if (CUDA_FOUND)
+    add_definitions(-DUSE_CUDA)
+    include_directories(${CUDA_INCLUDE_DIRS} SYSTEM)
+    cuda_include_directories(${CUDA_INCLUDE_DIRS})
+endif()
+find_package(NVVM)
 
 # root
 find_package(ROOT REQUIRED)
@@ -20,14 +22,8 @@ add_definitions(${ROOT_CXX_FLAGS})
 include_directories("${ROOT_INCLUDE_DIRS}")
 
 # eigen
-set(EIGEN_HOME "/data/user/vkhriste/eigen-git-mirror")
 message (EIGEN_HOME = ${EIGEN_HOME})
 include_directories(${EIGEN_HOME})
-if (CUDA_FOUND)
-    message(CUDA_FOUND)
-    cuda_include_directories(${EIGEN_HOME})
-    set(CMAKE_CXX_COMPILER "nvcc")
-endif()
 
 message (COMPILER = ${CMAKE_CXX_COMPILER})
 # always follow the source tree for inclusions ( a la cmssw)
