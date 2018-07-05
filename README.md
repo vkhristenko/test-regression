@@ -5,6 +5,7 @@ testing cms hcal/ecal regression
 - `git clone <repo>` and `cd <repo>`
 - `mkdir build` and `cd build`
 - `cmake ../ -DEIGEN_HOME=<path to eigen root dir>`
+- `cmake ../ -DTHRUST_HOME=<path to thrust root dir>`
 
 ## to run
 - generate pulses `./gen/gen_data -13`
