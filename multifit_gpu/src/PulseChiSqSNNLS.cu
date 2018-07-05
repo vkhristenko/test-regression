@@ -1,44 +1,20 @@
 //#define PulseChiSqSNNLS_cxx
-#include "multifit_cpu/interface/PulseChiSqSNNLS.h"
+#include "multifit_gpu/interface/PulseChiSqSNNLS.h"
 #include <math.h>
 #include <iostream>
+#include <thrust/swap.h>
 
-/*
-struct DoFitArgs {
-  SampleVector samples;
-  SampleMatrix samplecor;
-  double pederr;
-  BXVector bxs;
-  FullSampleVector fullpulse;
-  FullSampleMatrix fullpulsecov;
-}
-*/
 
-PulseChiSqSNNLS::PulseChiSqSNNLS() :
-_chisq(0.),
-_computeErrors(true)
-{
-  
-  Eigen::initParallel();
-  
-}  
-
-PulseChiSqSNNLS::~PulseChiSqSNNLS() {
-  
+__global__ void DoFitGPU(DoFitArgs* parameters, double* result){
+  int i = blockIdx.x*blockDim.x + threadIdx.x;
+  auto args = parameters[i];
+  PulseChiSqSNNLS pulse;
+  *result = pulse.DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
 }
 
-/*
-__device__
-bool PulseChiSqSNNLS::gpuDoFIt(DoFitArgs* parameters){
-    int i = blockIdx.x*blockDim.x + threadIdx.x;
-    auto args = parameters[i];
-    return DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
-}
-*/
-
-bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, double pederr, 
-                            const BXVector &bxs, const FullSampleVector &fullpulse,
-                            const FullSampleMatrix &fullpulsecov) {
+__device__ bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, 
+                                       double pederr, const BXVector &bxs, const FullSampleVector &fullpulse,
+                                       const FullSampleMatrix &fullpulsecov) {
   
   const unsigned int nsample = SampleVector::RowsAtCompileTime;
   const unsigned int npulse = bxs.rows();
@@ -105,8 +81,8 @@ bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &sam
   //move in time pulse first to active set if necessary
   if (ipulseintime<_nP) {
     _pulsemat.col(_nP-1).swap(_pulsemat.col(ipulseintime));
-    std::swap(_ampvec.coeffRef(_nP-1),_ampvec.coeffRef(ipulseintime));
-    std::swap(_bxs.coeffRef(_nP-1),_bxs.coeffRef(ipulseintime));
+    thrust::swap(_ampvec.coeffRef(_nP-1),_ampvec.coeffRef(ipulseintime));
+    thrust::swap(_bxs.coeffRef(_nP-1),_bxs.coeffRef(ipulseintime));
     ipulseintime = _nP - 1;
     --_nP;    
   }
@@ -160,7 +136,8 @@ bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &sam
   
 }
 
-bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov) {
+__device__ bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double pederr, 
+                                          const FullSampleMatrix &fullpulsecov) {
   
   
   const int maxiter = 50;
@@ -169,7 +146,7 @@ bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double pederr, con
   while (true) {    
     
 //     std::cout << " iter =  " << iter << " :: " << maxiter << std::endl;
-    std::cout << "iteration = " << iter << std::endl;    
+// std::cout << "iteration = " << iter << std::endl;    
     if (iter>=maxiter) {
       //      edm::LogWarning("PulseChiSqSNNLS::Minimize") << "Max Iterations reached at iter " << iter <<  std::endl;
 //       std::cout << " maxiter =  " << iter << " :: " << maxiter << std::endl;
@@ -195,7 +172,8 @@ bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double pederr, con
   
 }
 
-bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov) {
+__device__ bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr,
+                                           const FullSampleMatrix &fullpulsecov) {
   
 //   std::cout << " updateCov " << std::endl;
   
@@ -213,7 +191,8 @@ bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr, co
     double ampsq = _ampvec.coeff(ipulse)*_ampvec.coeff(ipulse);
     
     const unsigned int nsamplepulse = nsample-firstsamplet;    
-    _invcov.block(firstsamplet,firstsamplet,nsamplepulse,nsamplepulse).triangularView<Eigen::Lower>() += ampsq*fullpulsecov.block(firstsamplet+offset,firstsamplet+offset,nsamplepulse,nsamplepulse);    
+    _invcov.block(firstsamplet,firstsamplet,nsamplepulse,nsamplepulse).triangularView<Eigen::Lower>() +=
+      ampsq*fullpulsecov.block(firstsamplet+offset,firstsamplet+offset,nsamplepulse,nsamplepulse);    
   }
   
 //   std::cout << " updateCov " << " here "  << std::endl;
@@ -227,36 +206,46 @@ bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr, co
   
 }
 
-double PulseChiSqSNNLS::ComputeChiSq() {
+__device__ double PulseChiSqSNNLS::ComputeChiSq() {
   
   //   SampleVector resvec = _pulsemat*_ampvec - _sampvec;
   //   return resvec.transpose()*_covdecomp.solve(resvec);
   
-  return _covdecomp.matrixL().solve(_pulsemat*_ampvec - _sampvec).squaredNorm();
+  // TODO: port Eigen::LLT solve to gpu
+  // return _covdecomp.matrixL().solve(_pulsemat*_ampvec - _sampvec).squaredNorm();
+  return 1.0;
   
 }
 
-double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse) {
+__device__ double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse) {
   //compute approximate uncertainties
   //(using 1/second derivative since full Hessian is not meaningful in
   //presence of positive amplitude boundaries.)
-  
-  return 1./_covdecomp.matrixL().solve(_pulsemat.col(ipulse)).norm();
+   
+
+  // TODO: port Eigen::LLT solve to gpu
+  // return 1./_covdecomp.matrixL().solve(_pulsemat.col(ipulse)).norm();
+
+  return 1.;
   
 }
 
-bool PulseChiSqSNNLS::NNLS() {
+__device__ bool PulseChiSqSNNLS::NNLS() {
   
   //Fast NNLS (fnnls) algorithm as per http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
   
   const unsigned int npulse = _bxs.rows();
-  
-  SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);
+  // TODO: Port EigenLLT to gpu
+  // SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);
+  SamplePulseMatrix invcovp;
+
   PulseMatrix aTamat(npulse,npulse);
   aTamat.triangularView<Eigen::Lower>() = invcovp.transpose()*invcovp;
   aTamat = aTamat.selfadjointView<Eigen::Lower>();
-  PulseVector aTbvec = invcovp.transpose()*_covdecomp.matrixL().solve(_sampvec);  
-  
+
+  // TODO: Port EigenLLT to gpu
+  // PulseVector aTbvec = invcovp.transpose()*_covdecomp.matrixL().solve(_sampvec);  
+  PulseVector aTbvec;
   
   PulseVector wvec(npulse);
   
@@ -283,9 +272,9 @@ bool PulseChiSqSNNLS::NNLS() {
       aTamat.col(_nP).swap(aTamat.col(idxp));
       aTamat.row(_nP).swap(aTamat.row(idxp));
       _pulsemat.col(_nP).swap(_pulsemat.col(idxp));
-      std::swap(aTbvec.coeffRef(_nP),aTbvec.coeffRef(idxp));
-      std::swap(_ampvec.coeffRef(_nP),_ampvec.coeffRef(idxp));
-      std::swap(_bxs.coeffRef(_nP),_bxs.coeffRef(idxp));
+      thrust::swap(aTbvec.coeffRef(_nP),aTbvec.coeffRef(idxp));
+      thrust::swap(_ampvec.coeffRef(_nP),_ampvec.coeffRef(idxp));
+      thrust::swap(_bxs.coeffRef(_nP),_bxs.coeffRef(idxp));
       ++_nP;
     }
     
@@ -296,12 +285,15 @@ bool PulseChiSqSNNLS::NNLS() {
 //       std::cout << " >>  iter = " << iter << std::endl;
       
       if (_nP==0) break;     
-      
+      // TODO: port EigenLDLT solve to gpu
       PulseVector ampvecpermtest = _ampvec;
       
       //solve for unconstrained parameters      
-      ampvecpermtest.head(_nP) = aTamat.topLeftCorner(_nP,_nP).ldlt().solve(aTbvec.head(_nP));     
       
+      // TODO: port Eigen::LDLT solve to gpu
+      // ampvecpermtest.head(_nP) = aTamat.topLeftCorner(_nP,_nP).ldlt().solve(aTbvec.head(_nP));     
+      ampvecpermtest.head(_nP) = aTamat.topLeftCorner(_nP,_nP);     
+     
       //check solution
       if (ampvecpermtest.head(_nP).minCoeff()>0.) {
         _ampvec.head(_nP) = ampvecpermtest.head(_nP);
@@ -331,9 +323,9 @@ bool PulseChiSqSNNLS::NNLS() {
       aTamat.col(_nP-1).swap(aTamat.col(minratioidx));
       aTamat.row(_nP-1).swap(aTamat.row(minratioidx));
       _pulsemat.col(_nP-1).swap(_pulsemat.col(minratioidx));
-      std::swap(aTbvec.coeffRef(_nP-1),aTbvec.coeffRef(minratioidx));
-      std::swap(_ampvec.coeffRef(_nP-1),_ampvec.coeffRef(minratioidx));
-      std::swap(_bxs.coeffRef(_nP-1),_bxs.coeffRef(minratioidx));
+      thrust::swap(aTbvec.coeffRef(_nP-1),aTbvec.coeffRef(minratioidx));
+      thrust::swap(_ampvec.coeffRef(_nP-1),_ampvec.coeffRef(minratioidx));
+      thrust::swap(_bxs.coeffRef(_nP-1),_bxs.coeffRef(minratioidx));
       --_nP;
       
     }
@@ -351,3 +343,6 @@ bool PulseChiSqSNNLS::NNLS() {
   
   
 }
+
+__device__ __host__ PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {}
+__device__ __host__ PulseChiSqSNNLS::~PulseChiSqSNNLS() {}

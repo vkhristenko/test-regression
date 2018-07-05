@@ -25,9 +25,15 @@ include_directories("${ROOT_INCLUDE_DIRS}")
 message (EIGEN_HOME = ${EIGEN_HOME})
 include_directories(${EIGEN_HOME})
 
+# thust
+
+message(THRUST_HOME = ${THRUST_HOME})
+include_directories(${THRUST_HOME})
+
 message (COMPILER = ${CMAKE_CXX_COMPILER})
 # always follow the source tree for inclusions ( a la cmssw)
 include_directories(${PROJECT_SOURCE_DIR})
+
 
 add_subdirectory(gen)
 add_subdirectory(multifit_cpu)
