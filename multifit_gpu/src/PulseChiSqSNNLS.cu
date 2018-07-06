@@ -9,7 +9,7 @@ __global__ void DoFitGPU(DoFitArgs* parameters, double* result){
   int i = blockIdx.x*blockDim.x + threadIdx.x;
   auto args = parameters[i];
   PulseChiSqSNNLS pulse;
-  *result = pulse.DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
+  result[i] = pulse.DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
 }
 
 __device__ bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, 
