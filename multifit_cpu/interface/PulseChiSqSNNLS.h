@@ -7,13 +7,8 @@
 
 class PulseChiSqSNNLS {
 public:
-  
   typedef BXVector::Index Index;
-  
-  PulseChiSqSNNLS();
-  ~PulseChiSqSNNLS();
-  
-  
+
   bool DoFit(const SampleVector &samples, const SampleMatrix &samplecor, double pederr, const BXVector &bxs, const FullSampleVector &fullpulse, const FullSampleMatrix &fullpulsecov);
   
   const SamplePulseMatrix &pulsemat() const { return _pulsemat; }
@@ -25,6 +20,9 @@ public:
   
   double ChiSq() const { return _chisq; }
   void disableErrorCalculation() { _computeErrors = false; }
+    
+  PulseChiSqSNNLS();
+  ~PulseChiSqSNNLS();
   
 protected:
   
