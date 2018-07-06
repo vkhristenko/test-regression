@@ -185,14 +185,15 @@ double PulseChiSqSNNLS::ComputeChiSq() {
 }
 
 double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse) {
-  //compute approximate uncertainties
-  //(using 1/second derivative since full Hessian is not meaningful in
-  //presence of positive amplitude boundaries.)
+  // compute approximate uncertainties
+  // (using 1/second derivative since full Hessian is not meaningful in
+  // presence of positive amplitude boundaries.)
   return 1./_covdecomp.matrixL().solve(_pulsemat.col(ipulse)).norm();
 }
 
 bool PulseChiSqSNNLS::NNLS() {
-  //Fast NNLS (fnnls) algorithm as per http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
+  // Fast NNLS (fnnls) algorithm as per 
+  // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
   
   const unsigned int npulse = _bxs.rows();  
   SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);
