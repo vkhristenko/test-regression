@@ -3,49 +3,36 @@
 #include <math.h>
 #include <iostream>
 
-/*
-struct DoFitArgs {
-  SampleVector samples;
-  SampleMatrix samplecor;
-  double pederr;
-  BXVector bxs;
-  FullSampleVector fullpulse;
-  FullSampleMatrix fullpulsecov;
-}
-*/
-
-PulseChiSqSNNLS::PulseChiSqSNNLS() :
-_chisq(0.),
-_computeErrors(true)
-{
-  
-  Eigen::initParallel();
-  
+PulseChiSqSNNLS::PulseChiSqSNNLS() :_chisq(0.), _computeErrors(true){
+  // In later versions of eigen this should not be necessary
+  Eigen::initParallel(); 
 }  
 
-PulseChiSqSNNLS::~PulseChiSqSNNLS() {
-  
-}
+PulseChiSqSNNLS::~PulseChiSqSNNLS() {}
 
-/*
-__device__
-bool PulseChiSqSNNLS::gpuDoFIt(DoFitArgs* parameters){
-    int i = blockIdx.x*blockDim.x + threadIdx.x;
-    auto args = parameters[i];
-    return DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
-}
-*/
 
-bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, double pederr, 
-                            const BXVector &bxs, const FullSampleVector &fullpulse,
+bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, 
+                            const SampleMatrix &samplecor, 
+                            double pederr, 
+                            const BXVector &bxs, 
+                            const FullSampleVector &fullpulse,
                             const FullSampleMatrix &fullpulsecov) {
-  
+  // why they have a full sample vector and a sample vector?
+
+
+  // The input data looks like a matrix in which the time slot are in the x-axis
+  // and the y-axes contains the enegy measurements.
+
   const unsigned int nsample = SampleVector::RowsAtCompileTime;
   const unsigned int npulse = bxs.rows();
   
+  // They are saving the input data inside the class, probably to pass it through 
+  // different function call.
   _sampvec = samples;
   _bxs = bxs;
   
+  // basic initialization, in the end this should contain the result? Not sure
+  // about this
   _pulsemat = SamplePulseMatrix::Zero(nsample,npulse);
   _ampvec = PulseVector::Zero(npulse);
   _errvec = PulseVector::Zero(npulse);  
@@ -54,11 +41,14 @@ bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &sam
   
   //initialize pulse template matrix
   for (unsigned int ipulse=0; ipulse<npulse; ++ipulse) {
+    // this resembles a sliding window 
+    // BXS might be a sensors vector
     int bx = _bxs.coeff(ipulse);
     int firstsamplet = std::max(0,bx + 3);
     int offset = 7-3-bx;
     
     const unsigned int nsamplepulse = nsample-firstsamplet;
+    // initializing the resulting matrix with the values taken from the sliding window
     _pulsemat.col(ipulse).segment(firstsamplet,nsamplepulse) = fullpulse.segment(firstsamplet+offset,nsamplepulse);
   }
   
@@ -162,7 +152,7 @@ bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &sam
 
 bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov) {
   
-  
+  // iterate for at mox 50 iterations
   const int maxiter = 50;
   int iter = 0;
   bool status = false;
@@ -213,7 +203,8 @@ bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr, co
     double ampsq = _ampvec.coeff(ipulse)*_ampvec.coeff(ipulse);
     
     const unsigned int nsamplepulse = nsample-firstsamplet;    
-    _invcov.block(firstsamplet,firstsamplet,nsamplepulse,nsamplepulse).triangularView<Eigen::Lower>() += ampsq*fullpulsecov.block(firstsamplet+offset,firstsamplet+offset,nsamplepulse,nsamplepulse);    
+    _invcov.block(firstsamplet,firstsamplet,nsamplepulse,nsamplepulse).triangularView<Eigen::Lower>()
+        += ampsq*fullpulsecov.block(firstsamplet+offset,firstsamplet+offset,nsamplepulse,nsamplepulse);    
   }
   
 //   std::cout << " updateCov " << " here "  << std::endl;
@@ -222,9 +213,7 @@ bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr, co
   
 //   std::cout << " updateCov " << " done "  << std::endl;
   
-  bool status = true;
-  return status;
-  
+  return true;  
 }
 
 double PulseChiSqSNNLS::ComputeChiSq() {
@@ -276,7 +265,7 @@ bool PulseChiSqSNNLS::NNLS() {
       
       //convergence
       if (wmax<1e-11) break;
-      
+    
       //unconstrain parameter
       Index idxp = _nP + idxwmax;
       //printf("adding index %i, orig index %i\n",int(idxp),int(_bxs.coeff(idxp)));
