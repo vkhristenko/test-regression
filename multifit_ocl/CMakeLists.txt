@@ -33,18 +33,19 @@ include_directories(${PROJECT_SOURCE_DIR})
 message("-------------------------------------------")
 
 
-set(SOURCES .cpp)
+set(SOURCES main.cpp)
 set(OPENCL_FILES ./kenels/matrix_mult.cl)
 
 message("sources:")
 message(${SOURCES})
 message("kernels:")
 message(${OPENCL_FILES})
-if(OPENCL_FILES)
- foreach(OPENCL_FILE ${OPENCL_FILES})
-     configure_file(${OPENCL_FILE} ${OPENCL_FILE} COPYONLY)
- endforeach()
-endif()
+
+# if(OPENCL_FILES)
+#  foreach(OPENCL_FILE ${OPENCL_FILES})
+#      configure_file(${OPENCL_FILE} ${OPENCL_FILE} COPYONLY)
+#  endforeach()
+# endif()
 
 add_subdirectory(utils)
 
