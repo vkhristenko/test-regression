@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(ocl_test)
+project(utlis)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -28,24 +28,12 @@ message(OpenCL_VERSION_MAJOR = ${OpenCL_VERSION_MAJOR})
 message(OpenCL_VERSION_MINOR = ${OpenCL_VERSION_MINOR})
 set (LINK_LIBRARIES ${OpenCL_LIBRARIES} ${LINK_LIBRARIES})
 
-include_directories(${PROJECT_SOURCE_DIR})
-
 message("-------------------------------------------")
 
 
-set(SOURCES .cpp)
-set(OPENCL_FILES ./kenels/matrix_mult.cl)
+set(SOURCES ./src/opencl.cpp ./src/options.cpp)
 
 message("sources:")
 message(${SOURCES})
-message("kernels:")
-message(${OPENCL_FILES})
-if(OPENCL_FILES)
- foreach(OPENCL_FILE ${OPENCL_FILES})
-     configure_file(${OPENCL_FILE} ${OPENCL_FILE} COPYONLY)
- endforeach()
-endif()
 
-add_subdirectory(utils)
-
-add_executable(ocl_test ${SOURCES})
+add_executable(utils ${SOURCES})

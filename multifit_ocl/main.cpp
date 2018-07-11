@@ -40,9 +40,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "./includes/matrixMult.h"
+#include "./utils/aocl_utils.h"
 #include "CL/opencl.h"
-#include "AOCLUtils/aocl_utils.h"
-#include "matrixMult.h"
 
 using namespace aocl_utils;
 
