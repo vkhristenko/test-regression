@@ -4,7 +4,8 @@ testing cms hcal/ecal regression
 ## to build
 - `git clone <repo>` and `cd <repo>`
 - `mkdir build` and `cd build`
-- `cmake ../ -DEIGEN_HOME=<path to eigen root dir>`
+- `cmake ../ -DEIGEN_HOME=<path to eigen root dir>` 
+- if u r @vinavx2 use: `cmake ../ -DEIGEN_HOME=/data/user/vkhriste/eigen/eigen -DOpenCL_INCLUDE_DIR=/usr/local/cuda/include`
 - `cmake ../ -DTHRUST_HOME=<path to thrust root dir>`
 
 ## to run
