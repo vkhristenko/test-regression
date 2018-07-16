@@ -159,8 +159,10 @@ void run(std::string inputFile, std::string outFile)
     
     // calling the gpu version instead of the cpu one
     // bool status = pulsefunc.DoFit(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
-    DoFitArgs()
-    bool status = pulsefunc.DoFit(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
+    auto args = DoFitArgs(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
+    bool status;
+    DoFitGPU<<<1,1>>>(&DoFitArgs,&status);
+    // bool status = pulsefunc.DoFit(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
 
     double chisq = pulsefunc.ChiSq();
 

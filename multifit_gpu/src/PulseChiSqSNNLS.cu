@@ -1,4 +1,3 @@
-//#define PulseChiSqSNNLS_cxx
 #include "multifit_gpu/interface/PulseChiSqSNNLS.h"
 #include <math.h>
 #include <iostream>
