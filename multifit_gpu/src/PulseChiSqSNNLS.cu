@@ -4,11 +4,10 @@
 #include <thrust/swap.h>
 
 
-__global__ void DoFitGPU(DoFitArgs* parameters, double* result){
+__global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, double *result){
   int i = blockIdx.x*blockDim.x + threadIdx.x;
   auto args = parameters[i];
-  PulseChiSqSNNLS pulse;
-  result[i] = pulse.DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
+  result[i] = pulse[i].DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
 }
 
 __device__ bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, 

@@ -7,7 +7,8 @@
 
 #include <iostream>
 #include "multifit_gpu/interface/Pulse.h"
-#include "multifit_gpu/interface/PulseChiSqSNNLS.h"
+// #include "multifit_cpu/interface/PulseChiSqSNNLS.h"
+#include "multifit_gpu/interface/PulseChiSqSNNLSWrapper.h"
 
 #include "TTree.h"
 #include "TF1.h"
@@ -139,12 +140,7 @@ void run(std::string inputFile, std::string outFile)
   
   v_amplitudes_reco.clear();
   
-  
-  
-  
-  
-  
-  
+   
   for(int ievt=0; ievt<nentries; ++ievt){
     tree->GetEntry(ievt);
     for(int i=0; i<NSAMPLES; i++){
@@ -153,15 +149,15 @@ void run(std::string inputFile, std::string outFile)
     
     double pedval = 0.;
     double pedrms = 1.0;
-    PulseChiSqSNNLS pulsefunc;
+    PulseChiSqSNNLSWrapper pulsefunc;
     
     pulsefunc.disableErrorCalculation();
     
     // calling the gpu version instead of the cpu one
     // bool status = pulsefunc.DoFit(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
-    auto args = DoFitArgs(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
     bool status;
-    DoFitGPU<<<1,1>>>(&DoFitArgs,&status);
+    DoFitArgs args(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
+    // pulsefunc.doFit(args, &status);
     // bool status = pulsefunc.DoFit(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
 
     double chisq = pulsefunc.ChiSq();

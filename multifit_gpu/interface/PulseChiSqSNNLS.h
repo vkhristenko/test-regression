@@ -5,6 +5,7 @@
 #include <set>
 #include <array>
 
+
 typedef struct DoFitArgs{
     SampleVector samples;
     SampleMatrix samplecor;
@@ -27,7 +28,6 @@ typedef struct DoFitArgs{
       fullpulsecov(fullpulsecov) {};
 } DoFitArgs;
 
-__global__ void DoFitGPU(DoFitArgs* parameters, double* result);
 
 class PulseChiSqSNNLS {
 public:
@@ -75,5 +75,7 @@ protected:
   double _chisq;
   bool _computeErrors;
 };
+
+__global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, double *result);
 
 #endif
