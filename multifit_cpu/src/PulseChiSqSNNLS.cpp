@@ -231,7 +231,7 @@ bool PulseChiSqSNNLS::NNLS() {
       ++_nP;
     }
         
-    while (_np>0) {  
+    while (_nP>0) {  
       PulseVector ampvecpermtest = _ampvec;      
       //solve for unconstrained parameters      
       ampvecpermtest.head(_nP) = aTamat.topLeftCorner(_nP,_nP).ldlt().solve(aTbvec.head(_nP));     

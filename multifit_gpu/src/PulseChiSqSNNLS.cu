@@ -141,42 +141,20 @@ __device__ bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double 
   
   
   const int maxiter = 50;
-  int iter = 0;
-  bool status = false;
-  while (true) {    
-    
-//     std::cout << " iter =  " << iter << " :: " << maxiter << std::endl;
-// std::cout << "iteration = " << iter << std::endl;    
-    if (iter>=maxiter) {
-      //      edm::LogWarning("PulseChiSqSNNLS::Minimize") << "Max Iterations reached at iter " << iter <<  std::endl;
-//       std::cout << " maxiter =  " << iter << " :: " << maxiter << std::endl;
-      break;
-    }    
-    
-    status = updateCov(samplecor,pederr,fullpulsecov);    
-    if (!status) break;    
-    status = NNLS();
-    if (!status) break;
-    
+  for (int iter=0; iter<maxiter; ++iter){
+    if(!(updateCov(samplecor,pederr,fullpulsecov) &&  NNLS()))
+      return false;    
     double chisqnow = ComputeChiSq();
-    double deltachisq = chisqnow-_chisq;
-    
+    double deltachisq = chisqnow-_chisq; 
     _chisq = chisqnow;
-    if (std::abs(deltachisq)<1e-3) {
+    if (std::abs(deltachisq)<1e-3)
       break;
-    }
-    ++iter;    
-  }  
-  
-  return status;  
-  
+  }    
+  return true;  
 }
 
 __device__ bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr,
                                            const FullSampleMatrix &fullpulsecov) {
-  
-//   std::cout << " updateCov " << std::endl;
-  
   const unsigned int nsample = SampleVector::RowsAtCompileTime;
   const unsigned int npulse = _bxs.rows();
   
@@ -195,15 +173,9 @@ __device__ bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double
       ampsq*fullpulsecov.block(firstsamplet+offset,firstsamplet+offset,nsamplepulse,nsamplepulse);    
   }
   
-//   std::cout << " updateCov " << " here "  << std::endl;
-  
   _covdecomp.compute(_invcov);
-  
-//   std::cout << " updateCov " << " done "  << std::endl;
-  
-  bool status = true;
-  return status;
-  
+    
+  return true;  
 }
 
 __device__ double PulseChiSqSNNLS::ComputeChiSq() {
@@ -212,9 +184,8 @@ __device__ double PulseChiSqSNNLS::ComputeChiSq() {
   //   return resvec.transpose()*_covdecomp.solve(resvec);
   
   // TODO: port Eigen::LLT solve to gpu
-  // return _covdecomp.matrixL().solve(_pulsemat*_ampvec - _sampvec).squaredNorm();
-  return 1.0;
-  
+  return _covdecomp.matrixL().solve(_pulsemat*_ampvec - _sampvec).squaredNorm();
+  // return 1.0;
 }
 
 __device__ double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse) {
@@ -224,9 +195,8 @@ __device__ double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse)
    
 
   // TODO: port Eigen::LLT solve to gpu
-  // return 1./_covdecomp.matrixL().solve(_pulsemat.col(ipulse)).norm();
-
-  return 1.;
+  return 1./_covdecomp.matrixL().solve(_pulsemat.col(ipulse)).norm();
+  // return 1.;
   
 }
 
@@ -236,16 +206,16 @@ __device__ bool PulseChiSqSNNLS::NNLS() {
   
   const unsigned int npulse = _bxs.rows();
   // TODO: Port EigenLLT to gpu
-  // SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);
-  SamplePulseMatrix invcovp;
+  SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);
+  // SamplePulseMatrix invcovp;
 
   PulseMatrix aTamat(npulse,npulse);
   aTamat.triangularView<Eigen::Lower>() = invcovp.transpose()*invcovp;
   aTamat = aTamat.selfadjointView<Eigen::Lower>();
 
   // TODO: Port EigenLLT to gpu
-  // PulseVector aTbvec = invcovp.transpose()*_covdecomp.matrixL().solve(_sampvec);  
-  PulseVector aTbvec;
+  PulseVector aTbvec = invcovp.transpose()*_covdecomp.matrixL().solve(_sampvec);  
+  // PulseVector aTbvec;
   
   PulseVector wvec(npulse);
   
@@ -291,8 +261,8 @@ __device__ bool PulseChiSqSNNLS::NNLS() {
       //solve for unconstrained parameters      
       
       // TODO: port Eigen::LDLT solve to gpu
-      // ampvecpermtest.head(_nP) = aTamat.topLeftCorner(_nP,_nP).ldlt().solve(aTbvec.head(_nP));     
-      ampvecpermtest.head(_nP) = aTamat.topLeftCorner(_nP,_nP);     
+      ampvecpermtest.head(_nP) = aTamat.topLeftCorner(_nP,_nP).ldlt().solve(aTbvec.head(_nP));     
+      // ampvecpermtest.head(_nP) = aTamat.topLeftCorner(_nP,_nP);     
      
       //check solution
       if (ampvecpermtest.head(_nP).minCoeff()>0.) {

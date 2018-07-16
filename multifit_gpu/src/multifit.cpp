@@ -6,8 +6,8 @@
 //
 
 #include <iostream>
-#include "multifit_cpu/interface/PulseChiSqSNNLS.h"
-#include "multifit_cpu/interface/Pulse.h"
+#include "multifit_gpu/interface/Pulse.h"
+#include "multifit_gpu/interface/PulseChiSqSNNLS.h"
 
 #include "TTree.h"
 #include "TF1.h"
@@ -156,7 +156,12 @@ void run(std::string inputFile, std::string outFile)
     PulseChiSqSNNLS pulsefunc;
     
     pulsefunc.disableErrorCalculation();
+    
+    // calling the gpu version instead of the cpu one
+    // bool status = pulsefunc.DoFit(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
+    DoFitArgs()
     bool status = pulsefunc.DoFit(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
+
     double chisq = pulsefunc.ChiSq();
 
     std::cout << "status = " << status << std::endl;

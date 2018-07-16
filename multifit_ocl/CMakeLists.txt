@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.8)
 project(ocl_test)
 
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_BUILD_TYPE=Debug)
+add_definitions(-DUSE_SVM_API=1 -fpermissive)
 
 # for debug purposes
 message(CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH})
