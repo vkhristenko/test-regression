@@ -5,16 +5,27 @@
 #include <set>
 #include <array>
 
-typedef struct DoFitArgs {
+typedef struct DoFitArgs{
     SampleVector samples;
     SampleMatrix samplecor;
     double pederr;
     BXVector bxs;
     FullSampleVector fullpulse;
     FullSampleMatrix fullpulsecov;
-    DoFitArgs(samples,saplecor,pederr,bxs,fullpulse,fullpulsecov) :
-      
-};
+    DoFitArgs(
+              const SampleVector &samples, 
+              const SampleMatrix &samplecor, 
+              double pederr, 
+              const BXVector &bxs, 
+              const FullSampleVector &fullpulse,
+              const FullSampleMatrix &fullpulsecov) :
+      samples(samples), 
+      samplecor(samplecor), 
+      pederr(pederr), 
+      bxs(bxs), 
+      fullpulse(fullpulse),
+      fullpulsecov(fullpulsecov) {};
+} DoFitArgs;
 
 __global__ void DoFitGPU(DoFitArgs* parameters, double* result);
 
