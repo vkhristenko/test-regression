@@ -10,7 +10,7 @@ __global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, double *
   result[i] = pulse[i].DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
 }
 
-__device__ bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, 
+CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, 
                                        double pederr, const BXVector &bxs, const FullSampleVector &fullpulse,
                                        const FullSampleMatrix &fullpulsecov) {
   
@@ -134,7 +134,7 @@ __device__ bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const Sample
   
 }
 
-__device__ bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double pederr, 
+CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double pederr, 
                                           const FullSampleMatrix &fullpulsecov) {
   
   
@@ -151,7 +151,7 @@ __device__ bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double 
   return true;  
 }
 
-__device__ bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr,
+CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr,
                                            const FullSampleMatrix &fullpulsecov) {
   const unsigned int nsample = SampleVector::RowsAtCompileTime;
   const unsigned int npulse = _bxs.rows();
@@ -176,7 +176,7 @@ __device__ bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double
   return true;  
 }
 
-__device__ double PulseChiSqSNNLS::ComputeChiSq() {
+CUDA_CALLABLE_MEMBER double PulseChiSqSNNLS::ComputeChiSq() {
   
   //   SampleVector resvec = _pulsemat*_ampvec - _sampvec;
   //   return resvec.transpose()*_covdecomp.solve(resvec);
@@ -186,7 +186,7 @@ __device__ double PulseChiSqSNNLS::ComputeChiSq() {
   // return 1.0;
 }
 
-__device__ double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse) {
+CUDA_CALLABLE_MEMBER double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse) {
   //compute approximate uncertainties
   //(using 1/second derivative since full Hessian is not meaningful in
   //presence of positive amplitude boundaries.)
@@ -198,7 +198,7 @@ __device__ double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse)
   
 }
 
-__device__ bool PulseChiSqSNNLS::NNLS() {
+CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::NNLS() {
   
   //Fast NNLS (fnnls) algorithm as per http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
   
@@ -312,5 +312,5 @@ __device__ bool PulseChiSqSNNLS::NNLS() {
   
 }
 
-__device__ __host__ PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {}
-__device__ __host__ PulseChiSqSNNLS::~PulseChiSqSNNLS() {}
+CUDA_CALLABLE_MEMBER __host__ PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {}
+CUDA_CALLABLE_MEMBER __host__ PulseChiSqSNNLS::~PulseChiSqSNNLS() {}

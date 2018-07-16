@@ -42,7 +42,7 @@ class PulseChiSqSNNLS {
 public:
 
   CUDA_CALLABLE_MEMBER explicit PulseChiSqSNNLS();
-  virtual ~PulseChiSqSNNLS();
+  CUDA_CALLABLE_MEMBER ~PulseChiSqSNNLS();
 
   typedef BXVector::Index Index;
     
