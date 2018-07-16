@@ -1,9 +1,18 @@
 #ifndef PulseChiSqSNNLS_h
 #define PulseChiSqSNNLS_h
 
+#ifdef __CUDACC__
+#define CUDA_CALLABLE_MEMBER __host__ __device__
+#else
+#define CUDA_CALLABLE_MEMBER
+#endif 
+
+
 #include "EigenMatrixTypes.h"
 #include <set>
 #include <array>
+
+
 
 
 typedef struct DoFitArgs{
@@ -32,12 +41,12 @@ typedef struct DoFitArgs{
 class PulseChiSqSNNLS {
 public:
 
-  __device__ __host__ explicit PulseChiSqSNNLS();
+  CUDA_CALLABLE_MEMBER explicit PulseChiSqSNNLS();
   virtual ~PulseChiSqSNNLS();
 
   typedef BXVector::Index Index;
     
-  __device__ bool DoFit(const SampleVector &samples, const SampleMatrix &samplecor, double pederr, 
+  CUDA_CALLABLE_MEMBER bool DoFit(const SampleVector &samples, const SampleMatrix &samplecor, double pederr, 
              const BXVector &bxs, const FullSampleVector &fullpulse, const FullSampleMatrix &fullpulsecov);
   
   const SamplePulseMatrix &pulsemat() const { return _pulsemat; }
@@ -48,15 +57,15 @@ public:
   const BXVector &BXs() const { return _bxsmin; }
   
   double ChiSq() const { return _chisq; }
-  __device__ __host__ void disableErrorCalculation() { _computeErrors = false; }
+  CUDA_CALLABLE_MEMBER void disableErrorCalculation() { _computeErrors = false; }
   
 protected:
   
-  __device__ bool Minimize(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov);
-  __device__ bool NNLS();
-  __device__ bool updateCov(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov);
-  __device__ double ComputeChiSq();
-  __device__ double ComputeApproxUncertainty(unsigned int ipulse);
+  CUDA_CALLABLE_MEMBER bool Minimize(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov);
+  CUDA_CALLABLE_MEMBER bool NNLS();
+  CUDA_CALLABLE_MEMBER bool updateCov(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov);
+  CUDA_CALLABLE_MEMBER double ComputeChiSq();
+  CUDA_CALLABLE_MEMBER double ComputeApproxUncertainty(unsigned int ipulse);
   
   
   SampleVector _sampvec;
@@ -76,6 +85,8 @@ protected:
   bool _computeErrors;
 };
 
+#ifdef __CUDACC__
 __global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, double *result);
+#endif
 
 #endif
