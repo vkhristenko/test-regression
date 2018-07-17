@@ -142,10 +142,6 @@ void run(std::string inputFile, std::string outFile)
   
   std::cout << "entries: " << nentries << std::endl;
 
-  // std::vector<PulseChiSqSNNLSWrapper> pulse(nentries);
-  // std::vector<DoFitArgs> args(nentries);
-  // std::vector<bool> status_array(nentries); 
-
   for(int ievt=0; ievt<nentries; ++ievt){
     tree->GetEntry(ievt);
     for(int i=0; i<NSAMPLES; i++){
@@ -154,29 +150,36 @@ void run(std::string inputFile, std::string outFile)
     
     double pedval = 0.;
     double pedrms = 1.0;
-    PulseChiSqSNNLSWrapper pulsefunc;
-    pulsefunc.disableErrorCalculation();
-    bool status = false;
+    // PulseChiSqSNNLSWrapper pulsefunc;
+    // pulsefunc.disableErrorCalculation();
+    // bool status = false;
     DoFitArgs args(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
     DoFitArgs* parameters = (DoFitArgs*) malloc(sizeof(DoFitArgs));
     parameters[0] = args;
+    
+    auto results = doFitWrapper(parameters, 1)[0];
 
+    // pulsefunc.DoFit(parameters, &status);
 
-    pulsefunc.DoFit(parameters, &status);
+    // double chisq = pulsefunc.ChiSq();
+    auto chisq = results.chisq;
+    
 
-    double chisq = pulsefunc.ChiSq();
-
-    std::cout << "status = " << status << std::endl;
+    // std::cout << "status = " << status << std::endl;
+    std::cout << "status = " << results.status << std::endl;
     std::cout << chisq << std::endl;
     
     unsigned int ipulseintime = 0;
-    for (unsigned int ipulse=0; ipulse<pulsefunc.BXs().rows(); ++ipulse) {
-      if (pulsefunc.BXs().coeff(ipulse)==0) {
+    // for (unsigned int ipulse=0; ipulse<pulsefunc.BXs().rows(); ++ipulse) {
+    for (unsigned int ipulse=0; ipulse<results.BXs.rows(); ++ipulse) {
+      // if (pulsefunc.BXs().coeff(ipulse)==0) {
+      if (ipulse<results.BXs.coeff(ipulse)==0) {
         ipulseintime = ipulse;
         break;
       }
     }
-    double aMax = status ? pulsefunc.X()[ipulseintime] : 0.;
+    // double aMax = status ? pulsefunc.X()[ipulseintime] : 0.;
+    double aMax = results.status ? results.X[ipulseintime] : 0.;
     std::cout << "aMax = " << aMax << std::endl;
     std::cout << "amplitudeTruth" << amplitudeTruth << std::endl;
     h01->Fill(aMax - amplitudeTruth);
@@ -187,48 +190,6 @@ void run(std::string inputFile, std::string outFile)
   std::cout << "   RMS of REC-MC = " << h01->GetRMS() << " GeV" << std::endl;
 }
 
-/*
-  for(int ievt=0; ievt<nentries; ++ievt){
-    tree->GetEntry(ievt);
-    for(int i=0; i<NSAMPLES; i++){
-      amplitudes[i] = samples->at(i);
-    }
-    
-    double pedval = 0.;
-    double pedrms = 1.0;
-    PulseChiSqSNNLSWrapper pulsefunc;
-    
-    pulsefunc.disableErrorCalculation();
-    
-    bool status = false;
-    DoFitArgs args(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
-    DoFitArgs* parameters = (DoFitArgs*) malloc(sizeof(DoFitArgs));
-    parameters[0] = args;
-    pulsefunc.DoFit(parameters, &status);
-
-    double chisq = pulsefunc.ChiSq();
-
-    std::cout << "status = " << status << std::endl;
-    std::cout << chisq << std::endl;
-    
-    unsigned int ipulseintime = 0;
-    for (unsigned int ipulse=0; ipulse<pulsefunc.BXs().rows(); ++ipulse) {
-      if (pulsefunc.BXs().coeff(ipulse)==0) {
-        ipulseintime = ipulse;
-        break;
-      }
-    }
-    double aMax = status ? pulsefunc.X()[ipulseintime] : 0.;
-    std::cout << "aMax = " << aMax << std::endl;
-    std::cout << "amplitudeTruth" << amplitudeTruth << std::endl;
-    h01->Fill(aMax - amplitudeTruth);
-  }
-  fout->cd();
-  newtree->Write();
-  std::cout << "  Mean of REC-MC = " << h01->GetMean() << " GeV" << std::endl;
-  std::cout << "   RMS of REC-MC = " << h01->GetRMS() << " GeV" << std::endl;
-}
-*/
 
 void saveHist()
 {

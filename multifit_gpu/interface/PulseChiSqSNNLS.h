@@ -36,9 +36,18 @@ typedef struct DoFitArgs{
 } DoFitArgs;
 
 
+typedef struct DoFitResults{
+    double chisq;
+    BXVector BXs;
+    PulseVector X;
+    bool status;
+    // DoFitResults(double chisq, BXVector &BXs, PulseVector &X, bool status) : 
+        // chisq(chisq), BXs(BXs), X(X), status(status) {};
+} DoFitResults;
+
+
 class PulseChiSqSNNLS {
 public:
-  // EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   CUDA_CALLABLE_MEMBER explicit PulseChiSqSNNLS();
   CUDA_CALLABLE_MEMBER ~PulseChiSqSNNLS();
@@ -51,11 +60,11 @@ public:
   const SamplePulseMatrix &pulsemat() const { return _pulsemat; }
   const SampleMatrix &invcov() const { return _invcov; }
   
-  const PulseVector &X() const { return _ampvecmin; }
+  CUDA_CALLABLE_MEMBER const PulseVector &X() const { return _ampvecmin; }
   const PulseVector &Errors() const { return _errvec; }
-  const BXVector &BXs() const { return _bxsmin; }
+  CUDA_CALLABLE_MEMBER const BXVector &BXs() const { return _bxsmin; }
   
-  double ChiSq() const { return _chisq; }
+  CUDA_CALLABLE_MEMBER double ChiSq() const { return _chisq; }
   CUDA_CALLABLE_MEMBER void disableErrorCalculation() { _computeErrors = false; }
   
 protected:
@@ -85,7 +94,8 @@ protected:
 };
 
 #ifdef __CUDACC__
-__global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, bool *status);
+// __global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, bool *status);
+__global__ void GpuDoFit(DoFitArgs *parameters, DoFitResults* results, unsigned int n);
 #endif
 
 #endif

@@ -4,11 +4,12 @@
 #include <thrust/swap.h>
 
 
-__global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, bool *status){
-  int i = blockIdx.x*blockDim.x + threadIdx.x;
-  auto args = parameters[i];
-  status[i] = pulse[i].DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
-}
+// __global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, bool *status){
+  //   int i = blockIdx.x*blockDim.x + threadIdx.x;
+  //   auto args = parameters[i];
+  //   status[i] = pulse[i].DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
+  // }
+
 
 CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, 
                                        double pederr, const BXVector &bxs, const FullSampleVector &fullpulse,
@@ -314,3 +315,18 @@ CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::NNLS() {
 
 CUDA_CALLABLE_MEMBER PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {}
 CUDA_CALLABLE_MEMBER PulseChiSqSNNLS::~PulseChiSqSNNLS() {}
+
+
+
+__global__ void GpuDoFit(DoFitArgs *parameters, DoFitResults *results, unsigned int n){
+  int i = blockIdx.x*blockDim.x + threadIdx.x;
+  if (i>=n) return;
+  PulseChiSqSNNLS pulse;
+  pulse.disableErrorCalculation();
+  auto args = parameters[i];
+  results[i].status = pulse.DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
+  // results[i] = DoFitResults(pulse.ChiSq(), pulse.BXs(), pulse.X(), (bool) status); 
+  results[i].chisq = pulse.ChiSq();
+  results[i].X = pulse.X();
+  results[i].BXs = pulse.BXs();
+}
