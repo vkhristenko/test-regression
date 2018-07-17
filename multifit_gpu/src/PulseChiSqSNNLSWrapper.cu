@@ -7,6 +7,6 @@ void PulseChiSqSNNLSWrapper::disableErrorCalculation(){
     pulseChiSq.disableErrorCalculation();
 }
 
-void PulseChiSqSNNLSWrapper::DoFit(DoFitArgs* args, double* status){
+void PulseChiSqSNNLSWrapper::DoFit(DoFitArgs* args, bool* status){
     GpuDoFit<<<1,1>>>(&pulseChiSq, args, status);
 }

@@ -4,10 +4,10 @@
 #include <thrust/swap.h>
 
 
-__global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, double *result){
+__global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, bool *status){
   int i = blockIdx.x*blockDim.x + threadIdx.x;
   auto args = parameters[i];
-  result[i] = pulse[i].DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
+  status[i] = pulse[i].DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
 }
 
 CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, 
@@ -312,5 +312,5 @@ CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::NNLS() {
   
 }
 
-CUDA_CALLABLE_MEMBER __host__ PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {}
-CUDA_CALLABLE_MEMBER __host__ PulseChiSqSNNLS::~PulseChiSqSNNLS() {}
+CUDA_CALLABLE_MEMBER PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {}
+CUDA_CALLABLE_MEMBER PulseChiSqSNNLS::~PulseChiSqSNNLS() {}

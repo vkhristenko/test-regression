@@ -1,11 +1,15 @@
 #ifndef PULSECHISQSNNLSWRAPPER
 #define PULSECHISQSNNLSWRAPPER
 
+#define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
+// #define EIGEN_DONT_VECTORIZE 
+
 #include "multifit_gpu/interface/EigenMatrixTypes.h"
 #include "multifit_gpu/interface/PulseChiSqSNNLS.h"
 
 class PulseChiSqSNNLSWrapper{
     public:
+        // EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         void disableErrorCalculation();
         const SamplePulseMatrix &pulsemat() const { return pulseChiSq.pulsemat(); }
         const SampleMatrix &invcov() const { return pulseChiSq.invcov(); }
@@ -15,7 +19,7 @@ class PulseChiSqSNNLSWrapper{
   
         double ChiSq() const { return pulseChiSq.ChiSq(); }
 
-        void DoFit(DoFitArgs* args, double* result);
+        void DoFit(DoFitArgs* args, bool* status);
         explicit PulseChiSqSNNLSWrapper();
         virtual ~PulseChiSqSNNLSWrapper();
     private:

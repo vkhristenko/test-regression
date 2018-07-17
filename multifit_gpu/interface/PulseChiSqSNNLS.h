@@ -13,8 +13,6 @@
 #include <array>
 
 
-
-
 typedef struct DoFitArgs{
     SampleVector samples;
     SampleMatrix samplecor;
@@ -40,6 +38,7 @@ typedef struct DoFitArgs{
 
 class PulseChiSqSNNLS {
 public:
+  // EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   CUDA_CALLABLE_MEMBER explicit PulseChiSqSNNLS();
   CUDA_CALLABLE_MEMBER ~PulseChiSqSNNLS();
@@ -86,7 +85,7 @@ protected:
 };
 
 #ifdef __CUDACC__
-__global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, double *result);
+__global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, bool *status);
 #endif
 
 #endif

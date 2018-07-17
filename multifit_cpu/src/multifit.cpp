@@ -5,6 +5,8 @@
 // > ./Example06
 //
 
+
+
 #include <iostream>
 #include "multifit_cpu/interface/PulseChiSqSNNLS.h"
 #include "multifit_cpu/interface/Pulse.h"
