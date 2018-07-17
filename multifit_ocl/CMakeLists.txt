@@ -3,7 +3,7 @@ project(ocl_test)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_BUILD_TYPE=Debug)
-add_definitions(-DUSE_SVM_API=1 -fpermissive)
+# add_definitions(-DUSE_SVM_API=1 -fpermissive)
 
 # for debug purposes
 message(CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH})
@@ -28,9 +28,9 @@ message(OpenCL_LIBRARIES = ${OpenCL_LIBRARIES})
 message(OpenCL_VERSION_STRING = ${OpenCL_VERSION_MAJOR})
 message(OpenCL_VERSION_MAJOR = ${OpenCL_VERSION_MAJOR})
 message(OpenCL_VERSION_MINOR = ${OpenCL_VERSION_MINOR})
-set (LINK_LIBRARIES ${OpenCL_LIBRARIES} ${LINK_LIBRARIES})
+# set (LINK_LIBRARIES ${OpenCL_LIBRARIES} ${LINK_LIBRARIES})
 
-include_directories(${PROJECT_SOURCE_DIR})
+# include_directories(${PROJECT_SOURCE_DIR})
 
 message("-------------------------------------------")
 
@@ -49,6 +49,7 @@ message(${OPENCL_FILES})
 #  endforeach()
 # endif()
 
-add_subdirectory(utils)
 
 add_executable(ocl_test ${SOURCES})
+target_link_libraries(ocl_test OpenCL::OpenCL)
+
