@@ -82,7 +82,9 @@ void init()
 
 void run(std::string inputFile, std::string outFile)
 {
-  
+    // 
+    // initilaization: read the input and arrange root tree/branches
+    //
   TFile *file2 = new TFile(inputFile.c_str());
   
  
@@ -142,23 +144,32 @@ void run(std::string inputFile, std::string outFile)
   
   std::cout << "entries: " << nentries << std::endl;
 
-  for(int ievt=0; ievt<nentries; ++ievt){
+  // vector of input parameters to the kernel
+  std::vector<DoFitArgs> vargs;
+
+  // 1 event is 1 channel fitting
+  for(int ievt=0; ievt<nentries; ++ievt) {
+    // assign the signal amplitudes
     tree->GetEntry(ievt);
     for(int i=0; i<NSAMPLES; i++){
       amplitudes[i] = samples->at(i);
     }
-    
+ 
     double pedval = 0.;
     double pedrms = 1.0;
+    std::cout << "wrapper start" << std::endl;
+    vargs.emplace_back(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
+    auto vresults = doFitWrapper(vargs);
+    auto results = vresults[0];
+    std::cout << "wrapper end" << std::endl;
     // PulseChiSqSNNLSWrapper pulsefunc;
     // pulsefunc.disableErrorCalculation();
     // bool status = false;
-    DoFitArgs args(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
-    DoFitArgs* parameters = (DoFitArgs*) malloc(sizeof(DoFitArgs));
-    parameters[0] = args;
-    
-    auto results = doFitWrapper(parameters, 1)[0];
+//    DoFitArgs args(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
+//    DoFitArgs* parameters = (DoFitArgs*) malloc(sizeof(DoFitArgs));
+//    parameters[0] = args;
 
+//    auto results = doFitWrapper(parameters, 1)[0];
     // pulsefunc.DoFit(parameters, &status);
 
     // double chisq = pulsefunc.ChiSq();
@@ -167,7 +178,7 @@ void run(std::string inputFile, std::string outFile)
 
     // std::cout << "status = " << status << std::endl;
     std::cout << "status = " << results.status << std::endl;
-    std::cout << chisq << std::endl;
+    std::cout << "chi2 = " << chisq << std::endl;
     
     unsigned int ipulseintime = 0;
     // for (unsigned int ipulse=0; ipulse<pulsefunc.BXs().rows(); ++ipulse) {

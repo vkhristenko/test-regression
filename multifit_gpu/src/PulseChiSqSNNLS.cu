@@ -11,7 +11,7 @@
   // }
 
 
-CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, 
+__host__ __device__ bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, const SampleMatrix &samplecor, 
                                        double pederr, const BXVector &bxs, const FullSampleVector &fullpulse,
                                        const FullSampleMatrix &fullpulsecov) {
   
@@ -135,7 +135,7 @@ CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::DoFit(const SampleVector &samples, co
   
 }
 
-CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double pederr, 
+__host__ __device__ bool PulseChiSqSNNLS::Minimize(const SampleMatrix &samplecor, double pederr, 
                                           const FullSampleMatrix &fullpulsecov) {
   
   
@@ -152,7 +152,7 @@ CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::Minimize(const SampleMatrix &sampleco
   return true;  
 }
 
-CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr,
+__host__ __device__ bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplecor, double pederr,
                                            const FullSampleMatrix &fullpulsecov) {
   const unsigned int nsample = SampleVector::RowsAtCompileTime;
   const unsigned int npulse = _bxs.rows();
@@ -177,7 +177,7 @@ CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::updateCov(const SampleMatrix &samplec
   return true;  
 }
 
-CUDA_CALLABLE_MEMBER double PulseChiSqSNNLS::ComputeChiSq() {
+__host__ __device__ double PulseChiSqSNNLS::ComputeChiSq() {
   
   //   SampleVector resvec = _pulsemat*_ampvec - _sampvec;
   //   return resvec.transpose()*_covdecomp.solve(resvec);
@@ -187,7 +187,7 @@ CUDA_CALLABLE_MEMBER double PulseChiSqSNNLS::ComputeChiSq() {
   // return 1.0;
 }
 
-CUDA_CALLABLE_MEMBER double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse) {
+__host__ __device__ double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse) {
   //compute approximate uncertainties
   //(using 1/second derivative since full Hessian is not meaningful in
   //presence of positive amplitude boundaries.)
@@ -199,7 +199,7 @@ CUDA_CALLABLE_MEMBER double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned i
   
 }
 
-CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::NNLS() {
+__host__ __device__ bool PulseChiSqSNNLS::NNLS() {
   
   //Fast NNLS (fnnls) algorithm as per http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
   
@@ -313,20 +313,15 @@ CUDA_CALLABLE_MEMBER bool PulseChiSqSNNLS::NNLS() {
   
 }
 
-CUDA_CALLABLE_MEMBER PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {}
-CUDA_CALLABLE_MEMBER PulseChiSqSNNLS::~PulseChiSqSNNLS() {}
+__host__ __device__ PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {}
 
-
-
-__global__ void GpuDoFit(DoFitArgs *parameters, DoFitResults *results, unsigned int n){
+__global__ void kernel_multifit(DoFitArgs *vargs, DoFitResults *vresults, unsigned int n){
   int i = blockIdx.x*blockDim.x + threadIdx.x;
   if (i>=n) return;
   PulseChiSqSNNLS pulse;
   pulse.disableErrorCalculation();
-  auto args = parameters[i];
-  results[i].status = pulse.DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
-  // results[i] = DoFitResults(pulse.ChiSq(), pulse.BXs(), pulse.X(), (bool) status); 
-  results[i].chisq = pulse.ChiSq();
-  results[i].X = pulse.X();
-  results[i].BXs = pulse.BXs();
+  auto args = vargs[i];
+  int status = 100;
+//  results[i].status = pulse.DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
+  vresults[i] = DoFitResults{pulse.ChiSq(), pulse.BXs(), pulse.X(), (bool) status}; 
 }

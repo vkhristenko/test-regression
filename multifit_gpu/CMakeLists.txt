@@ -3,7 +3,7 @@ message("compiling multifit gpu")
 if (CUDA_FOUND)
     file(GLOB CUSOURCES src/*.cu)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --expt-relaxed-constexpr")
-    cuda_add_library(multifit_gpu_kernels SHARED ${CUSOURCES})
+    cuda_add_library(multifit_gpu_kernels ${CUSOURCES})
     target_link_libraries(multifit_gpu_kernels)
 endif()
 

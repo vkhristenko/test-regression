@@ -4,11 +4,11 @@
 // #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
 // #define EIGEN_DONT_VECTORIZE 
 
+#include <vector>
 
+#include "multifit_gpu/interface/DeviceData.h"
 
-#include "multifit_gpu/interface/PulseChiSqSNNLS.h"
-
-DoFitResults* doFitWrapper(DoFitArgs* args, unsigned int n);
+std::vector<DoFitResults> doFitWrapper(std::vector<DoFitArgs> const&);
 
 // class PulseChiSqSNNLSWrapper{
 //     public:

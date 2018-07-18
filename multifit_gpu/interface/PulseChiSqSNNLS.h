@@ -1,79 +1,35 @@
 #ifndef PulseChiSqSNNLS_h
 #define PulseChiSqSNNLS_h
 
-#ifdef __CUDACC__
-#define CUDA_CALLABLE_MEMBER __host__ __device__
-#else
-#define CUDA_CALLABLE_MEMBER
-#endif 
-
-
 #include "EigenMatrixTypes.h"
-#include <set>
-#include <array>
-
-
-typedef struct DoFitArgs{
-    SampleVector samples;
-    SampleMatrix samplecor;
-    double pederr;
-    BXVector bxs;
-    FullSampleVector fullpulse;
-    FullSampleMatrix fullpulsecov;
-    DoFitArgs(
-              const SampleVector &samples, 
-              const SampleMatrix &samplecor, 
-              double pederr, 
-              const BXVector &bxs, 
-              const FullSampleVector &fullpulse,
-              const FullSampleMatrix &fullpulsecov) :
-      samples(samples), 
-      samplecor(samplecor), 
-      pederr(pederr), 
-      bxs(bxs), 
-      fullpulse(fullpulse),
-      fullpulsecov(fullpulsecov) {};
-} DoFitArgs;
-
-
-typedef struct DoFitResults{
-    double chisq;
-    BXVector BXs;
-    PulseVector X;
-    bool status;
-    // DoFitResults(double chisq, BXVector &BXs, PulseVector &X, bool status) : 
-        // chisq(chisq), BXs(BXs), X(X), status(status) {};
-} DoFitResults;
-
+#include "DeviceData.h"
 
 class PulseChiSqSNNLS {
 public:
 
-  CUDA_CALLABLE_MEMBER explicit PulseChiSqSNNLS();
-  CUDA_CALLABLE_MEMBER ~PulseChiSqSNNLS();
-
+  __host__ __device__ explicit PulseChiSqSNNLS();
   typedef BXVector::Index Index;
     
-  CUDA_CALLABLE_MEMBER bool DoFit(const SampleVector &samples, const SampleMatrix &samplecor, double pederr, 
+  __host__ __device__ bool DoFit(const SampleVector &samples, const SampleMatrix &samplecor, double pederr, 
              const BXVector &bxs, const FullSampleVector &fullpulse, const FullSampleMatrix &fullpulsecov);
   
-  const SamplePulseMatrix &pulsemat() const { return _pulsemat; }
-  const SampleMatrix &invcov() const { return _invcov; }
+  __host__ __device__ const SamplePulseMatrix &pulsemat() const { return _pulsemat; }
+  __host__ __device__ const SampleMatrix &invcov() const { return _invcov; }
   
-  CUDA_CALLABLE_MEMBER const PulseVector &X() const { return _ampvecmin; }
-  const PulseVector &Errors() const { return _errvec; }
-  CUDA_CALLABLE_MEMBER const BXVector &BXs() const { return _bxsmin; }
+  __host__ __device__ const PulseVector &X() const { return _ampvecmin; }
+  __host__ __device__ const PulseVector &Errors() const { return _errvec; }
+  __host__ __device__ const BXVector &BXs() const { return _bxsmin; }
   
-  CUDA_CALLABLE_MEMBER double ChiSq() const { return _chisq; }
-  CUDA_CALLABLE_MEMBER void disableErrorCalculation() { _computeErrors = false; }
+  __host__ __device__ double ChiSq() const { return _chisq; }
+  __host__ __device__ void disableErrorCalculation() { _computeErrors = false; }
   
 protected:
   
-  CUDA_CALLABLE_MEMBER bool Minimize(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov);
-  CUDA_CALLABLE_MEMBER bool NNLS();
-  CUDA_CALLABLE_MEMBER bool updateCov(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov);
-  CUDA_CALLABLE_MEMBER double ComputeChiSq();
-  CUDA_CALLABLE_MEMBER double ComputeApproxUncertainty(unsigned int ipulse);
+  __host__ __device__ bool Minimize(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov);
+  __host__ __device__ bool NNLS();
+  __host__ __device__ bool updateCov(const SampleMatrix &samplecor, double pederr, const FullSampleMatrix &fullpulsecov);
+  __host__ __device__ double ComputeChiSq();
+  __host__ __device__ double ComputeApproxUncertainty(unsigned int ipulse);
   
   
   SampleVector _sampvec;
@@ -93,9 +49,6 @@ protected:
   bool _computeErrors;
 };
 
-#ifdef __CUDACC__
-// __global__ void GpuDoFit(PulseChiSqSNNLS *pulse, DoFitArgs *parameters, bool *status);
-__global__ void GpuDoFit(DoFitArgs *parameters, DoFitResults* results, unsigned int n);
-#endif
+__global__ void kernel_multifit(DoFitArgs *parameters, DoFitResults* results, unsigned int n);
 
 #endif
