@@ -80,7 +80,7 @@ void init()
 
 
 
-void run(std::string inputFile, std::string outFile)
+void run(std::string inputFile, std::string outFile, int max_iterations, int entries_per_kernel = 100)
 {
     // 
     // initilaization: read the input and arrange root tree/branches
@@ -143,12 +143,52 @@ void run(std::string inputFile, std::string outFile)
   v_amplitudes_reco.clear();
   
   std::cout << "entries: " << nentries << std::endl;
+  std::cout << "max_iterations: " << max_iterations << std::endl;
+  std::cout << "entries_per_kernel: " << entries_per_kernel << std::endl;
 
-  // vector of input parameters to the kernel
-  std::vector<DoFitArgs> vargs;
+  for (auto it=0; it<max_iterations; ++it) {
+      // vector of input parameters to the kernel
+      std::vector<DoFitArgs> vargs;
+
+      for (int ie=0; ie<entries_per_kernel; ++ie) {
+          tree->GetEntry(ie);
+          for (int i=0; i<NSAMPLES; ++i)
+              amplitudes[i] = samples->at(i);
+
+          double pedval = 0.;
+          double pedrms = 1.0;
+          vargs.emplace_back(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
+      }
+
+      std::cout << "wrapper start with vargs.size() = " << vargs.size() << std::endl;
+      auto vresults = doFitWrapper(vargs);
+      std::cout << "wrapper end with vresults.size() = " << vresults.size() << std::endl;
+
+      for (auto& results : vresults) {
+          std::cout << "status = " << results.status << std::endl;
+          std::cout << "chi2 = " << results.chisq << std::endl;
+          unsigned int ipulseintime = 0;
+    
+          // for (unsigned int ipulse=0; ipulse<pulsefunc.BXs().rows(); ++ipulse) {
+          for (unsigned int ipulse=0; ipulse<results.BXs.rows(); ++ipulse) {
+              // if (pulsefunc.BXs().coeff(ipulse)==0) {
+              if (ipulse<results.BXs.coeff(ipulse)==0) {
+                  ipulseintime = ipulse;
+                  break;
+              }
+          }
+
+          // double aMax = status ? pulsefunc.X()[ipulseintime] : 0.;
+          double aMax = results.status ? results.X[ipulseintime] : 0.;
+          std::cout << "aMax = " << aMax << std::endl;
+          std::cout << "amplitudeTruth = " << amplitudeTruth << std::endl;
+          h01->Fill(aMax - amplitudeTruth);
+      }
+  }
 
   // 1 event is 1 channel fitting
-  for(int ievt=0; ievt<nentries; ++ievt) {
+  /*
+  for(int ievt=0; ievt<nentries && ievt<max_iterations; ++ievt) {
     // assign the signal amplitudes
     tree->GetEntry(ievt);
     for(int i=0; i<NSAMPLES; i++){
@@ -160,8 +200,8 @@ void run(std::string inputFile, std::string outFile)
     std::cout << "wrapper start" << std::endl;
     vargs.emplace_back(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
     auto vresults = doFitWrapper(vargs);
-    auto results = vresults[0];
     std::cout << "wrapper end" << std::endl;
+  }
     // PulseChiSqSNNLSWrapper pulsefunc;
     // pulsefunc.disableErrorCalculation();
     // bool status = false;
@@ -177,6 +217,7 @@ void run(std::string inputFile, std::string outFile)
     
 
     // std::cout << "status = " << status << std::endl;
+  for (auto& results : vresults)
     std::cout << "status = " << results.status << std::endl;
     std::cout << "chi2 = " << chisq << std::endl;
     
@@ -194,7 +235,9 @@ void run(std::string inputFile, std::string outFile)
     std::cout << "aMax = " << aMax << std::endl;
     std::cout << "amplitudeTruth" << amplitudeTruth << std::endl;
     h01->Fill(aMax - amplitudeTruth);
-  }
+  }*/
+
+  // print some stats
   fout->cd();
   newtree->Write();
   std::cout << "  Mean of REC-MC = " << h01->GetMean() << " GeV" << std::endl;
@@ -213,22 +256,32 @@ void saveHist()
 
 
 int main(int argc, char** argv) {
+  // default input file
   std::string inputFile = "data/samples_signal_10GeV_pu_0.root";
-  if (argc>=2) {
-    inputFile = argv[1];
-  }
-  
-  std::string outFile = "output.root";
-  if (argc>=3) {
-    outFile = argv[2];
-  }
 
+  // unwrap the cli args
+  auto max_iterations = 10;
+  auto entries_per_kernel = 100;
+  if (argc>=2)
+    inputFile = argv[1];
+  if (argc>=3)
+      max_iterations = atoi(argv[2]);
+  if (argc>=4)
+        entries_per_kernel = atoi(argv[3]);
+  
+  // output 
+  std::string outFile = "output.root";
+
+  std::cout << "max_iterations = " << max_iterations << "  entries_per_kernel = " << entries_per_kernel << std::endl;
+
+  // start
   std::cout << "1111" << std::endl;
   init();
   std::cout << "2222" << std::endl; 
-  run(inputFile, outFile);
+  run(inputFile, outFile, max_iterations, entries_per_kernel);
   std::cout << "3333" << std::endl;
   saveHist();
   std::cout << "4444" << std::endl;
+
   return 0;
 }
