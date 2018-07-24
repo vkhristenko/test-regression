@@ -50,4 +50,34 @@ protected:
   bool _computeErrors;
 };
 
+
+// template <typename T, typename T2, typename T3>
+// inline T3 sub_vector(const T2& full, const T& ind)
+// {
+//     int num_indices = ind.size();
+//     T3 target = T3::Zero(full.size());
+//     for (int i = 0; i < num_indices; i++){
+//         auto index = ind[i];
+//         target[i] = full[ind[i]];
+//     }
+//     return target;
+// }
+
+template <typename T, typename T2, typename T3>
+inline T3 sub_matrix(const T2& full, const T& ind)
+{
+    int num_indices = ind.size();
+    T3 target = T3::Zero(full.rows(), full.cols());
+    
+    for (auto index: ind){
+        target.col(index) = full.col(index);
+    }
+    // for (int i = 0; i < num_indices; i++)
+    //   for (int j = 0; j < num_indices; j++)
+    
+    //     target(i,j) = full(ind[i], ind[j]);
+    return target;
+}
+
+
 #endif
