@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8.0)
 
-set(CMAKE_VERBOSE_MAKEFILE OFF)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # project name
 project(test-regression)
@@ -8,8 +8,13 @@ project(test-regression)
 set(CMAKE_BUILD_TYPE "Debug")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+
+if (DEBUG)
+    add_definitions(-DDEBUG)
+endif()
 
 # cuda
 find_package(CUDA)
@@ -42,9 +47,21 @@ message (COMPILER = ${CMAKE_CXX_COMPILER})
 # always follow the source tree for inclusions ( a la cmssw)
 include_directories(${PROJECT_SOURCE_DIR})
 
-
+if (CUDA_FOUND)
+    if (TURNOFF_CUDA)
+    else()
+        add_subdirectory(multifit_gpu)
+    endif()
+endif()
 add_subdirectory(gen)
 add_subdirectory(multifit_cpu)
+add_subdirectory(nnls_cpu)
 add_subdirectory(multifit_cpu_v2)
-add_subdirectory(multifit_gpu)
-add_subdirectory(multifit_ocl)
+
+find_package(OpenCL REQUIRED)
+if (OpenCL_FOUND)
+    if (TURNOFF_OPENCL)
+    else()
+        add_subdirectory(multifit_ocl)
+    endif()
+endif()
