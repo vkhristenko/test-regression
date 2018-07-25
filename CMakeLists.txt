@@ -55,7 +55,6 @@ if (CUDA_FOUND)
 endif()
 add_subdirectory(gen)
 add_subdirectory(multifit_cpu)
-add_subdirectory(nnls_cpu)
 add_subdirectory(multifit_cpu_v2)
 
 find_package(OpenCL REQUIRED)
