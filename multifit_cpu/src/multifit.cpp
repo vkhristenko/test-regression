@@ -227,7 +227,7 @@ void run(std::string inputFile, std::string outFile, int max_iterations, int ent
   newtree->Write();
   std::cout << "  Mean of REC-MC = " << h01->GetMean() << " GeV" << std::endl;
   std::cout << "  RMS of REC-MC = " << h01->GetRMS() << " GeV" << std::endl;
-  std::cout << "  Entries Total = " << hDuration->GetMean() << std::endl;
+  std::cout << "  Entries Total = " << h01->GetEntries() << std::endl;
   std::cout << "  Mean Duration = " << hDuration->GetMean() << std::endl;
 }
 

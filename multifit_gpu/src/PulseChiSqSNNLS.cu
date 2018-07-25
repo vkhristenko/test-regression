@@ -219,8 +219,7 @@ __host__ __device__ bool PulseChiSqSNNLS::NNLS() {
   PulseVector wvec(npulse);
   
   
-  int iter = 0;
-  while (true) {    
+  for (int iter=0; iter<1000; iter++) {    
     //can only perform this step if solution is guaranteed viable
     if (iter>0 || _nP==0) {
       if ( _nP==npulse ) break;                  
@@ -248,12 +247,11 @@ __host__ __device__ bool PulseChiSqSNNLS::NNLS() {
     }
     
     
-    while (true) {
+    while (_nP > 0) {
       //printf("iter in, idxsP = %i\n",int(_idxsP.size()));
       
 //       std::cout << " >>  iter = " << iter << std::endl;
       
-      if (_nP==0) break;     
       // TODO: port EigenLDLT solve to gpu
       PulseVector ampvecpermtest = _ampvec;
       
@@ -298,15 +296,7 @@ __host__ __device__ bool PulseChiSqSNNLS::NNLS() {
       --_nP;
       
     }
-    ++iter;
-    
-    
-    //---- AM:: add this new check to stop
-    if (iter > 1000) break;
-    
   }
-  
-//   std::cout << "     -> _ampvec = " << _ampvec << std::endl;
   
   return true;
   

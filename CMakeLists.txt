@@ -8,7 +8,7 @@ project(test-regression)
 set(CMAKE_BUILD_TYPE "Debug")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -O2")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
@@ -22,7 +22,8 @@ if (CUDA_FOUND)
     add_definitions(-DUSE_CUDA)
     include_directories(${CUDA_INCLUDE_DIRS} SYSTEM)
     cuda_include_directories(${CUDA_INCLUDE_DIRS})
-    set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS} -G")
+    set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS}")
+    set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xptxas -O2,-v" )
 endif()
 find_package(NVVM)
 
