@@ -1,140 +1,205 @@
 #include <Eigen/Dense>
+#include <Eigen/SparseQR>
+#include <Eigen/Sparse>
+
 #include "nnsl.h"
 #include <iostream>
 #include <vector>
-#include <map>
 #include "eigen_nnls.h"
 
 using namespace std;
 using namespace Eigen;
 
- 
- 
+
 FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
 
  	// Fast NNLS (fnnls) algorithm as per 
 	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
 	// page 8
 	
-	// declarations of all needed parameters
-	// FixedMatrix A = _covdecomp.matrixL().solve(_pulsemat);
+	Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
 
+	std::vector<unsigned int> P;
+	std::vector<unsigned int> R(VECTOR_SIZE);
 
-	// std::cout << A << std::endl;
-	// std::cout << b << std::endl;
-
-	// TODO: this should be a parameter not a magic number 
-
+	// initial set of indexes
+	#pragma unroll
+	for ( unsigned int i=0; i<VECTOR_SIZE; ++i) R[i] = i;
 
 	// initial solution vector
 	FixedVector x = FixedVector::Zero();
 
-	std::vector<unsigned int> P;
-	std::map<unsigned int, double> R;
+	// auto AtA = A.transpose() * A;
 
-	// store the matrix to avoid to recompute it every times
-	FixedMatrix AtA = A.transpose()*A;
-
-
-	// initialization
-	// cost vector
-	
-	// NNLS
-	// FixedVector w = A.transpose()*(b - (A*x));
-	
-	// FNNLS
-	FixedVector w = ( A.transpose()*b ) - (AtA*x);
-
-	// initial set of indexes
-	for ( unsigned int i=0; i<VECTOR_SIZE; ++i)
-		R[i] = w[i];
-
-	// initialize the value for the while guard
-	// j will contain the index of the max coeff anf max_w is the max coeff 
-	unsigned int max_index = 0;
-	auto max_w = w[max_index];
-
-
-  
 	// main loop 
 	for (int iter=0; iter<max_iterations; ++iter){
-			
-		// theres no eigen helper function for this. Thats why is calculated manually
-		for (auto const &coeff: R){
-			if(coeff.second>max_w){
-				max_w = coeff.second;
-				max_index = coeff.first;
-			}  
+
+		// cout << "iter " << iter << endl;
+
+
+		//NNLS
+		// initialize the cost vector
+		FixedVector w = A.transpose()*(b - (A*x));
+		
+		// FNNLS
+		// FixedVector w = (A.transpose()*b) - (AtA*x);
+
+		cout << "w" << endl << w << endl;
+
+		// initialize the value for the while guard
+		// max_index will contain the index of the max coeff anf max_w is the max coeff 
+		unsigned int max_index = R[0];	
+		unsigned int remove_index = 0;
+
+		for (unsigned int i=0; i<R.size(); ++i){
+			auto index = R[i];
+			if(w[index] > w[max_index]){
+				max_index = index;
+				remove_index = i;
+			}
 		}
 
-		if(R.empty() || max_w<=eps) break;
 
+		// cout << "max index " << max_index << endl;
 
-		// Include the index max_index in P and remove it from R
 		P.emplace_back(max_index);
-		R.erase(max_index);
+		R.erase(R.begin()+remove_index);
+
+		// termination condition
+		if(R.empty() || w[max_index] < eps) break;
+
+		// cout << "P " << endl;
+		// for (auto elem : P) cout << elem << " ";
+		// cout << endl;
+		// cout << "R " << endl;
+		// for (auto elem : R) cout << elem << " ";
+		// cout << endl;
+
+		// NNLS
+
+		// Eigen::SparseMatrix<double, Eigen::ColMajor> A_P(MATRIX_SIZE, MATRIX_SIZE);
+		FixedMatrix A_P = FixedMatrix::Zero();
+
+		// A_P.setZero();
+
+		for(auto index: P) A_P.col(index)=A.col(index);
+			// for (unsigned int i=0; i< MATRIX_SIZE; ++i){
+			// }
+
+		solver.compute(A_P.sparseView());
+
+		// cout << "A_P " << endl << A_P << endl; 
+
+		// FixedVector s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
+		// FixedVector s =  A_P.inverse() * b;
+		Eigen::VectorXd s =  solver.solve(b);
 		
-		// construct the submatrix A^P
-		// FixedMatrix AtA_P = FixedMatrix::Zero(P.size(),_bxs.rows());
-		// Eigen::MatrixXd AtA_P(_bxs.rows(), P.size());
+		// FFNLS
 
-		// construct the submatrix AtA^P
-		FixedMatrix AtA_P = sub_matrix<std::vector<unsigned int>, FixedMatrix, FixedMatrix>(AtA, P);
+		// FixedMatrix A_P = FixedMatrix::Zero();
+
+		// for(auto index: P) A_P.col(index)=AtA.col(index);
+
+		// cout << "A_P " << endl << A_P << endl; 
+
+		// FixedVector Ab =  A.transpose() * b;
+
+		// for(auto index: R) Ab[index] = 0;
+
+		// FixedVector s = A_P.inverse() * Ab;
 		
-		// tempory solution vector
-		FixedVector s = FixedVector::Zero();
+		for(auto index: R) s[index]=0;
 
-		// vector obtained by A*b
-		FixedVector Ab = A.transpose()*b;
-		for (const auto &index: R){
-			Ab[index.first] = 0;
-		}
+		// cout << "s" << endl << s << endl;
 
-		FixedVector s_p = AtA_P.inverse()*Ab;
+		// inner loop
+		while(true){
 
-		for (auto index: P){
-			s[index] = s_p[index];
-		}
-		
-		while (s_p.minCoeff() <= 0){
-		
-			// real computation
-			double alpha = std::numeric_limits<double>::max();
-			for(auto index: P){
-				if (s[index]  < 0)
-				alpha = std::min(x[index]/(x[index]-s[index]), alpha);
-			}
+			auto min_s = std::numeric_limits<double>::max();
 
-			x += alpha*(s-x);
-		
-			for (auto it=P.begin(); it != P.end();){
-				auto index = *it;
-				if(x[index]==0){
-					R[index] = w[index];
-					P.erase(it);
-				} else it++;
-			}
+			for (auto index: P)
+				min_s = std::min(s[index],min_s);
+			
+			cout << "min_s " << min_s << endl;
 
-			s.setZero();
-			Ab = A.transpose()*b;
-			for (const auto &index: R){
-				Ab[index.first] = 0;
-			}
+			if(min_s > 0 ) break;
 
-			AtA_P = sub_matrix<std::vector<unsigned int>,FixedMatrix,FixedMatrix>(AtA, P);
-			s_p = AtA_P.inverse() * Ab;
+			auto alpha = std::numeric_limits<double>::max();
 
 			for (auto index: P){
-				s[index] = s_p[index];
+				if (s[index] <= 0 ){
+					alpha = -std::min(x[index]/(x[index]-s[index]), alpha);
+				}
 			}
-		}
-		
-		x = s;
-		
-		// std::cout << x << std::endl;
 
-		w = ( A.transpose()*b ) - (AtA*x);
+			cout << "alpha " << alpha << endl;
+
+			cout << "x before" << endl << x << endl;
+
+			for (auto index: P)
+				x[index] += alpha*(s[index]-x[index]);
+
+			cout << "x after" << endl << x << endl;
+
+			std::vector<unsigned int> tmp;
+
+			// cout << "P  before" << endl;
+			// for (auto elem : P) cout << elem << " ";
+			// cout << endl;
+			// cout << "R before" << endl;
+			// for (auto elem : R) cout << elem << " ";
+			// cout << endl;
+
+
+			for(int i=P.size()-1; i>=0; --i){
+				auto index = P[i]; 
+				if(x[index]==0){
+					R.emplace_back(index);
+					tmp.emplace_back(i);
+				}
+			}
+
+			for(auto index: tmp) P.erase(P.begin()+index);
+
+			// cout << "P  after" << endl;
+			// for (auto elem : P) cout << elem << " ";
+			// cout << endl;
+			// cout << "R after" << endl;
+			// for (auto elem : R) cout << elem << " ";
+			// cout << endl;
+
+			// NNLS
+
+			A_P.setZero();
+	
+			for(auto index: P) A_P.col(index)=A.col(index);
+			
+			solver.compute(A_P.sparseView());
+
+			// s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
+			// s = A_P.inverse() * b;
+			s =  solver.solve(b);
+
+			// FixedMatrix A_P = FixedMatrix::Zero();
+
+			// for(auto index: P) A_P.col(index)=AtA.col(index);
+
+			// cout << "A_P " << endl << A_P << endl; 
+
+			// Ab =  A.transpose() * b;
+
+			// for(auto index: R) Ab[index] = 0;
+
+			// s = A_P.inverse() * Ab;
+
+			for(auto index: R) s[index]=0;
+
+			return x;
+		}
+
+		x = s;
 	}
+
 
 	return x;
 }
@@ -142,6 +207,8 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 
 int main(){
 
+	srand(42);
+	
 	auto A = FixedMatrix::Random();
 	auto b = FixedVector::Random();
 
@@ -153,7 +220,9 @@ int main(){
 	cout << "eigen" << endl;	
 	cout << x << endl;
 	cout << "mine" << endl;
-	auto x2 = nnls(A,b);
-	cout << x2 << endl;
+	auto x2 = nnls(A,b, 1e-21, 1000);
+	cout << "x" << endl << x2 << endl;
+	cout << "eigen error " << (b-A*x).norm() << endl;
+	cout << "my error " << (b-A*x2).norm() << endl;
 	return 0;
 }
