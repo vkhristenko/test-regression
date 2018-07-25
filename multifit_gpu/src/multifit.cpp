@@ -140,7 +140,7 @@ void run(std::string inputFile, std::string outFile, int max_iterations, int ent
       std::vector<DoFitArgs> vargs;
 
       for (int ie=0; ie<entries_per_kernel; ++ie) {
-          tree->GetEntry(ie);
+          tree->GetEntry(ie % tree->GetEntries());
           for (int i=0; i<NSAMPLES; ++i)
               amplitudes[i] = samples->at(i);
 
@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
         entries_per_kernel = atoi(argv[3]);
   
   // output 
-  std::string outFile = "output.root";
+  std::string outFile = "output_gpu.root";
 
   std::cout << "max_iterations = " << max_iterations << "  entries_per_kernel = " << entries_per_kernel << std::endl;
 
