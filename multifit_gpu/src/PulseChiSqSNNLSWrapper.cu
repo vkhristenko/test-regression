@@ -9,9 +9,17 @@ std::vector<DoFitResults> doFitWrapper(std::vector<DoFitArgs> const& vargs) {
     // input parameters to the multifit on gpu
     DoFitArgs* d_args;
     DoFitResults* d_results;
-    std::vector<DoFitResults> results(vargs.size());
+    std::vector<DoFitResults> results;
+    std::cout << "sizeof (DoFitResults) = " << sizeof(DoFitResults) << std::endl;
+    std::cout << "sizeof (BXVector) = " << sizeof(BXVector) << std::endl;
+    std::cout << "sizeof (PulseVector) = " << sizeof(PulseVector) << std::endl;
+    std::cout << "vargs.size() = " << vargs.size() << std::endl;
+    results.resize(100);
+    std::cout << "size = " << results.size() << std::endl;
+    std::cout << "capacity = " << results.capacity() << std::endl;
 
     // allocate on the device
+    /*
     std::cout << "allocate on the device" << std::endl;
     cudaMalloc((void**) &d_args, sizeof(DoFitArgs) * vargs.size());
     cudaMalloc((void**) &d_results, sizeof(DoFitResults) * vargs.size());
@@ -36,13 +44,14 @@ std::vector<DoFitResults> doFitWrapper(std::vector<DoFitArgs> const& vargs) {
 
     // copy results back
     std::cout << "copy back to the host" << std::endl;
-    cudaMemcpy(&(results[0]), d_args, sizeof(DoFitResults) * vargs.size(), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&(results[0]), d_results, sizeof(DoFitResults) * results.size(), cudaMemcpyDeviceToHost);
     std::cout << "vresults.size() = " << results.size() << std::endl;
 
     // free resources
     std::cout << "free the device memory" << std::endl;
     cudaFree(d_args);
     cudaFree(d_results);
+    */
 
-    return results;
+    return std::vector<DoFitResults>{};
 }
