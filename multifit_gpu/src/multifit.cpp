@@ -1,11 +1,6 @@
-//
-// MultiFit amplitude reconstruction
-// To run:
-// > g++ -o Example06 Example06.cc PulseChiSqSNNLS.cc -std=c++11 `root-config --cflags --glibs`
-// > ./Example06
-//
-
 #include <iostream>
+#include <chrono>
+
 #include "multifit_gpu/interface/Pulse.h"
 // #include "multifit_cpu/interface/PulseChiSqSNNLS.h"
 #include "multifit_gpu/interface/PulseChiSqSNNLSWrapper.h"
@@ -28,13 +23,14 @@ SampleVector amplitudes(SampleVector::Zero());
 
 TFile *fout;
 TH1D *h01;
-
+TH1D *hDuration;
 
 
 void initHist()
 {
   fout = new TFile("output.root","recreate");
   h01 = new TH1D("h01", "dA", 1000, -20.0, 20.0);
+  hDuration = new TH1D("Duration", "Duration", 100, 0, 5000);
 }
 
 void init()
@@ -44,13 +40,6 @@ void init()
   // intime sample is [2]
   double pulseShapeTemplate[NSAMPLES+2];
   for(int i=0; i<(NSAMPLES+2); i++){
-    
-//     iwf/4. - (500 / 2) + 25. 
-//     double x = double( IDSTART + NFREQ * (i + 3) - WFLENGTH / 2);
-//     double x = double( IDSTART + NFREQ * (i + 3) - WFLENGTH / 2);
-//     double x = double( IDSTART + NFREQ * (i + 3) - 500 / 2); //----> 500 ns is fixed!  
-    //     x = double( IDSTART + NFREQ * i + 3*25. - 500 / 2. );  //----> 500 ns is fixed!  
-    
     double x = double( IDSTART + NFREQ * (i + 3) + NFREQ - 500 / 2); //----> 500 ns is fixed!  
     
     
@@ -160,78 +149,36 @@ void run(std::string inputFile, std::string outFile, int max_iterations, int ent
           vargs.emplace_back(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
       }
 
-      std::cout << "wrapper start with vargs.size() = " << vargs.size() << std::endl;
+      std::cout << "iteration: " << it 
+          << " wrapper start with vargs.size() = " << vargs.size() << std::endl;
+      auto start_time = std::chrono::high_resolution_clock::now();
       auto vresults = doFitWrapper(vargs);
+      auto end_time = std::chrono::high_resolution_clock::now();
       std::cout << "wrapper end with vresults.size() = " << vresults.size() << std::endl;
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+            end_time - start_time).count();
+      hDuration->Fill(duration);
+      std::cout << "duration = " << duration << std::endl;
 
       for (auto& results : vresults) {
-          std::cout << "status = " << results.status << std::endl;
-          std::cout << "chi2 = " << results.chi2 << std::endl;
+          //std::cout << "status = " << results.status << std::endl;
+          //std::cout << "chi2 = " << results.chi2 << std::endl;
 
           // double aMax = status ? pulsefunc.X()[ipulseintime] : 0.;
           double aMax = results.ampl;
-          std::cout << "aMax = " << aMax << std::endl;
-          std::cout << "amplitudeTruth = " << amplitudeTruth << std::endl;
+          //std::cout << "aMax = " << aMax << std::endl;
+          //std::cout << "amplitudeTruth = " << amplitudeTruth << std::endl;
           h01->Fill(aMax - amplitudeTruth);
       }
   }
-
-  // 1 event is 1 channel fitting
-  /*
-  for(int ievt=0; ievt<nentries && ievt<max_iterations; ++ievt) {
-    // assign the signal amplitudes
-    tree->GetEntry(ievt);
-    for(int i=0; i<NSAMPLES; i++){
-      amplitudes[i] = samples->at(i);
-    }
- 
-    double pedval = 0.;
-    double pedrms = 1.0;
-    std::cout << "wrapper start" << std::endl;
-    vargs.emplace_back(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
-    auto vresults = doFitWrapper(vargs);
-    std::cout << "wrapper end" << std::endl;
-  }
-    // PulseChiSqSNNLSWrapper pulsefunc;
-    // pulsefunc.disableErrorCalculation();
-    // bool status = false;
-//    DoFitArgs args(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
-//    DoFitArgs* parameters = (DoFitArgs*) malloc(sizeof(DoFitArgs));
-//    parameters[0] = args;
-
-//    auto results = doFitWrapper(parameters, 1)[0];
-    // pulsefunc.DoFit(parameters, &status);
-
-    // double chisq = pulsefunc.ChiSq();
-    auto chisq = results.chisq;
-    
-
-    // std::cout << "status = " << status << std::endl;
-  for (auto& results : vresults)
-    std::cout << "status = " << results.status << std::endl;
-    std::cout << "chi2 = " << chisq << std::endl;
-    
-    unsigned int ipulseintime = 0;
-    // for (unsigned int ipulse=0; ipulse<pulsefunc.BXs().rows(); ++ipulse) {
-    for (unsigned int ipulse=0; ipulse<results.BXs.rows(); ++ipulse) {
-      // if (pulsefunc.BXs().coeff(ipulse)==0) {
-      if (ipulse<results.BXs.coeff(ipulse)==0) {
-        ipulseintime = ipulse;
-        break;
-      }
-    }
-    // double aMax = status ? pulsefunc.X()[ipulseintime] : 0.;
-    double aMax = results.status ? results.X[ipulseintime] : 0.;
-    std::cout << "aMax = " << aMax << std::endl;
-    std::cout << "amplitudeTruth" << amplitudeTruth << std::endl;
-    h01->Fill(aMax - amplitudeTruth);
-  }*/
 
   // print some stats
   fout->cd();
   newtree->Write();
   std::cout << "  Mean of REC-MC = " << h01->GetMean() << " GeV" << std::endl;
-  std::cout << "   RMS of REC-MC = " << h01->GetRMS() << " GeV" << std::endl;
+  std::cout << "  RMS of REC-MC = " << h01->GetRMS() << " GeV" << std::endl;
+  std::cout << "  Entries Total = " << h01->GetEntries() << std::endl;
+  std::cout << "  Mean Duration = " << hDuration->GetMean() << std::endl;
 }
 
 

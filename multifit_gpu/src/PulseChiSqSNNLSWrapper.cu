@@ -11,7 +11,7 @@ std::vector<Output> doFitWrapper(std::vector<DoFitArgs> const& vargs) {
     Output* d_results;
     std::vector<Output> results;
     std::cout << "vargs.size() = " << vargs.size() << std::endl;
-    results.resize(100);
+    results.resize(vargs.size());
     std::cout << "size = " << results.size() << std::endl;
     std::cout << "capacity = " << results.capacity() << std::endl;
 
