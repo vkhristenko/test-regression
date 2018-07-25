@@ -315,7 +315,7 @@ __host__ __device__ bool PulseChiSqSNNLS::NNLS() {
 
 __host__ __device__ PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {}
 
-__global__ void kernel_multifit(DoFitArgs *vargs, DoFitResults *vresults, unsigned int n) {
+__global__ void kernel_multifit(DoFitArgs *vargs, Output *vresults, unsigned int n) {
     // thread idx
     int i = blockIdx.x*blockDim.x + threadIdx.x;
     if (i>=n) return;
@@ -327,6 +327,17 @@ __global__ void kernel_multifit(DoFitArgs *vargs, DoFitResults *vresults, unsign
     // perform the regression
     auto status = pulse.DoFit(args.samples, args.samplecor, args.pederr, args.bxs, args.fullpulse, args.fullpulsecov);
 
+    unsigned int ip_in_time = 0;
+    for (unsigned int ip=0; ip<pulse.BXs().rows(); ++ip) {
+        if (ip < pulse.BXs().coeff(ip) == 0) {
+            ip_in_time = ip;
+            break;
+        }
+    }
+
     // assing the result
-    vresults[i] = DoFitResults{pulse.ChiSq(), pulse.BXs(), pulse.X(), (bool) status}; 
+    vresults[i] = Output{pulse.ChiSq(), status ? pulse.X()[ip_in_time] : 0.0, status};
+
+    // assing the result
+    //vresults[i] = DoFitResults{pulse.ChiSq(), pulse.BXs(), pulse.X(), (bool) status}; 
 }

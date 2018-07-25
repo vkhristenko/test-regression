@@ -8,6 +8,6 @@
 
 #include "multifit_gpu/interface/DeviceData.h"
 
-std::vector<DoFitResults> doFitWrapper(std::vector<DoFitArgs> const&);
+std::vector<Output> doFitWrapper(std::vector<DoFitArgs> const&);
 
 #endif

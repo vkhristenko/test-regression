@@ -166,20 +166,10 @@ void run(std::string inputFile, std::string outFile, int max_iterations, int ent
 
       for (auto& results : vresults) {
           std::cout << "status = " << results.status << std::endl;
-          std::cout << "chi2 = " << results.chisq << std::endl;
-          unsigned int ipulseintime = 0;
-    
-          // for (unsigned int ipulse=0; ipulse<pulsefunc.BXs().rows(); ++ipulse) {
-          for (unsigned int ipulse=0; ipulse<results.BXs.rows(); ++ipulse) {
-              // if (pulsefunc.BXs().coeff(ipulse)==0) {
-              if (ipulse<results.BXs.coeff(ipulse)==0) {
-                  ipulseintime = ipulse;
-                  break;
-              }
-          }
+          std::cout << "chi2 = " << results.chi2 << std::endl;
 
           // double aMax = status ? pulsefunc.X()[ipulseintime] : 0.;
-          double aMax = results.status ? results.X[ipulseintime] : 0.;
+          double aMax = results.ampl;
           std::cout << "aMax = " << aMax << std::endl;
           std::cout << "amplitudeTruth = " << amplitudeTruth << std::endl;
           h01->Fill(aMax - amplitudeTruth);
