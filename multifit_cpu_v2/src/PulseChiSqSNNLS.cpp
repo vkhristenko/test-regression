@@ -195,6 +195,7 @@ double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse) {
   return 1./_covdecomp.matrixL().solve(_pulsemat.col(ipulse)).norm();
 }
 
+
 bool PulseChiSqSNNLS::NNLS() {
   // Fast NNLS (fnnls) algorithm as per 
   // http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
@@ -209,35 +210,48 @@ bool PulseChiSqSNNLS::NNLS() {
   // std::cout << b << std::endl;
 
   // TODO: this should be a parameter not a magic number 
-  auto epsilon = 1e-20;
+  auto epsilon = 1e-11;
   auto max_iter = 1000;
-  auto &x = _ampvec;
-  std::vector<unsigned int> P;
-  std::map<unsigned int, unsigned int> R;
 
+  auto &x = _ampvec;
+  
+  // initial solution vector
+  x.setZero();
+
+  std::vector<unsigned int> P;
+  std::map<unsigned int, double> R;
+
+  // store the matrix to avoid to recompute it every times
+  SampleMatrix AtA = A.transpose()*A;
+
+  /*
   Eigen::NNLS<SampleMatrix> nnls(A, max_iter, epsilon);
   auto status = nnls.solve(b);
   assert(status);
   if (!status) return false;
   x = nnls.x();
+`*/
 
-  /*
   
-  // initial solution vector
-  x.setZero();
 
   // initialization
   // cost vector
-  SampleVector w = A.transpose()*(b - (A*x));
-
-  // initialize the value for the while guard
-  // j will contain the index of the max coeff anf max_w is the max coeff 
-  unsigned int max_index = R[0];
-  auto max_w = w[max_index];
+  
+  // NNLS
+  // SampleVector w = A.transpose()*(b - (A*x));
+  
+  // FNNLS
+  SampleVector w = ( A.transpose()*b ) - (AtA*x);
 
   // initial set of indexes
   for ( unsigned int i=0; i<_bxs.rows(); ++i)
     R[i] = w[i];
+
+  // initialize the value for the while guard
+  // j will contain the index of the max coeff anf max_w is the max coeff 
+  unsigned int max_index = 0;
+  auto max_w = w[max_index];
+
 
   
   // main loop 
@@ -250,53 +264,47 @@ bool PulseChiSqSNNLS::NNLS() {
         max_index = coeff.first;
       }  
     }
-    // update P and R
+
+    if(R.empty() || max_w<=epsilon) break;
+
+
+    // Include the index max_index in P and remove it from R
     P.emplace_back(max_index);
     R.erase(max_index);
     
     // construct the submatrix A^P
-    // SampleMatrix sub_matrix = SampleMatrix::Zero(P.size(),_bxs.rows());
-    Eigen::MatrixXd sub_matrix(_bxs.rows(), P.size());
+    // SampleMatrix AtA_P = SampleMatrix::Zero(P.size(),_bxs.rows());
+    // Eigen::MatrixXd AtA_P(_bxs.rows(), P.size());
 
-    SampleVector s;
-    s.setZero();
-    for (int i=0; i<P.size(); ++i){
-      // std::cout<<sub_matrix.col(i).size() << ',' << A.col(P[i]).size() << std::endl;
-      sub_matrix.col(i) = A.col(P[i]);
+    // construct the submatrix AtA^P
+    SampleMatrix AtA_P = sub_matrix<std::vector<unsigned int>, SampleMatrix, SampleMatrix>(AtA, P);
+    
+    // tempory solution vector
+    SampleVector s = SampleVector::Zero(x.size());
+
+    // vector obtained by A*b
+    SampleVector Ab = A.transpose()*b;
+    for (const auto &index: R){
+        Ab[index.first] = 0;
     }
 
-    // Eigen::VectorXd tmp_vector = ((sub_matrix.transpose()*sub_matrix).inverse()*sub_matrix.transpose())*b;
-    Eigen::VectorXd tmp_vector = (sub_matrix.transpose()*sub_matrix).inverse()*(sub_matrix.transpose()*b);
-    // std::cout << "tmp_vector " << tmp_vector << std::endl;
-    
-    for (unsigned int i=0; i<P.size(); ++i){
-      auto index = P[i];
-      // std::cout << "index " << index << std::endl;
-      s[index]=tmp_vector[i];
+    SampleVector s_p = AtA_P.inverse()*Ab;
+
+    for (auto index: P){
+      s[index] = s_p[index];
     }
-    // SampleVector r_vector(R.size());
     
-    while (true){
+    while (s_p.minCoeff() <= 0){
       
-      //termination condition
-      auto min_s = std::numeric_limits<double>::max();
-      
-
-      for (auto index: P)
-        min_s = std::min(min_s, s[index]);
-      
-      if(min_s > 0) break;
-
       // real computation
-      auto alpha = std::numeric_limits<double>::max();
+      double alpha = std::numeric_limits<double>::max();
       for(auto index: P){
-        if (s[index] < 0){
+        if (s[index]  < 0)
           alpha = std::min(x[index]/(x[index]-s[index]), alpha);
-        }
       }
 
       x += alpha*(s-x);
-
+  
       for (auto it=P.begin(); it != P.end();){
         auto index = *it;
         if(x[index]==0){
@@ -306,24 +314,27 @@ bool PulseChiSqSNNLS::NNLS() {
       }
 
       s.setZero();
+      Ab = A.transpose()*b;
+      for (const auto &index: R){
+        Ab[index.first] = 0;
+      }
 
-      tmp_vector = ((sub_matrix.transpose()*sub_matrix).inverse()*sub_matrix.transpose())*b;
+      AtA_P = sub_matrix<std::vector<unsigned int>,SampleMatrix,SampleMatrix>(AtA, P);
+      s_p = AtA_P.inverse() * Ab;
 
-      for (auto index: P)
-        s[index]=tmp_vector[index];
-      // std::cout << "s: " << s << std::endl;
+      for (auto index: P){
+        s[index] = s_p[index];
+      }
     }
     
     x = s;
     
     // std::cout << x << std::endl;
 
-    if(R.empty() || max_w<=epsilon) break;
-
-    w = A.transpose()*(b - (A*x));
+    w = ( A.transpose()*b ) - (AtA*x);
   }
   // exit(0);
-  */
+
 
   /*
   const unsigned int npulse = _bxs.rows();  
