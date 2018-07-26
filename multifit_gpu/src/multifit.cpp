@@ -26,16 +26,16 @@ TH1D *h01;
 TH1D *hDuration;
 
 
-void initHist()
+void initHist(std::string const& out_file)
 {
-  fout = new TFile("output.root","recreate");
+  fout = new TFile(out_file.c_str(),"recreate");
   h01 = new TH1D("h01", "dA", 1000, -20.0, 20.0);
   hDuration = new TH1D("Duration", "Duration", 100, 0, 5000);
 }
 
-void init()
+void init(std::string const& out_file)
 {
-  initHist();
+  initHist(out_file);
   
   // intime sample is [2]
   double pulseShapeTemplate[NSAMPLES+2];
@@ -69,7 +69,7 @@ void init()
 
 
 
-void run(std::string inputFile, std::string outFile, int max_iterations, int entries_per_kernel = 100)
+void run(std::string inputFile, int max_iterations, int entries_per_kernel = 100)
 {
     // 
     // initilaization: read the input and arrange root tree/branches
@@ -98,8 +98,6 @@ void run(std::string inputFile, std::string outFile, int max_iterations, int ent
   
   std::vector<TH1F*> v_pulses;
   std::vector<TH1F*> v_amplitudes_reco;
-  
-  std::cout << " outFile = " << outFile << std::endl;
   
   fout->cd();
   TTree* newtree = (TTree*) tree->CloneTree(0); //("RecoAndSim");
@@ -207,13 +205,13 @@ int main(int argc, char** argv) {
         entries_per_kernel = atoi(argv[3]);
   
   // output 
-  std::string outFile = "output_gpu.root";
+  std::string out_file = "output_gpu.root";
 
   std::cout << "max_iterations = " << max_iterations << "  entries_per_kernel = " << entries_per_kernel << std::endl;
 
   // start
   std::cout << "1111" << std::endl;
-  init();
+  init(out_file);
   std::cout << "2222" << std::endl; 
   run(inputFile, outFile, max_iterations, entries_per_kernel);
   std::cout << "3333" << std::endl;
