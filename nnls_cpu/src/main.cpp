@@ -45,21 +45,21 @@ int main(){
 		#endif
 		
 		double error;
-		error =  (b-A*x).norm(); 
+		error =  (b-A*x).squaredNorm(); 
 		eigen_error.push_back(error);
 
 		#ifdef VERBOSE
 		cout << "eigen error " << error << endl;
 		#endif
 		
-		error = (b-A*x2).norm();
+		error = (b-A*x2).squaredNorm();
 		nnls_error.push_back(error);
 
 		#ifdef VERBOSE
 		cout << "nnls error " << error << endl;
 		#endif
 		
-		error = (b-A*x3).norm();
+		error = (b-A*x3).squaredNorm();
 		fnnls_error.push_back(error);
 
 		#ifdef VERBOSE

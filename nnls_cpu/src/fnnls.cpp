@@ -10,7 +10,7 @@
 #include <vector>
 #endif
 
-#include "../interface/nnsl.h"
+#include "../interface/nnls.h"
 
 
 using namespace std;

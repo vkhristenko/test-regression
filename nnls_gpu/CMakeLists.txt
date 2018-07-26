@@ -1,1 +1,1 @@
-add_executable(nnls src/nnls_gpu.cpp src/fnnls.cpp src/main.cpp)
+add_executable(nnls_gpu src/nnls.cu src/fnnls.cu src/kernels.cu src/main.cpp)

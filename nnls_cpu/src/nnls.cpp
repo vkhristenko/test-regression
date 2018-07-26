@@ -8,7 +8,7 @@
 #include <iostream>
 #endif
 
-#include "../interface/nnsl.h"
+#include "../interface/nnls.h"
 
 using namespace std;
 using namespace Eigen;

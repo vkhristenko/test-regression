@@ -1,33 +1,27 @@
-#include "../interface/fnnls.h"
-
 #include <Eigen/Dense>
 #include <Eigen/SparseQR>
 #include <Eigen/Sparse>
 
-#include <iostream>
+#include <vector>
 
 #ifdef DEBUG
-#include <vector>
+#include <iostream>
 #endif
 
-#include "../interface/nnsl.h"
-
+#include "../interface/nnls.h"
 
 using namespace std;
 using namespace Eigen;
 
 
-FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
+__device__ __host__ 
+FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
 
  	// Fast NNLS (fnnls) algorithm as per 
 	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
 	// page 8
 	
-	// FNNLS memorizes the A^T * A and A^T * b to reduce the computation.
-	// The pseudo-inverse obtined has the same numerical problems so
-	// I keep the same decomposition utilized for NNLS.
 
-	
 	// pseudoinverse (A^T * A)^-1 * A^T 
 	// this pseudo-inverse has numerical issues
 	// in order to avoid that I substitued the pseudoinvese wiht the QR decomposition
@@ -44,8 +38,6 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 	// initial solution vector
 	FixedVector x = FixedVector::Zero();
 
-	auto AtA = A.transpose() * A;
-	auto Atb = A.transpose() * b;
 
 	// main loop 
 	for (int iter=0; iter<max_iterations; ++iter){
@@ -53,9 +45,10 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 		#ifdef DEBUG
 		// cout << "iter " << iter << endl;
 		#endif
-	
-		// FNNLS
-		FixedVector w = Atb - (AtA*x);
+
+		//NNLS
+		// initialize the cost vector
+		FixedVector w = A.transpose()*(b - (A*x));
 		
 		#ifdef DEBUG
 		// cout << "w" << endl << w << endl;
@@ -95,6 +88,7 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 
 		FixedMatrix A_P = FixedMatrix::Zero();
 
+
 		for(auto index: P) A_P.col(index)=A.col(index);
 
 		solver.compute(A_P.sparseView());
@@ -103,8 +97,11 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 		// cout << "A_P " << endl << A_P << endl; 
 		#endif
 
+		// FixedVector s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
 		Eigen::VectorXd s =  solver.solve(b);
-		
+	
+		for(auto index: R) s[index]=0;
+
 		#ifdef DEBUG
 		// cout << "s" << endl << s << endl;
 		#endif
@@ -118,7 +115,7 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 				min_s = std::min(s[index],min_s);
 			
 			#ifdef DEBUG
-			// cout << "min_s " << min_s << endl;
+			cout << "min_s " << min_s << endl;
 			#endif
 
 			if(min_s > 0 ) break;
@@ -132,9 +129,9 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 			}
 			#ifdef DEBUG
 
-			// cout << "alpha " << alpha << endl;
+			cout << "alpha " << alpha << endl;
 
-			// cout << "x before" << endl << x << endl;
+			cout << "x before" << endl << x << endl;
 
 			#endif
 
@@ -142,7 +139,7 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 				x[index] += alpha*(s[index]-x[index]);
 
 			#ifdef DEBUG
-			// cout << "x after" << endl << x << endl;
+			cout << "x after" << endl << x << endl;
 			#endif
 
 			std::vector<unsigned int> tmp;
@@ -177,6 +174,8 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 			// cout << endl;
 			#endif
 
+			// NNLS
+
 			A_P.setZero();
 	
 			for(auto index: P) A_P.col(index)=A.col(index);
@@ -196,4 +195,3 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 
 	return x;
 }
-
