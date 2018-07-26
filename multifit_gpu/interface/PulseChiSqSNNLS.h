@@ -49,6 +49,6 @@ protected:
   bool _computeErrors;
 };
 
-__global__ void kernel_multifit(DoFitArgs *parameters, DoFitResults* results, unsigned int n);
+__global__ void kernel_multifit(DoFitArgs *parameters, Output* results, unsigned int n);
 
 #endif

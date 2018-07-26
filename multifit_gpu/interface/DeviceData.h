@@ -22,6 +22,12 @@ struct DoFitArgs {
     {}
 };
 
+struct Output {
+    double chi2;
+    double ampl;
+    int status;
+};
+
 struct DoFitResults {
     double chisq;
     BXVector BXs;
