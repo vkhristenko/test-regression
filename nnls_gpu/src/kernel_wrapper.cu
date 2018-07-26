@@ -1,4 +1,5 @@
 #include "../interface/kernel_wrapper.h"
+#include "../interface/kernels.h"
 
 
 
@@ -14,19 +15,19 @@ std::vector<FixedVector> nnls_wrapper(
         FixedVector* d_x;
         
         // arguments allocation
-        cudaMalloc((void*) &d_args, sizeof(NNLS_args) * args.size());
+        cudaMalloc((void**) &d_args, sizeof(NNLS_args) * args.size());
         // results allocation
-        cudaMalloc((void*) &d_x, sizeof(FixedVector) * args.size());
+        cudaMalloc((void**) &d_x, sizeof(FixedVector) * args.size());
 
 
         // arguments copy
         cudaMemcpy(d_args, args.data(), sizeof(NNLS_args) * args.size(), cudaMemcpyHostToDevice);
         
         
-        nnls_kernel<<<1, 1>>>(d_args, d_x, args.size() eps, max_iterations);
+        nnls_kernel<<<1, 1>>>(d_args, d_x, args.size(), eps, max_iterations);
         
         // copy the results back from the device
-        cudaMemcpy(d_x, x.data(), sizeof(FixedVector) * args.size(), cudaMemcpyDevicetoHost);
+        cudaMemcpy(d_x, &(x[0]), sizeof(FixedVector) * args.size(), cudaMemcpyDeviceToHost);
         
         // clear and exit
         cudaFree(d_args);
@@ -47,19 +48,19 @@ std::vector<FixedVector> nnls_wrapper(
         FixedVector* d_x;
         
         // arguments allocation
-        cudaMalloc((void*) &d_args, sizeof(NNLS_args) * args.size());
+        cudaMalloc((void**) &d_args, sizeof(NNLS_args) * args.size());
         // results allocation
-        cudaMalloc((void*) &d_x, sizeof(FixedVector) * args.size());
+        cudaMalloc((void**) &d_x, sizeof(FixedVector) * args.size());
 
 
         // arguments copy
         cudaMemcpy(d_args, args.data(), sizeof(NNLS_args) * args.size(), cudaMemcpyHostToDevice);
         
         
-        fnnls_kernel<<<1, 1>>>(d_args, d_x, args.size() eps, max_iterations);
+        fnnls_kernel<<<1, 1>>>(d_args, d_x, args.size(), eps, max_iterations);
         
         // copy the results back from the device
-        cudaMemcpy(d_x, x.data(), sizeof(FixedVector) * args.size(), cudaMemcpyDevicetoHost);
+        cudaMemcpy(d_x,  &(x[0]), sizeof(FixedVector) * args.size(), cudaMemcpyDeviceToHost);
 
         // clear and exit
         cudaFree(d_args);
