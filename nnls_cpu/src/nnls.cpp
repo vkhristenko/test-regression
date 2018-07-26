@@ -1,23 +1,20 @@
-#include "../interface/fnnls.h"
-
 #include <Eigen/Dense>
 #include <Eigen/SparseQR>
 #include <Eigen/Sparse>
 
-#include <iostream>
+#include <vector>
 
 #ifdef DEBUG
-#include <vector>
+#include <iostream>
 #endif
 
 #include "../interface/nnsl.h"
-
 
 using namespace std;
 using namespace Eigen;
 
 
-FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
+FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
 
  	// Fast NNLS (fnnls) algorithm as per 
 	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
@@ -40,7 +37,6 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 	// initial solution vector
 	FixedVector x = FixedVector::Zero();
 
-	// auto AtA = A.transpose() * A;
 
 	// main loop 
 	for (int iter=0; iter<max_iterations; ++iter){
@@ -52,9 +48,6 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 		//NNLS
 		// initialize the cost vector
 		FixedVector w = A.transpose()*(b - (A*x));
-		
-		// FNNLS
-		// FixedVector w = (A.transpose()*b) - (AtA*x);
 		
 		#ifdef DEBUG
 		// cout << "w" << endl << w << endl;
@@ -92,16 +85,10 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 		// cout << endl;
 		#endif
 
-		// NNLS
-
-		// Eigen::SparseMatrix<double, Eigen::ColMajor> A_P(MATRIX_SIZE, MATRIX_SIZE);
 		FixedMatrix A_P = FixedMatrix::Zero();
 
-		// A_P.setZero();
 
 		for(auto index: P) A_P.col(index)=A.col(index);
-			// for (unsigned int i=0; i< MATRIX_SIZE; ++i){
-			// }
 
 		solver.compute(A_P.sparseView());
 
@@ -110,25 +97,8 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 		#endif
 
 		// FixedVector s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
-		// FixedVector s =  A_P.inverse() * b;
 		Eigen::VectorXd s =  solver.solve(b);
-		
-		// FFNLS
-
-		// FixedMatrix A_P = FixedMatrix::Zero();
-
-		// for(auto index: P) A_P.col(index)=AtA.col(index);
-
-		#ifdef DEBUG
-		// cout << "A_P " << endl << A_P << endl;
-		#endif 
-
-		// FixedVector Ab =  A.transpose() * b;
-
-		// for(auto index: R) Ab[index] = 0;
-
-		// FixedVector s = A_P.inverse() * Ab;
-		
+	
 		for(auto index: R) s[index]=0;
 
 		#ifdef DEBUG
@@ -211,21 +181,7 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 			
 			solver.compute(A_P.sparseView());
 
-			// s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
-			// s = A_P.inverse() * b;
 			s =  solver.solve(b);
-
-			// FixedMatrix A_P = FixedMatrix::Zero();
-
-			// for(auto index: P) A_P.col(index)=AtA.col(index);
-
-			// cout << "A_P " << endl << A_P << endl; 
-
-			// Ab =  A.transpose() * b;
-
-			// for(auto index: R) Ab[index] = 0;
-
-			// s = A_P.inverse() * Ab;
 
 			for(auto index: R) s[index]=0;
 
@@ -238,4 +194,3 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 
 	return x;
 }
-
