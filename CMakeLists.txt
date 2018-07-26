@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8.0)
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 # project name
 project(test-regression)
@@ -56,6 +56,7 @@ endif()
 add_subdirectory(gen)
 add_subdirectory(multifit_cpu)
 add_subdirectory(multifit_cpu_v2)
+add_subdirectory(nnls)
 
 find_package(OpenCL REQUIRED)
 if (OpenCL_FOUND)
