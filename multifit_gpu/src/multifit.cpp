@@ -29,7 +29,7 @@ TH1D *hDuration;
 void initHist(std::string const& out_file)
 {
   fout = new TFile(out_file.c_str(),"recreate");
-  h01 = new TH1D("h01", "dA", 1000, -20.0, 20.0);
+  h01 = new TH1D("h01", "dA", 1000, -5, 5);
   hDuration = new TH1D("Duration", "Duration", 100, 0, 5000);
 }
 
@@ -185,6 +185,7 @@ void saveHist()
   
   fout->cd();
   h01->Write();
+  hDuration->Write();
   fout->Close();
 }
 
@@ -213,7 +214,7 @@ int main(int argc, char** argv) {
   std::cout << "1111" << std::endl;
   init(out_file);
   std::cout << "2222" << std::endl; 
-  run(inputFile, outFile, max_iterations, entries_per_kernel);
+  run(inputFile, max_iterations, entries_per_kernel);
   std::cout << "3333" << std::endl;
   saveHist();
   std::cout << "4444" << std::endl;

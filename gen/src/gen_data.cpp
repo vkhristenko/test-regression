@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
   float pileup_shift = 0;
 
   // number of events to generate
-  int nEventsTotal = 1000;
+  int nEventsTotal = 5000;
 
   // number of samples per impulse
   int NSAMPLES = 10;
