@@ -10,5 +10,10 @@ typedef Eigen::Matrix<double, MATRIX_SIZE, MATRIX_SIZE> FixedMatrix;
 typedef Eigen::Matrix<double, VECTOR_SIZE, 1> FixedVector;
 
 
+typedef struct NNLS_args{
+    FixedMatrix &A;
+    FixedVector &b;
+    
+} NNLS_args;
 
 #endif
