@@ -2,15 +2,15 @@
 #include <Eigen/SparseQR>
 #include <Eigen/Sparse>
 
-#include <vector>
+// #include <vector>
 
 #ifdef DEBUG_FNNLS
 #include <iostream>
 #endif
 
 #include "../interface/nnls.h"
+#include "../interface/vector.h"
 
-using namespace std;
 using namespace Eigen;
 
 
@@ -25,11 +25,11 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 	// this pseudo-inverse has numerical issues
 	// in order to avoid that I substitued the pseudoinvese wiht the QR decomposition
 	
-	// Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
-	Eigen::LLT<FixedMatrix> solver;
+	Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
+	// Eigen::LLT<FixedMatrix> solver;
 	
-	thrust::device_vector<unsigned int> P;
-	thrust::device_vector<unsigned int> R(VECTOR_SIZE);
+	vector<unsigned int> P;
+	vector<unsigned int> R(VECTOR_SIZE);
 
 	// initial set of indexes
 	#pragma unroll
@@ -72,7 +72,8 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 		#endif
 
 		P.push_back(max_index);
-		R.erase(R.begin()+remove_index);
+		// R.erase(R.begin()+remove_index);
+		R.erase(remove_index);
 
 		// termination condition
 		if(R.empty() || w[max_index] < eps) break;
@@ -91,7 +92,8 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 
 		for(auto index: P) A_P.col(index)=A.col(index);
 
-		solver.compute(A_P);
+		solver.compute(A_P.sparseView());
+		// solver.compute(A_P);
 
 		#ifdef DEBUG_FNNLS
 		// cout << "A_P " << endl << A_P << endl; 
@@ -142,7 +144,7 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 			cout << "x after" << endl << x << endl;
 			#endif
 
-			thrust::device_vector<unsigned int> tmp;
+			vector<unsigned int> tmp;
 
 			#ifdef DEBUG_FNNLS
 			// cout << "P  before" << endl;
@@ -162,7 +164,8 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 				}
 			}
 
-			for(auto index: tmp) P.erase(P.begin()+index);
+			// for(auto index: tmp) P.erase(P.begin()+index);
+			for(auto index: tmp) P.erase(index);
 			
 			#ifdef DEBUG_FNNLS
 
@@ -181,6 +184,7 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 			for(auto index: P) A_P.col(index)=A.col(index);
 			
 			solver.compute(A_P.sparseView());
+			// solver.compute(A_P);
 
 			s =  solver.solve(b);
 
@@ -195,3 +199,13 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 
 	return x;
 }
+
+__global__ void nnls_kernel(NNLS_args *args, FixedVector* x, unsigned int n, double eps, unsigned int max_iterations){
+	// thread idx
+	int i = blockIdx.x*blockDim.x + threadIdx.x;
+	if (i>=n) return;
+	auto &A = args[i].A;
+	auto &b = args[i].b;
+	x[i] = nnls(A, b, eps, max_iterations);
+}
+

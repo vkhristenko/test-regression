@@ -5,5 +5,5 @@ if (CUDA_FOUND)
     target_link_libraries(multifit_gpu_kernels)
 endif()
 
-add_executable(nnls_gpu src/nnls.cu src/fnnls.cu src/kernels.cu src/kernel_wrapper.cu src/main.cpp)
+add_executable(nnls_gpu src/nnls.cu src/fnnls.cu src/kernel_wrapper.cu src/main.cpp)
 target_link_libraries(nnls_gpu  ${CUDA_LIBRARIES} nnls_gpu_kernels)
