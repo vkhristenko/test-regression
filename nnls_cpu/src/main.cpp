@@ -23,7 +23,7 @@ int main(){
 	vector<double> nnls_error;
 	vector<double> fnnls_error;
 
-	for (int i = 0; i < 100; ++ i ){
+	for (int i = 0; i < tests; ++ i ){
 		auto A = FixedMatrix::Random();
 		auto b = FixedVector::Random();
 

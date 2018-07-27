@@ -15,7 +15,7 @@
 using namespace std;
 using namespace Eigen;
 
-auto const tests = 16384;
+auto const tests = 100;
 
 int main(){
 	
@@ -23,28 +23,26 @@ int main(){
 	vector<double> eigen_error;
 	vector<double> nnls_error;
 	vector<double> fnnls_error;
+	
+	vector<NNLS_args> args;
+	vector<FixedVector> nnls_results;
+	vector<FixedVector> fnnls_results;
 
-	for (int i = 0; i < 100; ++ i ){
-		auto A = FixedMatrix::Random();
-		auto b = FixedVector::Random();
-
+	for (int i = 0; i < tests; ++ i ){
+		FixedMatrix A = FixedMatrix::Random();
+		FixedVector b = FixedVector::Random();
+		args.push_back(NNLS_args(A,b));
 		Eigen::NNLS<FixedMatrix> eigen_nnls(A);
 		auto status = eigen_nnls.solve(b);
 		assert(status);
 		if (!status) return -1;
 		auto x = eigen_nnls.x();
-		auto x2 = nnls(A,b, 1e-21, 1000);
-		auto x3 = fnnls(A,b, 1e-21, 1000);
 		
 		#ifdef VERBOSE
 		cout << "eigen" << endl;	
-		cout << x << endl;
-		cout << "nnls" << endl;
-		cout << x2 << endl;
-		cout << "fnnls" << endl;
-		cout << x3 << endl;
+		cout << x << endl;	
 		#endif
-		
+
 		double error;
 		error =  (b-A*x).squaredNorm(); 
 		eigen_error.push_back(error);
@@ -52,21 +50,19 @@ int main(){
 		#ifdef VERBOSE
 		cout << "eigen error " << error << endl;
 		#endif
-		
-		error = (b-A*x2).squaredNorm();
-		nnls_error.push_back(error);
 
-		#ifdef VERBOSE
-		cout << "nnls error " << error << endl;
-		#endif
-		
-		error = (b-A*x3).squaredNorm();
-		fnnls_error.push_back(error);
-
-		#ifdef VERBOSE
-		cout << "fnnls error " << error << endl;
-		#endif
 	}
+
+	nnls_results = nnls_wrapper(args);
+	fnnls_results = fnnls_wrapper(args);
+
+	for (int i = 0; i < tests; ++ i ){
+		double error = (args[i].b-args[i].A*nnls_results[i]).squaredNorm();
+		nnls_error.push_back(error);
+		error = (args[i].b-args[i].A*fnnls_results[i]).squaredNorm();
+		fnnls_error.push_back(error);
+	}
+
 	double max =  *std::max_element(eigen_error.begin(), eigen_error.end());
 	cout << "eigen_max_error " << max << endl;
 	max = *std::max_element(nnls_error.begin(), nnls_error.end()) ;

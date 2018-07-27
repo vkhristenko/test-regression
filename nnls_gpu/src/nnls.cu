@@ -14,8 +14,7 @@ using namespace std;
 using namespace Eigen;
 
 
-__device__ __host__ 
-FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
+__device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
 
  	// Fast NNLS (fnnls) algorithm as per 
 	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
@@ -26,8 +25,9 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 	// this pseudo-inverse has numerical issues
 	// in order to avoid that I substitued the pseudoinvese wiht the QR decomposition
 	
-	Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
-
+	// Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
+	Eigen::LLT<FixedMatrix> solver;
+	
 	std::vector<unsigned int> P;
 	std::vector<unsigned int> R(VECTOR_SIZE);
 
@@ -91,7 +91,7 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 
 		for(auto index: P) A_P.col(index)=A.col(index);
 
-		solver.compute(A_P.sparseView());
+		solver.compute(A_P);
 
 		#ifdef DEBUG
 		// cout << "A_P " << endl << A_P << endl; 

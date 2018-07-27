@@ -13,7 +13,7 @@ typedef Eigen::Matrix<double, VECTOR_SIZE, 1> FixedVector;
 typedef struct NNLS_args{
     FixedMatrix &A;
     FixedVector &b;
-    
+    NNLS_args(FixedMatrix &A, FixedVector &b): A(A), b(b) {};
 } NNLS_args;
 
 #endif

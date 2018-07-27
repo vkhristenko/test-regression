@@ -1,4 +1,7 @@
 #include "../interface/kernels.h"
+#include "../interface/nnls.h"
+#include "../interface/fnnls.h"
+
 
 __global__ void nnls_kernel(NNLS_args *args, FixedVector* x, unsigned int n, double eps, unsigned int max_iterations){
         // thread idx
