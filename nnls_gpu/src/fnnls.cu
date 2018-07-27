@@ -4,10 +4,12 @@
 #include <Eigen/SparseQR>
 #include <Eigen/Sparse>
 
-#include <iostream>
+// #include <vector>
 
-#ifdef DEBUG
-#include <vector>
+#include <thrust/device_vector.h>
+
+#ifdef DEBUG_NNLS
+#include <iostream>
 #endif
 
 #include "../interface/nnls.h"
@@ -34,8 +36,8 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 	Eigen::LLT<FixedMatrix> solver;
 	// Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
 	
-	std::vector<unsigned int> P;
-	std::vector<unsigned int> R(VECTOR_SIZE);
+	thrust::device_vector<unsigned int> P;
+	thrust::device_vector<unsigned int> R(VECTOR_SIZE);
 
 	// initial set of indexes
 	#pragma unroll
@@ -50,14 +52,14 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 	// main loop 
 	for (int iter=0; iter<max_iterations; ++iter){
 
-		#ifdef DEBUG
+		#ifdef DEBUG_NNLS
 		// cout << "iter " << iter << endl;
 		#endif
 	
 		// FNNLS
 		FixedVector w = Atb - (AtA*x);
 		
-		#ifdef DEBUG
+		#ifdef DEBUG_NNLS
 		// cout << "w" << endl << w << endl;
 		#endif
 
@@ -74,17 +76,17 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 			}
 		}
 
-		#ifdef DEBUG
+		#ifdef DEBUG_NNLS
 		// cout << "max index " << max_index << endl;
 		#endif
 
-		P.emplace_back(max_index);
+		P.push_back(max_index);
 		R.erase(R.begin()+remove_index);
 
 		// termination condition
 		if(R.empty() || w[max_index] < eps) break;
 
-		#ifdef DEBUG
+		#ifdef DEBUG_NNLS
 		// cout << "P " << endl;
 		// for (auto elem : P) cout << elem << " ";
 		// cout << endl;
@@ -100,13 +102,13 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 		// solver.compute(A_P.sparseView());
 		solver.compute(A_P);
 
-		#ifdef DEBUG
+		#ifdef DEBUG_NNLS
 		// cout << "A_P " << endl << A_P << endl; 
 		#endif
 
 		Eigen::VectorXd s =  solver.solve(b);
 		
-		#ifdef DEBUG
+		#ifdef DEBUG_NNLS
 		// cout << "s" << endl << s << endl;
 		#endif
 
@@ -118,7 +120,7 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 			for (auto index: P)
 				min_s = std::min(s[index],min_s);
 			
-			#ifdef DEBUG
+			#ifdef DEBUG_NNLS
 			// cout << "min_s " << min_s << endl;
 			#endif
 
@@ -131,7 +133,7 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 					alpha = -std::min(x[index]/(x[index]-s[index]), alpha);
 				}
 			}
-			#ifdef DEBUG
+			#ifdef DEBUG_NNLS
 
 			// cout << "alpha " << alpha << endl;
 
@@ -142,13 +144,13 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 			for (auto index: P)
 				x[index] += alpha*(s[index]-x[index]);
 
-			#ifdef DEBUG
+			#ifdef DEBUG_NNLS
 			// cout << "x after" << endl << x << endl;
 			#endif
 
-			std::vector<unsigned int> tmp;
+			thrust::device_vector<unsigned int> tmp;
 
-			#ifdef DEBUG
+			#ifdef DEBUG_NNLS
 			// cout << "P  before" << endl;
 			// for (auto elem : P) cout << elem << " ";
 			// cout << endl;
@@ -161,14 +163,14 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 			for(int i=P.size()-1; i>=0; --i){
 				auto index = P[i]; 
 				if(x[index]==0){
-					R.emplace_back(index);
-					tmp.emplace_back(i);
+					R.push_back(index);
+					tmp.push_back(i);
 				}
 			}
 
 			for(auto index: tmp) P.erase(P.begin()+index);
 			
-			#ifdef DEBUG
+			#ifdef DEBUG_NNLS
 
 			// cout << "P  after" << endl;
 			// for (auto elem : P) cout << elem << " ";

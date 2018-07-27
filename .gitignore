@@ -34,4 +34,5 @@
 # build
 build/
 data/
+lib/
 .vscode/
