@@ -1,2 +1,0 @@
-/cvmfs/cms.cern.ch/slc7_amd64_gcc630/external/gcc/6.3.0/bin/ar qc libmultifit_gpu_kernels.a  CMakeFiles/multifit_gpu_kernels.dir/src/multifit_gpu_kernels_generated_PulseChiSqSNNLS.cu.o CMakeFiles/multifit_gpu_kernels.dir/src/multifit_gpu_kernels_generated_PulseChiSqSNNLSWrapper.cu.o CMakeFiles/multifit_gpu_kernels.dir/src/multifit_gpu_kernels_generated_test_kernel.cu.o
-/cvmfs/cms.cern.ch/slc7_amd64_gcc630/external/gcc/6.3.0/bin/ranlib libmultifit_gpu_kernels.a

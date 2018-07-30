@@ -1,2 +1,0 @@
-/cvmfs/cms.cern.ch/slc7_amd64_gcc630/external/gcc/6.3.0/bin/ar qc libnnls_gpu_kernels.a  CMakeFiles/nnls_gpu_kernels.dir/src/nnls_gpu_kernels_generated_fnnls.cu.o CMakeFiles/nnls_gpu_kernels.dir/src/nnls_gpu_kernels_generated_helper.cu.o CMakeFiles/nnls_gpu_kernels.dir/src/nnls_gpu_kernels_generated_kernel_wrapper.cu.o CMakeFiles/nnls_gpu_kernels.dir/src/nnls_gpu_kernels_generated_nnls.cu.o
-/cvmfs/cms.cern.ch/slc7_amd64_gcc630/external/gcc/6.3.0/bin/ranlib libnnls_gpu_kernels.a

@@ -1,1 +1,0 @@
-/cvmfs/cms.cern.ch/slc7_amd64_gcc630/external/gcc/6.3.0/bin/c++   --std=c++17 -O2 -g -g   CMakeFiles/nnls_gpu.dir/src/main.cpp.o  -o nnls_gpu /usr/local/cuda/lib64/libcudart_static.a -lpthread -ldl /usr/lib64/librt.so libnnls_gpu_kernels.a /usr/local/cuda/lib64/libcudart_static.a -lpthread -ldl /usr/lib64/librt.so 

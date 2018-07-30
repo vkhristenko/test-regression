@@ -1,1 +1,0 @@
-/cvmfs/cms.cern.ch/slc7_amd64_gcc630/external/gcc/6.3.0/bin/c++   --std=c++17 -O2 -g -g   CMakeFiles/ocl_test.dir/main.cpp.o  -o ocl_test /usr/lib64/libOpenCL.so 
