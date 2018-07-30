@@ -28,7 +28,7 @@ std::vector<FixedVector> nnls_wrapper(
         nnls_kernel<<<1, 1>>>(d_args, d_x, args.size(), eps, max_iterations);
         
         // copy the results back from the device
-        cudaMemcpy(d_x, &(x[0]), sizeof(FixedVector) * args.size(), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&(x[0]), d_x, sizeof(FixedVector) * args.size(), cudaMemcpyDeviceToHost);
         
         // clear and exit
         cudaFree(d_args);
@@ -61,7 +61,7 @@ std::vector<FixedVector> nnls_wrapper(
         fnnls_kernel<<<1, 1>>>(d_args, d_x, args.size(), eps, max_iterations);
         
         // copy the results back from the device
-        cudaMemcpy(d_x,  &(x[0]), sizeof(FixedVector) * args.size(), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&(x[0]), d_x, sizeof(FixedVector) * args.size(), cudaMemcpyDeviceToHost);
 
         // clear and exit
         cudaFree(d_args);

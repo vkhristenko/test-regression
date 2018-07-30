@@ -37,11 +37,11 @@ void print_fixed_vector(const FixedVector &V) {
 
 __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
 
-	#ifdef DEBUG_FNNLS_GPU
+	// #ifdef DEBUG_FNNLS_GPU
 	printf("debug fnnls");
 	print_fixed_matrix(A);
 	print_fixed_vector(b);
-	#endif
+	// #endif
 	
  	// Fast NNLS (fnnls) algorithm as per 
 	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
