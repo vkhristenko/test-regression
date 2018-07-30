@@ -4,8 +4,8 @@
 
 // #include <vector>
 
-#ifdef DEBUG_FNNLS
-#include <iostream>
+#ifdef DEBUG_NNLS_GPU
+#include <stdio.h>
 #endif
 
 #include "../interface/nnls.h"
@@ -15,8 +15,11 @@ using namespace Eigen;
 
 
 __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
-
- 	// Fast NNLS (fnnls) algorithm as per 
+	#ifdef DEBUG_NNLS_GPU
+	printf("nnls launched\n");
+	printf("parameters size: A(%i,%i) b(%i)", A.rows(),A.cols(),b.cols());
+	#endif
+	// Fast NNLS (fnnls) algorithm as per 
 	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
 	// page 8
 	
@@ -25,8 +28,9 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 	// this pseudo-inverse has numerical issues
 	// in order to avoid that I substitued the pseudoinvese wiht the QR decomposition
 	
-	Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
-	// Eigen::LLT<FixedMatrix> solver;
+	// Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
+
+	Eigen::LLT<FixedMatrix> solver;
 	
 	vector<unsigned int> P;
 	vector<unsigned int> R(VECTOR_SIZE);
@@ -92,8 +96,8 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 
 		for(auto index: P) A_P.col(index)=A.col(index);
 
-		solver.compute(A_P.sparseView());
-		// solver.compute(A_P);
+		// solver.compute(A_P.sparseView());
+		solver.compute(A_P);
 
 		#ifdef DEBUG_FNNLS
 		// cout << "A_P " << endl << A_P << endl; 
@@ -183,8 +187,8 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 	
 			for(auto index: P) A_P.col(index)=A.col(index);
 			
-			solver.compute(A_P.sparseView());
-			// solver.compute(A_P);
+			// solver.compute(A_P.sparseView());
+			solver.compute(A_P);
 
 			s =  solver.solve(b);
 
@@ -202,8 +206,9 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 
 __global__ void nnls_kernel(NNLS_args *args, FixedVector* x, unsigned int n, double eps, unsigned int max_iterations){
 	// thread idx
-    printf("hello world\n");
+    printf("hello nnls\n");
 	int i = blockIdx.x*blockDim.x + threadIdx.x;
+	printf("thread index %i\n", i);
 	if (i>=n) return;
 	auto &A = args[i].A;
 	auto &b = args[i].b;

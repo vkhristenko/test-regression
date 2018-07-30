@@ -8,7 +8,7 @@
 void assert_if_error(std::string const& name) {
     auto check = [&name](auto code) {
         if (code != cudaSuccess) {
-            std::cout << cudaGetErrorString(code) << std::endl;
+            std::cout << cudaGetErrorString(code) << ' ';
             std::cout << "in " << name << std::endl;
             assert(false);
         }
@@ -30,18 +30,22 @@ std::vector<FixedVector> nnls_wrapper(
         
         // arguments allocation
         cudaMalloc((void**) &d_args, sizeof(NNLS_args) * args.size());
+        assert_if_error("nnls argument allocation");
         // results allocation
         cudaMalloc((void**) &d_x, sizeof(FixedVector) * args.size());
-
-
+        assert_if_error("nnls result allocation");
+        
+        
         // arguments copy
         cudaMemcpy(d_args, args.data(), sizeof(NNLS_args) * args.size(), cudaMemcpyHostToDevice);
+        assert_if_error("nnls parameters copy");
         
 
         printf("launch kernel nnls\n");
-        nnls_kernel<<<1, 1>>>(d_args, d_x, args.size(), eps, max_iterations);
+        // nnls_kernel<<<args.size()+255/256, 256>>>(d_args, d_x, args.size(), eps, max_iterations);
+        nnls_kernel<<<1,1>>>(d_args, d_x, args.size(), eps, max_iterations);
         cudaDeviceSynchronize();
-        assert_if_error("nnls");
+        assert_if_error("nnls kernel");
         printf("finish kernel nnls\n");
         
         // copy the results back from the device
@@ -75,7 +79,8 @@ std::vector<FixedVector> nnls_wrapper(
         cudaMemcpy(d_args, args.data(), sizeof(NNLS_args) * args.size(), cudaMemcpyHostToDevice);
         
         printf("launch kernel fnnsl\n");
-        fnnls_kernel<<<1, 1>>>(d_args, d_x, args.size(), eps, max_iterations);
+        // fnnls_kernel<<<args.size()+255/256, 256>>>(d_args, d_x, args.size(), eps, max_iterations);
+        fnnls_kernel<<<1,1>>>(d_args, d_x, args.size(), eps, max_iterations);
         cudaDeviceSynchronize();
         assert_if_error("fnnls");
         printf("finish kernel fnnls\n");
