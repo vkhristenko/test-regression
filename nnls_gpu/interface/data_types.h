@@ -16,4 +16,14 @@ typedef struct NNLS_args{
     NNLS_args(FixedMatrix &A, FixedVector &b): A(A), b(b) {};
 } NNLS_args;
 
+
+#ifdef DEBUG
+
+// void print_fixed_matrix(const FixedMatrix &M);
+
+// void print_fixed_vector(const FixedVector &V);
+
+
+#endif
+
 #endif

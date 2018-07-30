@@ -99,7 +99,7 @@ int main(){
 using namespace std;
 using namespace Eigen;
 
-auto const tests = 16384;
+auto const tests = 100;
 
 int main(){
 	

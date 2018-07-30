@@ -15,7 +15,7 @@
 using namespace std;
 using namespace Eigen;
 
-auto const tests = 100;
+auto const tests = 16384;
 
 int main(){
 	

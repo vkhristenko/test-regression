@@ -1,5 +1,6 @@
 #include "../interface/kernel_wrapper.h"
-#include "../interface/kernels.h"
+#include "../interface/nnls.h"
+#include "../interface/fnnls.h"
 
 
 
