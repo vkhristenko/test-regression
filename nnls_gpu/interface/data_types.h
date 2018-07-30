@@ -17,6 +17,17 @@ typedef struct NNLS_args{
 } NNLS_args;
 
 
+#define USE_SPARSE_QR 0
+#define USE_LLT 1
+#define USE_HOUSEHOLDER 2
+
+
+#ifndef DECOMPOSITION
+#define DECOMPOSITION USE_SPARSE_QR
+#endif 
+
+
+
 #ifdef DEBUG
 
 // void print_fixed_matrix(const FixedMatrix &M);

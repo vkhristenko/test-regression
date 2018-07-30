@@ -1,17 +1,22 @@
 #include <Eigen/Dense>
+
+#if DECOMPOSITION==USE_SPARSE_QR
 #include <Eigen/SparseQR>
 #include <Eigen/Sparse>
-
-#include <vector>
-
-#ifdef DEBUG
-#include <iostream>
 #endif
 
-#include "../interface/nnls.h"
+#include <iostream>
+
+#ifdef DEBUG_NNLS_CPU
+#include <vector>
+#endif
+
+#include "../interface/fnnls.h"
+
 
 using namespace std;
 using namespace Eigen;
+
 
 
 FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
@@ -25,7 +30,13 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 	// this pseudo-inverse has numerical issues
 	// in order to avoid that I substitued the pseudoinvese wiht the QR decomposition
 	
+	#if DECOMPOSITION==USE_SPARSE_QR
 	Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
+	#elif DECOMPOSITION==USE_LLT
+	Eigen::LLT<FixedMatrix> solver;
+	#elif DECOMPOSITION==USE_HOUSEHOLDER
+	Eigen::HouseholderQR<FixedMatrix> solver;
+	#endif
 
 	std::vector<unsigned int> P;
 	std::vector<unsigned int> R(VECTOR_SIZE);
@@ -41,7 +52,7 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 	// main loop 
 	for (int iter=0; iter<max_iterations; ++iter){
 
-		#ifdef DEBUG
+		#ifdef DEBUG_NNLS_CPU
 		// cout << "iter " << iter << endl;
 		#endif
 
@@ -49,7 +60,7 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 		// initialize the cost vector
 		FixedVector w = A.transpose()*(b - (A*x));
 		
-		#ifdef DEBUG
+		#ifdef DEBUG_NNLS_CPU
 		// cout << "w" << endl << w << endl;
 		#endif
 
@@ -66,8 +77,8 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 			}
 		}
 
-		#ifdef DEBUG
-		// cout << "max index " << max_index << endl;
+		#ifdef DEBUG_NNLS_CPU
+		cout << "max index " << max_index << endl;
 		#endif
 
 		P.emplace_back(max_index);
@@ -76,13 +87,13 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 		// termination condition
 		if(R.empty() || w[max_index] < eps) break;
 
-		#ifdef DEBUG
-		// cout << "P " << endl;
-		// for (auto elem : P) cout << elem << " ";
-		// cout << endl;
-		// cout << "R " << endl;
-		// for (auto elem : R) cout << elem << " ";
-		// cout << endl;
+		#ifdef DEBUG_NNLS_CPU
+		cout << "P " << endl;
+		for (auto elem : P) cout << elem << " ";
+		cout << endl;
+		cout << "R " << endl;
+		for (auto elem : R) cout << elem << " ";
+		cout << endl;
 		#endif
 
 		FixedMatrix A_P = FixedMatrix::Zero();
@@ -90,19 +101,27 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 
 		for(auto index: P) A_P.col(index)=A.col(index);
 
+		#if DECOMPOSITION==USE_SPARSE_QR
 		solver.compute(A_P.sparseView());
+		#else
+		solver.compute(A_P);
+		#endif
 
-		#ifdef DEBUG
-		// cout << "A_P " << endl << A_P << endl; 
+		#ifdef DEBUG_NNLS_CPU
+		cout << "A_P " << endl << A_P << endl; 
 		#endif
 
 		// FixedVector s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
+		#if DECOMPOSITION==USE_SPARSE_QR
 		Eigen::VectorXd s =  solver.solve(b);
+		#else
+		FixedVector s =  solver.solve(b);
+		#endif
 	
 		for(auto index: R) s[index]=0;
 
-		#ifdef DEBUG
-		// cout << "s" << endl << s << endl;
+		#ifdef DEBUG_NNLS_CPU
+		cout << "s" << endl << s << endl;
 		#endif
 
 		// inner loop
@@ -113,7 +132,7 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 			for (auto index: P)
 				min_s = std::min(s[index],min_s);
 			
-			#ifdef DEBUG
+			#ifdef DEBUG_NNLS_CPU
 			cout << "min_s " << min_s << endl;
 			#endif
 
@@ -126,7 +145,7 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 					alpha = -std::min(x[index]/(x[index]-s[index]), alpha);
 				}
 			}
-			#ifdef DEBUG
+			#ifdef DEBUG_NNLS_CPU
 
 			cout << "alpha " << alpha << endl;
 
@@ -137,19 +156,19 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 			for (auto index: P)
 				x[index] += alpha*(s[index]-x[index]);
 
-			#ifdef DEBUG
+			#ifdef DEBUG_NNLS_CPU
 			cout << "x after" << endl << x << endl;
 			#endif
 
 			std::vector<unsigned int> tmp;
 
-			#ifdef DEBUG
-			// cout << "P  before" << endl;
-			// for (auto elem : P) cout << elem << " ";
-			// cout << endl;
-			// cout << "R before" << endl;
-			// for (auto elem : R) cout << elem << " ";
-			// cout << endl;
+			#ifdef DEBUG_NNLS_CPU
+			cout << "P  before" << endl;
+			for (auto elem : P) cout << elem << " ";
+			cout << endl;
+			cout << "R before" << endl;
+			for (auto elem : R) cout << elem << " ";
+			cout << endl;
 			#endif
 
 
@@ -163,14 +182,13 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 
 			for(auto index: tmp) P.erase(P.begin()+index);
 			
-			#ifdef DEBUG
-
-			// cout << "P  after" << endl;
-			// for (auto elem : P) cout << elem << " ";
-			// cout << endl;
-			// cout << "R after" << endl;
-			// for (auto elem : R) cout << elem << " ";
-			// cout << endl;
+			#ifdef DEBUG_NNLS_CPU
+			cout << "P  after" << endl;
+			for (auto elem : P) cout << elem << " ";
+			cout << endl;
+			cout << "R after" << endl;
+			for (auto elem : R) cout << elem << " ";
+			cout << endl;
 			#endif
 
 			// NNLS
@@ -179,8 +197,13 @@ FixedVector nnls(const FixedMatrix &A, const FixedVector &b, const double eps, c
 	
 			for(auto index: P) A_P.col(index)=A.col(index);
 			
+			#if DECOMPOSITION==USE_SPARSE_QR
 			solver.compute(A_P.sparseView());
+			#else
+			solver.compute(A_P);
+			#endif
 
+			
 			s =  solver.solve(b);
 
 			for(auto index: R) s[index]=0;

@@ -1,12 +1,15 @@
 #include <Eigen/Dense>
+
+#if DECOMPOSITION==USE_SPARSE_QR
 #include <Eigen/SparseQR>
 #include <Eigen/Sparse>
+#endif
 
-// #include <vector>
 
 #ifdef DEBUG_NNLS_GPU
 #include <stdio.h>
 #endif
+
 
 #include "../interface/nnls.h"
 #include "../interface/vector.h"
@@ -19,6 +22,7 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 	printf("nnls launched\n");
 	printf("parameters size: A(%i,%i) b(%i)", A.rows(),A.cols(),b.cols());
 	#endif
+	
 	// Fast NNLS (fnnls) algorithm as per 
 	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
 	// page 8
@@ -28,10 +32,14 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 	// this pseudo-inverse has numerical issues
 	// in order to avoid that I substitued the pseudoinvese wiht the QR decomposition
 	
-	// Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
-
+	#if DECOMPOSITION==USE_SPARSE_QR
+	Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
+	#elif DECOMPOSITION==USE_LLT
 	Eigen::LLT<FixedMatrix> solver;
-	
+	#elif DECOMPOSITION==USE_HOUSEHOLDER
+	Eigen::HouseholderQR<FixedMatrix> solver;
+	#endif
+
 	vector<unsigned int> P;
 	vector<unsigned int> R(VECTOR_SIZE);
 
@@ -45,10 +53,6 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 
 	// main loop 
 	for (int iter=0; iter<max_iterations; ++iter){
-
-		#ifdef DEBUG_FNNLS
-		// cout << "iter " << iter << endl;
-		#endif
 
 		//NNLS
 		// initialize the cost vector
@@ -71,10 +75,6 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 			}
 		}
 
-		#ifdef DEBUG_FNNLS
-		// cout << "max index " << max_index << endl;
-		#endif
-
 		P.push_back(max_index);
 		// R.erase(R.begin()+remove_index);
 		R.erase(remove_index);
@@ -82,35 +82,28 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 		// termination condition
 		if(R.empty() || w[max_index] < eps) break;
 
-		#ifdef DEBUG_FNNLS
-		// cout << "P " << endl;
-		// for (auto elem : P) cout << elem << " ";
-		// cout << endl;
-		// cout << "R " << endl;
-		// for (auto elem : R) cout << elem << " ";
-		// cout << endl;
-		#endif
 
 		FixedMatrix A_P = FixedMatrix::Zero();
 
 
 		for(auto index: P) A_P.col(index)=A.col(index);
 
-		// solver.compute(A_P.sparseView());
+		#if DECOMPOSITION==USE_SPARSE_QR
+		solver.compute(A_P.sparseView());
+		#else
 		solver.compute(A_P);
-
-		#ifdef DEBUG_FNNLS
-		// cout << "A_P " << endl << A_P << endl; 
 		#endif
+
 
 		// FixedVector s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
+		#if DECOMPOSITION==USE_SPARSE_QR
 		Eigen::VectorXd s =  solver.solve(b);
-	
+		#else
+		FixedVector s =  solver.solve(b);
+		#endif
+		
 		for(auto index: R) s[index]=0;
 
-		#ifdef DEBUG_FNNLS
-		// cout << "s" << endl << s << endl;
-		#endif
 
 		// inner loop
 		while(true){
@@ -133,32 +126,12 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 					alpha = -std::min(x[index]/(x[index]-s[index]), alpha);
 				}
 			}
-			#ifdef DEBUG_FNNLS
-
-			cout << "alpha " << alpha << endl;
-
-			cout << "x before" << endl << x << endl;
-
-			#endif
 
 			for (auto index: P)
 				x[index] += alpha*(s[index]-x[index]);
 
-			#ifdef DEBUG_FNNLS
-			cout << "x after" << endl << x << endl;
-			#endif
 
 			vector<unsigned int> tmp;
-
-			#ifdef DEBUG_FNNLS
-			// cout << "P  before" << endl;
-			// for (auto elem : P) cout << elem << " ";
-			// cout << endl;
-			// cout << "R before" << endl;
-			// for (auto elem : R) cout << elem << " ";
-			// cout << endl;
-			#endif
-
 
 			for(int i=P.size()-1; i>=0; --i){
 				auto index = P[i]; 
@@ -171,24 +144,16 @@ __device__ __host__ FixedVector nnls(const FixedMatrix &A, const FixedVector &b,
 			// for(auto index: tmp) P.erase(P.begin()+index);
 			for(auto index: tmp) P.erase(index);
 			
-			#ifdef DEBUG_FNNLS
-
-			// cout << "P  after" << endl;
-			// for (auto elem : P) cout << elem << " ";
-			// cout << endl;
-			// cout << "R after" << endl;
-			// for (auto elem : R) cout << elem << " ";
-			// cout << endl;
-			#endif
-
-			// NNLS
 
 			A_P.setZero();
 	
 			for(auto index: P) A_P.col(index)=A.col(index);
 			
-			// solver.compute(A_P.sparseView());
+			#if DECOMPOSITION==USE_SPARSE_QR
+			solver.compute(A_P.sparseView());
+			#else
 			solver.compute(A_P);
+			#endif
 
 			s =  solver.solve(b);
 

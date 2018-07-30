@@ -1,6 +1,9 @@
 #include <Eigen/Dense>
+
+#if DECOMPOSITION==USE_SPARSE_QR
 #include <Eigen/SparseQR>
 #include <Eigen/Sparse>
+#endif
 
 // #include <vector>
 
@@ -58,8 +61,13 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 	// this pseudo-inverse has numerical issues
 	// in order to avoid that I substitued the pseudoinvese wiht the QR decomposition
 	
-	// Eigen::LLT<FixedMatrix> solver;
+	#if DECOMPOSITION==USE_SPARSE_QR
 	Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
+	#elif DECOMPOSITION==USE_LLT
+	Eigen::LLT<FixedMatrix> solver;
+	#elif DECOMPOSITION==USE_HOUSEHOLDER
+	Eigen::HouseholderQR<FixedMatrix> solver;
+	#endif
 	
 	vector<unsigned int> P;
 	vector<unsigned int> R(VECTOR_SIZE);
@@ -108,8 +116,11 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 
 		for(auto index: P) A_P.col(index)=A.col(index);
 
+		#if DECOMPOSITION==USE_SPARSE_QR
 		solver.compute(A_P.sparseView());
-		// solver.compute(A_P);
+		#else
+		solver.compute(A_P);
+		#endif
 
 		Eigen::VectorXd s =  solver.solve(b);
 		
@@ -153,8 +164,11 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 	
 			for(auto index: P) A_P.col(index)=A.col(index);
 			
-			// solver.compute(A_P);
+			#if DECOMPOSITION==USE_SPARSE_QR
 			solver.compute(A_P.sparseView());
+			#else
+			solver.compute(A_P);
+			#endif
 			
 			s =  solver.solve(b);
 

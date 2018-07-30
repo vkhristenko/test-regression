@@ -1,16 +1,17 @@
-#include "../interface/fnnls.h"
-
 #include <Eigen/Dense>
+
+#if DECOMPOSITION==USE_SPARSE_QR
 #include <Eigen/SparseQR>
 #include <Eigen/Sparse>
+#endif
 
 #include <iostream>
 
-#ifdef DEBUG
+#ifdef DEBUG_FNNLS_CPU
 #include <vector>
 #endif
 
-#include "../interface/nnls.h"
+#include "../interface/fnnls.h"
 
 
 using namespace std;
@@ -32,7 +33,13 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 	// this pseudo-inverse has numerical issues
 	// in order to avoid that I substitued the pseudoinvese wiht the QR decomposition
 	
+	#if DECOMPOSITION==USE_SPARSE_QR
 	Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
+	#elif DECOMPOSITION==USE_LLT
+	Eigen::LLT<FixedMatrix> solver;
+	#elif DECOMPOSITION==USE_HOUSEHOLDER
+	Eigen::HouseholderQR<FixedMatrix> solver;
+	#endif
 
 	std::vector<unsigned int> P;
 	std::vector<unsigned int> R(VECTOR_SIZE);
@@ -50,15 +57,15 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 	// main loop 
 	for (int iter=0; iter<max_iterations; ++iter){
 
-		#ifdef DEBUG
-		// cout << "iter " << iter << endl;
+		#ifdef DEBUG_FNNLS_CPU
+		cout << "iter " << iter << endl;
 		#endif
 	
 		// FNNLS
 		FixedVector w = Atb - (AtA*x);
 		
-		#ifdef DEBUG
-		// cout << "w" << endl << w << endl;
+		#ifdef DEBUG_FNNLS_CPU
+		cout << "w" << endl << w << endl;
 		#endif
 
 		// initialize the value for the while guard
@@ -74,8 +81,8 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 			}
 		}
 
-		#ifdef DEBUG
-		// cout << "max index " << max_index << endl;
+		#ifdef DEBUG_FNNLS_CPU
+		cout << "max index " << max_index << endl;
 		#endif
 
 		P.emplace_back(max_index);
@@ -84,29 +91,40 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 		// termination condition
 		if(R.empty() || w[max_index] < eps) break;
 
-		#ifdef DEBUG
-		// cout << "P " << endl;
-		// for (auto elem : P) cout << elem << " ";
-		// cout << endl;
-		// cout << "R " << endl;
-		// for (auto elem : R) cout << elem << " ";
-		// cout << endl;
+		#ifdef DEBUG_FNNLS_CPU
+		cout << "P " << endl;
+		for (auto elem : P) cout << elem << " ";
+		cout << endl;
+		cout << "R " << endl;
+		for (auto elem : R) cout << elem << " ";
+		cout << endl;
 		#endif
 
 		FixedMatrix A_P = FixedMatrix::Zero();
 
 		for(auto index: P) A_P.col(index)=A.col(index);
 
-		solver.compute(A_P.sparseView());
 
-		#ifdef DEBUG
-		// cout << "A_P " << endl << A_P << endl; 
+		#if DECOMPOSITION==USE_SPARSE_QR
+		solver.compute(A_P.sparseView());
+		#else
+		solver.compute(A_P);
 		#endif
 
+		#ifdef DEBUG_FNNLS_CPU
+		cout << "A_P " << endl << A_P << endl; 
+		#endif
+
+		// FixedVector s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
+		#if DECOMPOSITION==USE_SPARSE_QR
 		Eigen::VectorXd s =  solver.solve(b);
+		#else
+		FixedVector s =  solver.solve(b);
+		#endif
+
 		
-		#ifdef DEBUG
-		// cout << "s" << endl << s << endl;
+		#ifdef DEBUG_FNNLS_CPU
+		cout << "s" << endl << s << endl;
 		#endif
 
 		// inner loop
@@ -117,8 +135,8 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 			for (auto index: P)
 				min_s = std::min(s[index],min_s);
 			
-			#ifdef DEBUG
-			// cout << "min_s " << min_s << endl;
+			#ifdef DEBUG_FNNLS_CPU
+			cout << "min_s " << min_s << endl;
 			#endif
 
 			if(min_s > 0 ) break;
@@ -130,30 +148,30 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 					alpha = -std::min(x[index]/(x[index]-s[index]), alpha);
 				}
 			}
-			#ifdef DEBUG
+			#ifdef DEBUG_FNNLS_CPU
 
-			// cout << "alpha " << alpha << endl;
+			cout << "alpha " << alpha << endl;
 
-			// cout << "x before" << endl << x << endl;
+			cout << "x before" << endl << x << endl;
 
 			#endif
 
 			for (auto index: P)
 				x[index] += alpha*(s[index]-x[index]);
 
-			#ifdef DEBUG
-			// cout << "x after" << endl << x << endl;
+			#ifdef DEBUG_FNNLS_CPU
+			cout << "x after" << endl << x << endl;
 			#endif
 
 			std::vector<unsigned int> tmp;
 
-			#ifdef DEBUG
-			// cout << "P  before" << endl;
-			// for (auto elem : P) cout << elem << " ";
-			// cout << endl;
-			// cout << "R before" << endl;
-			// for (auto elem : R) cout << elem << " ";
-			// cout << endl;
+			#ifdef DEBUG_FNNLS_CPU
+			cout << "P  before" << endl;
+			for (auto elem : P) cout << elem << " ";
+			cout << endl;
+			cout << "R before" << endl;
+			for (auto elem : R) cout << elem << " ";
+			cout << endl;
 			#endif
 
 
@@ -167,21 +185,24 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 
 			for(auto index: tmp) P.erase(P.begin()+index);
 			
-			#ifdef DEBUG
-
-			// cout << "P  after" << endl;
-			// for (auto elem : P) cout << elem << " ";
-			// cout << endl;
-			// cout << "R after" << endl;
-			// for (auto elem : R) cout << elem << " ";
-			// cout << endl;
+			#ifdef DEBUG_FNNLS_CPU
+			cout << "P  after" << endl;
+			for (auto elem : P) cout << elem << " ";
+			cout << endl;
+			cout << "R after" << endl;
+			for (auto elem : R) cout << elem << " ";
+			cout << endl;
 			#endif
 
 			A_P.setZero();
 	
 			for(auto index: P) A_P.col(index)=A.col(index);
 			
+			#if DECOMPOSITION==USE_SPARSE_QR
 			solver.compute(A_P.sparseView());
+			#else
+			solver.compute(A_P);
+			#endif
 
 			s =  solver.solve(b);
 
