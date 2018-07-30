@@ -41,7 +41,9 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 	printf("debug fnnls");
 	print_fixed_matrix(A);
 	print_fixed_vector(b);
-	#endif
+	#else
+    printf("hello world\n");
+    #endif
 	
  	// Fast NNLS (fnnls) algorithm as per 
 	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
@@ -173,10 +175,11 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 
 __global__ void fnnls_kernel(NNLS_args *args, FixedVector* x, unsigned int n, double eps, unsigned int max_iterations){
 	// thread idx
+    printf("hello world\n");
 	int i = blockIdx.x*blockDim.x + threadIdx.x;
 	if (i>=n) return;
 	auto &A = args[i].A;
 	auto &b = args[i].b;
-	x[i] = fnnls(A, b, eps, max_iterations);
+//	x[i] = fnnls(A, b, eps, max_iterations);
 
 }

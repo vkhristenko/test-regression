@@ -25,7 +25,7 @@ if (CUDA_FOUND)
     include_directories(${CUDA_INCLUDE_DIRS} SYSTEM)
     cuda_include_directories(${CUDA_INCLUDE_DIRS})
     set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS}")
-    set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xptxas -O2,-v" )
+    set (CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xptxas -O2,-v -DDEBUG_FNNLS_GPU" )
 endif()
 find_package(NVVM)
 
