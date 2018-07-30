@@ -5,5 +5,12 @@ if (CUDA_FOUND)
     target_link_libraries(multifit_gpu_kernels)
 endif()
 
+# if (DEBUG)
+#     message("FNNLS DEBUG")
+#     # add_definitions(-DDEBUG)
+#     # add_definitions(-DDEBUG_NNLS_GPU)
+#     add_definitions(-DDEBUG_FNNLS_GPU)
+# endif()
+
 add_executable(nnls_gpu src/nnls.cu src/fnnls.cu src/kernel_wrapper.cu src/main.cpp)
 target_link_libraries(nnls_gpu  ${CUDA_LIBRARIES} nnls_gpu_kernels)

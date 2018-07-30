@@ -7,14 +7,42 @@
 #include "../interface/fnnls.h"
 #include "../interface/vector.h"
 
-#ifdef DEBUG_NNLS
-#include <iostream>
+#ifdef DEBUG_FNNLS_GPU
+#include <stdio.h>
 #endif
 
 using namespace Eigen;
 
+
+__host__ __device__
+void print_fixed_matrix(const FixedMatrix &M) {
+    printf("ciao");
+    for(unsigned int i = 0; i < MATRIX_SIZE; i++){
+        for(unsigned int j = 0; j < MATRIX_SIZE; j++){                   
+            printf("%d ", M(i,j));
+        }
+        printf("\n");
+    }
+}
+
+__host__ __device__
+void print_fixed_vector(const FixedVector &V) {
+    printf("ciao");
+    for(unsigned int i = 0; i < MATRIX_SIZE; i++){
+        printf("%d ", V[i]);
+    }
+        printf("\n");
+}
+
+
 __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
 
+	#ifdef DEBUG_FNNLS_GPU
+	printf("debug fnnls");
+	print_fixed_matrix(A);
+	print_fixed_vector(b);
+	#endif
+	
  	// Fast NNLS (fnnls) algorithm as per 
 	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
 	// page 8
@@ -47,16 +75,10 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 	// main loop 
 	for (int iter=0; iter<max_iterations; ++iter){
 
-		#ifdef DEBUG_NNLS
-		// cout << "iter " << iter << endl;
-		#endif
 	
 		// FNNLS
 		FixedVector w = Atb - (AtA*x);
 		
-		#ifdef DEBUG_NNLS
-		// cout << "w" << endl << w << endl;
-		#endif
 
 		// initialize the value for the while guard
 		// max_index will contain the index of the max coeff anf max_w is the max coeff 
@@ -71,9 +93,6 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 			}
 		}
 
-		#ifdef DEBUG_NNLS
-		// cout << "max index " << max_index << endl;
-		#endif
 
 		P.push_back(max_index);
 		// R.erase(R.begin()+remove_index);
@@ -82,14 +101,6 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 		// termination condition
 		if(R.empty() || w[max_index] < eps) break;
 
-		#ifdef DEBUG_NNLS
-		// cout << "P " << endl;
-		// for (auto elem : P) cout << elem << " ";
-		// cout << endl;
-		// cout << "R " << endl;
-		// for (auto elem : R) cout << elem << " ";
-		// cout << endl;
-		#endif
 
 		FixedMatrix A_P = FixedMatrix::Zero();
 
@@ -98,15 +109,8 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 		solver.compute(A_P.sparseView());
 		// solver.compute(A_P);
 
-		#ifdef DEBUG_NNLS
-		// cout << "A_P " << endl << A_P << endl; 
-		#endif
-
 		Eigen::VectorXd s =  solver.solve(b);
 		
-		#ifdef DEBUG_NNLS
-		// cout << "s" << endl << s << endl;
-		#endif
 
 		// inner loop
 		while(true){
@@ -116,9 +120,6 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 			for (auto index: P)
 				min_s = std::min(s[index],min_s);
 			
-			#ifdef DEBUG_NNLS
-			// cout << "min_s " << min_s << endl;
-			#endif
 
 			if(min_s > 0 ) break;
 
@@ -129,32 +130,11 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 					alpha = -std::min(x[index]/(x[index]-s[index]), alpha);
 				}
 			}
-			#ifdef DEBUG_NNLS
-
-			// cout << "alpha " << alpha << endl;
-
-			// cout << "x before" << endl << x << endl;
-
-			#endif
 
 			for (auto index: P)
 				x[index] += alpha*(s[index]-x[index]);
 
-			#ifdef DEBUG_NNLS
-			// cout << "x after" << endl << x << endl;
-			#endif
-
 			vector<unsigned int> tmp;
-
-			#ifdef DEBUG_NNLS
-			// cout << "P  before" << endl;
-			// for (auto elem : P) cout << elem << " ";
-			// cout << endl;
-			// cout << "R before" << endl;
-			// for (auto elem : R) cout << elem << " ";
-			// cout << endl;
-			#endif
-
 
 			for(int i=P.size()-1; i>=0; --i){
 				auto index = P[i]; 
@@ -167,16 +147,6 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 			// for(auto index: tmp) P.erase(P.begin()+index);
 			for(auto index: tmp) P.erase(index);
 			
-			#ifdef DEBUG_NNLS
-
-			// cout << "P  after" << endl;
-			// for (auto elem : P) cout << elem << " ";
-			// cout << endl;
-			// cout << "R after" << endl;
-			// for (auto elem : R) cout << elem << " ";
-			// cout << endl;
-			#endif
-
 			A_P.setZero();
 	
 			for(auto index: P) A_P.col(index)=A.col(index);
@@ -194,6 +164,9 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 		x = s;
 	}
 
+	#ifdef DEBUG_FNNLS_GPU
+	print_fixed_vector(x);
+	#endif
 
 	return x;
 }

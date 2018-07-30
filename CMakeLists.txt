@@ -13,7 +13,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -O2")
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
 if (DEBUG)
+    message("DEBUG MODE")
     add_definitions(-DDEBUG)
+    add_definitions(-DDEBUG_FNNLS_GPU)
 endif()
 
 # cuda
