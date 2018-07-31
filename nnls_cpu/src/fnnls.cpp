@@ -1,220 +1,201 @@
 #include <Eigen/Dense>
 
-#if DECOMPOSITION==USE_SPARSE_QR
-#include <Eigen/SparseQR>
-#include <Eigen/Sparse>
-#endif
-
-#include <iostream>
+#include <vector>
 
 #ifdef DEBUG_FNNLS_CPU
-#include <vector>
+#include <iostream>
 #endif
 
 #include "../interface/fnnls.h"
 
-
 using namespace std;
 using namespace Eigen;
 
+FixedVector fnnls(const FixedMatrix& A,
+                  const FixedVector& b,
+                  const double eps,
+                  const unsigned int max_iterations) {
+  // Fast NNLS (fnnls) algorithm as per
+  // http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
+  // page 8
 
-FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
+  // FNNLS memorizes the A^T * A and A^T * b to reduce the computation.
+  // The pseudo-inverse obtined has the same numerical problems so
+  // I keep the same decomposition utilized for NNLS.
 
- 	// Fast NNLS (fnnls) algorithm as per 
-	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
-	// page 8
-	
-	// FNNLS memorizes the A^T * A and A^T * b to reduce the computation.
-	// The pseudo-inverse obtined has the same numerical problems so
-	// I keep the same decomposition utilized for NNLS.
+  // pseudoinverse (A^T * A)^-1 * A^T
+  // this pseudo-inverse has numerical issues
+  // in order to avoid that I substitued the pseudoinvese wiht the QR
+  // decomposition
 
-	
-	// pseudoinverse (A^T * A)^-1 * A^T 
-	// this pseudo-inverse has numerical issues
-	// in order to avoid that I substitued the pseudoinvese wiht the QR decomposition
-	
-	#if DECOMPOSITION==USE_SPARSE_QR
-	Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
-	#elif DECOMPOSITION==USE_LLT
-	Eigen::LLT<FixedMatrix> solver;
-	#elif DECOMPOSITION==USE_HOUSEHOLDER
-	Eigen::HouseholderQR<FixedMatrix> solver;
-	#endif
+  std::vector<unsigned int> P;
+  std::vector<unsigned int> R(VECTOR_SIZE);
 
-	std::vector<unsigned int> P;
-	std::vector<unsigned int> R(VECTOR_SIZE);
+// initial set of indexes
+#pragma unroll
+  for (unsigned int i = 0; i < VECTOR_SIZE; ++i)
+    R[i] = i;
 
-	// initial set of indexes
-	#pragma unroll
-	for ( unsigned int i=0; i<VECTOR_SIZE; ++i) R[i] = i;
+  // initial solution vector
+  FixedVector x = FixedVector::Zero();
 
-	// initial solution vector
-	FixedVector x = FixedVector::Zero();
+  auto AtA = A.transpose() * A;
+  auto Atb = A.transpose() * b;
 
-	auto AtA = A.transpose() * A;
-	auto Atb = A.transpose() * b;
+  // main loop
+  for (int iter = 0; iter < max_iterations; ++iter) {
+#ifdef DEBUG_FNNLS_CPU
+    cout << "iter " << iter << endl;
+#endif
 
-	// main loop 
-	for (int iter=0; iter<max_iterations; ++iter){
+    // FNNLS
+    FixedVector w = Atb - (AtA * x);
 
-		#ifdef DEBUG_FNNLS_CPU
-		cout << "iter " << iter << endl;
-		#endif
-	
-		// FNNLS
-		FixedVector w = Atb - (AtA*x);
-		
-		#ifdef DEBUG_FNNLS_CPU
-		cout << "w" << endl << w << endl;
-		#endif
+#ifdef DEBUG_FNNLS_CPU
+    cout << "w" << endl << w << endl;
+#endif
 
-		// initialize the value for the while guard
-		// max_index will contain the index of the max coeff anf max_w is the max coeff 
-		unsigned int max_index = R[0];	
-		unsigned int remove_index = 0;
+    // initialize the value for the while guard
+    // max_index will contain the index of the max coeff anf max_w is the max
+    // coeff
+    unsigned int max_index = R[0];
+    unsigned int remove_index = 0;
 
-		for (unsigned int i=0; i<R.size(); ++i){
-			auto index = R[i];
-			if(w[index] > w[max_index]){
-				max_index = index;
-				remove_index = i;
-			}
-		}
+    for (unsigned int i = 0; i < R.size(); ++i) {
+      auto index = R[i];
+      if (w[index] > w[max_index]) {
+        max_index = index;
+        remove_index = i;
+      }
+    }
 
-		#ifdef DEBUG_FNNLS_CPU
-		cout << "max index " << max_index << endl;
-		#endif
+#ifdef DEBUG_FNNLS_CPU
+    cout << "max index " << max_index << endl;
+#endif
 
-		P.emplace_back(max_index);
-		R.erase(R.begin()+remove_index);
+    P.emplace_back(max_index);
+    R.erase(R.begin() + remove_index);
 
-		// termination condition
-		if(R.empty() || w[max_index] < eps) break;
+    // termination condition
+    if (R.empty() || w[max_index] < eps)
+      break;
 
-		#ifdef DEBUG_FNNLS_CPU
-		cout << "P " << endl;
-		for (auto elem : P) cout << elem << " ";
-		cout << endl;
-		cout << "R " << endl;
-		for (auto elem : R) cout << elem << " ";
-		cout << endl;
-		#endif
+#ifdef DEBUG_FNNLS_CPU
+    cout << "P " << endl;
+    for (auto elem : P)
+      cout << elem << " ";
+    cout << endl;
+    cout << "R " << endl;
+    for (auto elem : R)
+      cout << elem << " ";
+    cout << endl;
+#endif
 
-		FixedMatrix A_P = FixedMatrix::Zero();
+    FixedMatrix A_P = FixedMatrix::Zero();
 
-		for(auto index: P) A_P.col(index)=A.col(index);
+    for (auto index : P)
+      A_P.col(index) = A.col(index);
 
+#if DECOMPOSITION == USE_LLT
+    FixedVector s = A_P.llt().matrixL().solve(b);
+#elif DECOMPOSITION == USE_HOUSEHOLDER
+    FixedVector s = A_P.colPivHouseholderQr().solve(b);
+#endif
 
-		#if DECOMPOSITION==USE_SPARSE_QR
-		solver.compute(A_P.sparseView());
-		#else
-		solver.compute(A_P);
-		#endif
+#ifdef DEBUG_FNNLS_CPU
+    cout << "s" << endl << s << endl;
+#endif
 
-		#ifdef DEBUG_FNNLS_CPU
-		cout << "A_P " << endl << A_P << endl; 
-		#endif
+    // inner loop
+    while (true) {
+      auto min_s = std::numeric_limits<double>::max();
 
-		// FixedVector s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
-		#if DECOMPOSITION==USE_SPARSE_QR
-		Eigen::VectorXd s =  solver.solve(b);
-		#else
-		FixedVector s =  solver.solve(b);
-		#endif
+      for (auto index : P)
+        min_s = std::min(s[index], min_s);
 
-		
-		#ifdef DEBUG_FNNLS_CPU
-		cout << "s" << endl << s << endl;
-		#endif
+#ifdef DEBUG_FNNLS_CPU
+      cout << "min_s " << min_s << endl;
+#endif
 
-		// inner loop
-		while(true){
+      if (min_s > 0)
+        break;
 
-			auto min_s = std::numeric_limits<double>::max();
+      auto alpha = std::numeric_limits<double>::max();
 
-			for (auto index: P)
-				min_s = std::min(s[index],min_s);
-			
-			#ifdef DEBUG_FNNLS_CPU
-			cout << "min_s " << min_s << endl;
-			#endif
+      for (auto index : P) {
+        if (s[index] <= 0) {
+          alpha = -std::min(x[index] / (x[index] - s[index]), alpha);
+        }
+      }
+#ifdef DEBUG_FNNLS_CPU
 
-			if(min_s > 0 ) break;
+      cout << "alpha " << alpha << endl;
 
-			auto alpha = std::numeric_limits<double>::max();
+      cout << "x before" << endl << x << endl;
 
-			for (auto index: P){
-				if (s[index] <= 0 ){
-					alpha = -std::min(x[index]/(x[index]-s[index]), alpha);
-				}
-			}
-			#ifdef DEBUG_FNNLS_CPU
+#endif
 
-			cout << "alpha " << alpha << endl;
+      for (auto index : P)
+        x[index] += alpha * (s[index] - x[index]);
 
-			cout << "x before" << endl << x << endl;
+#ifdef DEBUG_FNNLS_CPU
+      cout << "x after" << endl << x << endl;
+#endif
 
-			#endif
+      std::vector<unsigned int> tmp;
 
-			for (auto index: P)
-				x[index] += alpha*(s[index]-x[index]);
+#ifdef DEBUG_FNNLS_CPU
+      cout << "P  before" << endl;
+      for (auto elem : P)
+        cout << elem << " ";
+      cout << endl;
+      cout << "R before" << endl;
+      for (auto elem : R)
+        cout << elem << " ";
+      cout << endl;
+#endif
 
-			#ifdef DEBUG_FNNLS_CPU
-			cout << "x after" << endl << x << endl;
-			#endif
+      for (int i = P.size() - 1; i >= 0; --i) {
+        auto index = P[i];
+        if (x[index] == 0) {
+          R.emplace_back(index);
+          tmp.emplace_back(i);
+        }
+      }
 
-			std::vector<unsigned int> tmp;
+      for (auto index : tmp)
+        P.erase(P.begin() + index);
 
-			#ifdef DEBUG_FNNLS_CPU
-			cout << "P  before" << endl;
-			for (auto elem : P) cout << elem << " ";
-			cout << endl;
-			cout << "R before" << endl;
-			for (auto elem : R) cout << elem << " ";
-			cout << endl;
-			#endif
+#ifdef DEBUG_FNNLS_CPU
+      cout << "P  after" << endl;
+      for (auto elem : P)
+        cout << elem << " ";
+      cout << endl;
+      cout << "R after" << endl;
+      for (auto elem : R)
+        cout << elem << " ";
+      cout << endl;
+#endif
 
+      A_P.setZero();
 
-			for(int i=P.size()-1; i>=0; --i){
-				auto index = P[i]; 
-				if(x[index]==0){
-					R.emplace_back(index);
-					tmp.emplace_back(i);
-				}
-			}
+      for (auto index : P)
+        A_P.col(index) = A.col(index);
 
-			for(auto index: tmp) P.erase(P.begin()+index);
-			
-			#ifdef DEBUG_FNNLS_CPU
-			cout << "P  after" << endl;
-			for (auto elem : P) cout << elem << " ";
-			cout << endl;
-			cout << "R after" << endl;
-			for (auto elem : R) cout << elem << " ";
-			cout << endl;
-			#endif
+#if DECOMPOSITION == USE_LLT
+      s = A_P.llt().matrixL().solve(b);
+#elif DECOMPOSITION == USE_HOUSEHOLDER
+      s = A_P.colPivHouseholderQr().solve(b);
+#endif
 
-			A_P.setZero();
-	
-			for(auto index: P) A_P.col(index)=A.col(index);
-			
-			#if DECOMPOSITION==USE_SPARSE_QR
-			solver.compute(A_P.sparseView());
-			#else
-			solver.compute(A_P);
-			#endif
+      for (auto index : R)
+        s[index] = 0;
 
-			s =  solver.solve(b);
+      return x;
+    }
 
-			for(auto index: R) s[index]=0;
+    x = s;
+  }
 
-			return x;
-		}
-
-		x = s;
-	}
-
-
-	return x;
+  return x;
 }
-
