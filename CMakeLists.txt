@@ -16,7 +16,7 @@ if (DEBUG)
     message("DEBUG MODE")
     add_definitions(-DDEBUG)
     add_definitions(-DDEBUG_FNNLS_GPU)
-    add_definitions(-DDEBUG_FNNLS_CPU)
+    # add_definitions(-DDEBUG_FNNLS_CPU)
 endif()
 
 # cuda

@@ -124,7 +124,6 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 
 		Eigen::VectorXd s =  solver.solve(b);
 		
-
 		// inner loop
 		while(true){
 
