@@ -1,0 +1,23 @@
+#include <tuple>
+#include <vector>
+
+#include "io/interface/ecal_data_io.h"
+
+ecal_data_io::ecal_data_io(std::string const& file_name) 
+    : file_name{file_name}, tfile{new TFile(file_name.c_str())}, samples{new std::vector<double>{}} {
+    ttree = (TTree*) tfile->Get("Samples");
+
+    ttree->SetBranchAddress("amplitudeTruth", &truth_ampl);
+    ttree->SetBranchAddress("samples", &samples);
+}
+
+ecal_data_io::entry_type ecal_data_io::get_one_entry() {
+}
+
+std::vector<ecal_data_io::entry_type> ecal_data_io::get_n_entries(int n) {
+    std::vector<entry_type> result;
+    for (int i=0; i<n; i++)
+        result.push_back(get_one_entry());
+
+    return result;
+}

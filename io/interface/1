@@ -1,0 +1,30 @@
+#include "TFile.h"
+#include "TTree.h"
+
+#include <array>
+#include <vector>
+
+#include "io/interface/Pulse.h"
+
+constexpr int num_samples = 10;
+constexpr int num_samples_extended = 19;
+
+class ecal_data_io {
+private:
+    std::string file_name;
+    TFile* tfile;
+    TTree* ttree;
+
+    double truth_ampl;
+    std::vector<double> *samples;
+    int ientry;
+
+public:
+    using entry_type = std::tuple<std::array<double, num_samples>&, 
+        std::array<std::array<double, num_samples>, num_samples>>
+
+    ecal_data_io(std:string const& file_name);
+
+    entry_type get_one_entry();
+    std::vector<entry_type> get_n_entries(int);
+};
