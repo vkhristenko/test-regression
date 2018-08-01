@@ -1,44 +1,37 @@
 #include <Eigen/Dense>
 
-#if DECOMPOSITION==USE_SPARSE_QR
-#include <Eigen/SparseQR>
-#include <Eigen/Sparse>
-#endif
-
-// #include <vector>
-
 #include "../interface/fnnls.h"
 #include "../interface/vector.h"
 
 #ifdef DEBUG_FNNLS_GPU
 #include <stdio.h>
+__device__ __host__ 
+void print_fixed_matrix(const FixedMatrix& M) {
+  printf("ciao");
+  for (unsigned int i = 0; i < MATRIX_SIZE; i++) {
+    for (unsigned int j = 0; j < MATRIX_SIZE; j++) {
+      printf("%d ", M(i, j));
+    }
+    printf("\n");
+  }
+}
+
+__device__ __host__ 
+void print_fixed_vector(const FixedVector& V) {
+  printf("ciao");
+  for (unsigned int i = 0; i < MATRIX_SIZE; i++) {
+    printf("%d ", V[i]);
+  }
+  printf("\n");
+}
 #endif
+
+
 
 using namespace Eigen;
 
-
-__host__ __device__
-void print_fixed_matrix(const FixedMatrix &M) {
-    printf("ciao");
-    for(unsigned int i = 0; i < MATRIX_SIZE; i++){
-        for(unsigned int j = 0; j < MATRIX_SIZE; j++){                   
-            printf("%d ", M(i,j));
-        }
-        printf("\n");
-    }
-}
-
-__host__ __device__
-void print_fixed_vector(const FixedVector &V) {
-    printf("ciao");
-    for(unsigned int i = 0; i < MATRIX_SIZE; i++){
-        printf("%d ", V[i]);
-    }
-        printf("\n");
-}
-
-
-__device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
+__device__ __host__ 
+FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, const unsigned int max_iterations){
 
 	#ifdef DEBUG_FNNLS_GPU
 	printf("debug fnnls");
@@ -60,14 +53,6 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 	// pseudoinverse (A^T * A)^-1 * A^T 
 	// this pseudo-inverse has numerical issues
 	// in order to avoid that I substitued the pseudoinvese wiht the QR decomposition
-	
-	#if DECOMPOSITION==USE_SPARSE_QR
-	Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::VectorXd> solver;
-	#elif DECOMPOSITION==USE_LLT
-	Eigen::LLT<FixedMatrix> solver;
-	#elif DECOMPOSITION==USE_HOUSEHOLDER
-	Eigen::HouseholderQR<FixedMatrix> solver;
-	#endif
 	
 	vector<unsigned int> P;
 	vector<unsigned int> R(VECTOR_SIZE);
@@ -116,13 +101,14 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 
 		for(auto index: P) A_P.col(index)=A.col(index);
 
-		#if DECOMPOSITION==USE_SPARSE_QR
-		solver.compute(A_P.sparseView());
-		#else
-		solver.compute(A_P);
+		#if DECOMPOSITION == USE_LLT
+		FixedVector s = A_P.llt().matrixL().solve(b);
+		#elif DECOMPOSITION == USE_LDLT
+		FixedVector s = A_P.ldlt().matrixL().solve(b);
+		#elif DECOMPOSITION == USE_HOUSEHOLDER
+		FixedVector s = A_P.colPivHouseholderQr().solve(b);
 		#endif
 
-		Eigen::VectorXd s =  solver.solve(b);
 		
 		// inner loop
 		while(true){
@@ -139,7 +125,7 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 
 			for (auto index: P){
 				if (s[index] <= 0 ){
-					alpha = -std::min(x[index]/(x[index]-s[index]), alpha);
+					alpha = std::min(-x[index]/(s[index]-x[index]), alpha);
 				}
 			}
 
@@ -163,14 +149,14 @@ __device__ __host__ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b
 	
 			for(auto index: P) A_P.col(index)=A.col(index);
 			
-			#if DECOMPOSITION==USE_SPARSE_QR
-			solver.compute(A_P.sparseView());
-			#else
-			solver.compute(A_P);
+			#if DECOMPOSITION == USE_LLT
+      s = A_P.llt().matrixL().solve(b);
+			#elif DECOMPOSITION == USE_LDLT
+      s = A_P.ldlt().matrixL().solve(b);
+			#elif DECOMPOSITION == USE_HOUSEHOLDER
+      s = A_P.colPivHouseholderQr().solve(b);
 			#endif
 			
-			s =  solver.solve(b);
-
 			for(auto index: R) s[index]=0;
 
 			return x;

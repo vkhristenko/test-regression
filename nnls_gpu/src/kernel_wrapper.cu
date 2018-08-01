@@ -5,6 +5,9 @@
 #include <iostream>
 #include <string>
 
+
+using namespace std;
+
 void assert_if_error(std::string const& name) {
     auto check = [&name](auto code) {
         if (code != cudaSuccess) {
@@ -27,17 +30,38 @@ std::vector<FixedVector> nnls_wrapper(
         // device pointers
         NNLS_args* d_args;
         FixedVector* d_x;
+
+        cout << "sizes: " << args.size() << endl;
+
+        for(auto& arg: args){
+            
+            cout << "A" << endl;
+            cout << arg.A << endl;
+            cout << "b" << endl;
+            cout << arg.b << endl;
+        }
         
         // arguments allocation
-        cudaMalloc((void**) &d_args, sizeof(NNLS_args) * args.size());
+        if(cudaMalloc(&d_args, sizeof(NNLS_args) * args.size()) != cudaSuccess){
+            cout << "first malloc failed" << endl;
+            assert(false);
+        }
         assert_if_error("nnls argument allocation");
         // results allocation
-        cudaMalloc((void**) &d_x, sizeof(FixedVector) * args.size());
+        if(cudaMalloc(&d_x, sizeof(FixedVector) * args.size()) != cudaSuccess){
+            cout << "first malloc failed" << endl;
+            assert(false);
+        }
         assert_if_error("nnls result allocation");
         
         
         // arguments copy
-        cudaMemcpy(d_args, args.data(), sizeof(NNLS_args) * args.size(), cudaMemcpyHostToDevice);
+        auto error = cudaMemcpy(d_args, args.data(), sizeof(NNLS_args) * args.size(), cudaMemcpyHostToDevice);
+        if(error != cudaSuccess){
+            cout << "memcpy failed" << endl;
+            assert(false);
+        }
+
         assert_if_error("nnls parameters copy");
         
 
@@ -49,7 +73,7 @@ std::vector<FixedVector> nnls_wrapper(
         printf("finish kernel nnls\n");
         
         // copy the results back from the device
-        cudaMemcpy(&(x[0]), d_x, sizeof(FixedVector) * args.size(), cudaMemcpyDeviceToHost);
+        cudaMemcpy(x.data(), d_x, sizeof(FixedVector) * args.size(), cudaMemcpyDeviceToHost);
         
         // clear and exit
         cudaFree(d_args);

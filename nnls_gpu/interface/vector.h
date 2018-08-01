@@ -1,4 +1,7 @@
 
+#ifndef MY_CUDA_VECTORS_H
+#define MY_CUDA_VECTORS_H
+
 template <typename T> 
 class vector {
     public:
@@ -69,3 +72,5 @@ class vector {
         }
 
 };
+
+#endif

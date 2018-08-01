@@ -98,6 +98,8 @@ FixedVector fnnls(const FixedMatrix& A,
 
 #if DECOMPOSITION == USE_LLT
     FixedVector s = A_P.llt().matrixL().solve(b);
+#elif DECOMPOSITION == USE_LDLT
+    FixedVector s = A_P.ldlt().matrixL().solve(b);
 #elif DECOMPOSITION == USE_HOUSEHOLDER
     FixedVector s = A_P.colPivHouseholderQr().solve(b);
 #endif
@@ -124,7 +126,7 @@ FixedVector fnnls(const FixedMatrix& A,
 
       for (auto index : P) {
         if (s[index] <= 0) {
-          alpha = -std::min(x[index] / (x[index] - s[index]), alpha);
+          alpha = std::min(-x[index] / (s[index] - x[index]), alpha);
         }
       }
 #ifdef DEBUG_FNNLS_CPU
@@ -184,14 +186,14 @@ FixedVector fnnls(const FixedMatrix& A,
 
 #if DECOMPOSITION == USE_LLT
       s = A_P.llt().matrixL().solve(b);
+#elif DECOMPOSITION == USE_LDLT
+      s = A_P.ldlt().matrixL().solve(b);
 #elif DECOMPOSITION == USE_HOUSEHOLDER
       s = A_P.colPivHouseholderQr().solve(b);
 #endif
 
       for (auto index : R)
         s[index] = 0;
-
-      return x;
     }
 
     x = s;

@@ -1,11 +1,13 @@
 #include <Eigen/Dense>
 #include <vector>
 
+#include "../interface/nnls.h"
+
+// #define DEBUG_NNLS_  CPU
+
 #ifdef DEBUG_NNLS_CPU
 #include <iostream>
 #endif
-
-#include "../interface/fnnls.h"
 
 using namespace std;
 using namespace Eigen;
@@ -63,7 +65,7 @@ FixedVector nnls(const FixedMatrix& A,
     }
 
 #ifdef DEBUG_NNLS_CPU
-    cout << "max index " << max_index << endl;
+    // cout << "max index " << max_index << endl;
 #endif
 
     P.emplace_back(max_index);
@@ -74,14 +76,14 @@ FixedVector nnls(const FixedMatrix& A,
       break;
 
 #ifdef DEBUG_NNLS_CPU
-    cout << "P " << endl;
-    for (auto elem : P)
-      cout << elem << " ";
-    cout << endl;
-    cout << "R " << endl;
-    for (auto elem : R)
-      cout << elem << " ";
-    cout << endl;
+      // cout << "P " << endl;
+      // for (auto elem : P)
+      //   cout << elem << " ";
+      // cout << endl;
+      // cout << "R " << endl;
+      // for (auto elem : R)
+      //   cout << elem << " ";
+      // cout << endl;
 #endif
 
     FixedMatrix A_P = FixedMatrix::Zero();
@@ -96,13 +98,15 @@ FixedVector nnls(const FixedMatrix& A,
       // #endif
 
 #ifdef DEBUG_NNLS_CPU
-    cout << "A_P " << endl << A_P << endl;
+      // cout << "A_P " << endl << A_P << endl;
 #endif
 
-    // FixedVector s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
+      // FixedVector s = (A_P.transpose()*A_P).inverse() * A_P.transpose() * b;
 
 #if DECOMPOSITION == USE_LLT
     FixedVector s = A_P.llt().matrixL().solve(b);
+#elif DECOMPOSITION == USE_LDLT
+    FixedVector s = A_P.ldlt().matrixL().solve(b);
 #elif DECOMPOSITION == USE_HOUSEHOLDER
     FixedVector s = A_P.colPivHouseholderQr().solve(b);
 #endif
@@ -111,7 +115,7 @@ FixedVector nnls(const FixedMatrix& A,
       s[index] = 0;
 
 #ifdef DEBUG_NNLS_CPU
-    cout << "s" << endl << s << endl;
+      // cout << "s" << endl << s << endl;
 #endif
 
     // inner loop
@@ -122,17 +126,23 @@ FixedVector nnls(const FixedMatrix& A,
         min_s = std::min(s[index], min_s);
 
 #ifdef DEBUG_NNLS_CPU
-      cout << "min_s " << min_s << endl;
+        // cout << "min_s " << min_s << endl;
 #endif
 
       if (min_s > 0)
         break;
 
+#ifdef DEBUG_NNLS_CPU
+      cout << "s" << endl << s << endl;
+#endif
       auto alpha = std::numeric_limits<double>::max();
+      // auto rm_idx = -1;
 
-      for (auto index : P) {
+      for (int i = 0; i < P.size(); i++) {
+        auto index = P[i];
         if (s[index] <= 0) {
-          alpha = -std::min(x[index] / (x[index] - s[index]), alpha);
+          alpha = std::min(-x[index] / (s[index] - x[index]), alpha);
+          // rm_idx = i;
         }
       }
 #ifdef DEBUG_NNLS_CPU
@@ -143,13 +153,20 @@ FixedVector nnls(const FixedMatrix& A,
 
 #endif
 
-      for (auto index : P)
+      for (auto index : P) {
+#ifdef DEBUG_NNLS_CPU
+        cout << "index P " << index << endl;
+        cout << "delta " << alpha * (s[index] - x[index]) << endl;
+#endif
+
         x[index] += alpha * (s[index] - x[index]);
+      }
 
 #ifdef DEBUG_NNLS_CPU
       cout << "x after" << endl << x << endl;
 #endif
-
+      // R.emplace_back(P[rm_idx]);
+      // P.erase(P.begin() + rm_idx);
       std::vector<unsigned int> tmp;
 
 #ifdef DEBUG_NNLS_CPU
@@ -194,6 +211,8 @@ FixedVector nnls(const FixedMatrix& A,
 
 #if DECOMPOSITION == USE_LLT
       s = A_P.llt().matrixL().solve(b);
+#elif DECOMPOSITION == USE_LDLT
+      s = A_P.ldlt().matrixL().solve(b);
 #elif DECOMPOSITION == USE_HOUSEHOLDER
       s = A_P.colPivHouseholderQr().solve(b);
 #endif
@@ -201,7 +220,9 @@ FixedVector nnls(const FixedMatrix& A,
       for (auto index : R)
         s[index] = 0;
 
-      return x;
+#ifdef DEBUG_NNLS_CPU
+      cout << "s after " << s << endl;
+#endif
     }
 
     x = s;

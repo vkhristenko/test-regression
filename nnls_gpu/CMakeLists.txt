@@ -13,4 +13,4 @@ endif()
 # endif()
 
 add_executable(nnls_gpu src/nnls.cu src/fnnls.cu src/kernel_wrapper.cu src/main.cpp)
-target_link_libraries(nnls_gpu  ${CUDA_LIBRARIES} nnls_gpu_kernels)
+target_link_libraries(nnls_gpu ${CUDA_LIBRARIES} io ${ROOT_LIBRARIES} nnls_gpu_kernels)
