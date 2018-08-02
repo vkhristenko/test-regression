@@ -23,8 +23,8 @@ int main(const int argc, char** const argv) {
 
   ecal_data_io io{file_name};
   auto entries = io.get_n_entries(10000);
-    tests = entries.size();
-//   tests = 1;
+  tests = entries.size();
+  //   tests = 1;
 
   // srand(42);
   vector<double> eigen_error;

@@ -24,13 +24,16 @@ std::vector<FixedVector> nnls_wrapper(
                             std::vector<NNLS_args> const& args,
                             double eps,
                             unsigned int max_iterations){
+
+        cudaDeviceSetLimit(cudaLimitPrintfFifoSize, 0);
         // host solution vector
         std::vector<FixedVector> x(args.size());
         
         // device pointers
         NNLS_args* d_args;
         FixedVector* d_x;
-
+        
+        #ifdef DEBUG_NNLS_WRAPPER
         cout << "sizes: " << args.size() << endl;
 
         for(auto& arg: args){
@@ -40,7 +43,7 @@ std::vector<FixedVector> nnls_wrapper(
             cout << "b" << endl;
             cout << arg.b << endl;
         }
-        
+        #endif
         // arguments allocation
         if(cudaMalloc(&d_args, sizeof(NNLS_args) * args.size()) != cudaSuccess){
             cout << "first malloc failed" << endl;
@@ -49,7 +52,7 @@ std::vector<FixedVector> nnls_wrapper(
         assert_if_error("nnls argument allocation");
         // results allocation
         if(cudaMalloc(&d_x, sizeof(FixedVector) * args.size()) != cudaSuccess){
-            cout << "first malloc failed" << endl;
+            cout << "second malloc failed" << endl;
             assert(false);
         }
         assert_if_error("nnls result allocation");
@@ -66,8 +69,12 @@ std::vector<FixedVector> nnls_wrapper(
         
 
         printf("launch kernel nnls\n");
-        // nnls_kernel<<<args.size()+255/256, 256>>>(d_args, d_x, args.size(), eps, max_iterations);
-        nnls_kernel<<<1,1>>>(d_args, d_x, args.size(), eps, max_iterations);
+
+        int nthreadsPerBlock = 256;
+        int nblocks = (args.size() + nthreadsPerBlock - 1) / nthreadsPerBlock;
+        nnls_kernel<<<nblocks, nthreadsPerBlock>>>(d_args, d_x, args.size(), eps, max_iterations);
+        nnls_kernel<<<2,1>>>(d_args, d_x, args.size(), eps, max_iterations);
+        // nnls_kernel<<<args.size(),1>>>(d_args, d_x, args.size(), eps, max_iterations);
         cudaDeviceSynchronize();
         assert_if_error("nnls kernel");
         printf("finish kernel nnls\n");
@@ -103,14 +110,16 @@ std::vector<FixedVector> nnls_wrapper(
         cudaMemcpy(d_args, args.data(), sizeof(NNLS_args) * args.size(), cudaMemcpyHostToDevice);
         
         printf("launch kernel fnnsl\n");
-        // fnnls_kernel<<<args.size()+255/256, 256>>>(d_args, d_x, args.size(), eps, max_iterations);
+        int nthreadsPerBlock = 256;
+        int nblocks = (args.size() + nthreadsPerBlock - 1) / nthreadsPerBlock;
+        // fnnls_kernel<<<nblocks, nthreadsPerBlock>>>(d_args, d_x, args.size(), eps, max_iterations);
         fnnls_kernel<<<1,1>>>(d_args, d_x, args.size(), eps, max_iterations);
         cudaDeviceSynchronize();
         assert_if_error("fnnls");
         printf("finish kernel fnnls\n");
         
         // copy the results back from the device
-        cudaMemcpy(&(x[0]), d_x, sizeof(FixedVector) * args.size(), cudaMemcpyDeviceToHost);
+        cudaMemcpy(x.data(), d_x, sizeof(FixedVector) * args.size(), cudaMemcpyDeviceToHost);
 
         // clear and exit
         cudaFree(d_args);

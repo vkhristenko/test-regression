@@ -28,12 +28,21 @@ void print_fixed_vector(const FixedVector& V) {
   printf("\n");
 }
 
+__device__ __host__ 
+void print_device_vector(vector<unsigned int> v){
+	for(auto elem: v) printf("%u ", elem);
+	printf("\n");
+
+}
+
+
 
 __device__ __host__
 FixedVector nnls(const FixedMatrix& A,
                  const FixedVector& b,
                  const double eps,
                  const unsigned int max_iterations) {
+
 #ifdef DEBUG_NNLS_GPU
   printf("nnls launched\n");
 	printf("parameters size: A(%i,%i) b(%i)\n", A.rows(), A.cols(), b.cols());
@@ -52,13 +61,19 @@ FixedVector nnls(const FixedMatrix& A,
   // in order to avoid that I substitued the pseudoinvese wiht the QR
   // decomposition
 
-  vector<unsigned int> P(VECTOR_SIZE);
-  vector<unsigned int> R(VECTOR_SIZE);
+	vector<unsigned int> P;
+	vector<unsigned int> R(VECTOR_SIZE);
 
 // initial set of indexes
 	#pragma unroll
   for (unsigned int i = 0; i < VECTOR_SIZE; ++i) R[i] = i;
-
+	
+  #ifdef DEBUG_NNLS_GPU
+	printf("P ");
+	print_device_vector(P);
+	printf("R ");
+	print_device_vector(R);
+  #endif
   // initial solution vector
   FixedVector x = FixedVector::Zero();
 
@@ -67,23 +82,8 @@ FixedVector nnls(const FixedMatrix& A,
     // NNLS
     // initialize the cost vector
 
-    // auto at = A.transpose();
-    // printf("at\n");
-    // auto ax = A*x;
-    // printf("at\n");
-    // auto b_ax = b - ax;
-    // printf("at\n");
-    // FixedVector w = at*b_ax;
-    // printf("at\n");
-
     FixedVector w = A.transpose() * (b - (A * x));
-    // auto tmp = A.transpose()*(b - (A*x));
-    // FixedVector w = tmp;
-    // FixedVector w = A.transpose()*(b - (A*x));
 
-#ifdef DEBUG_FNNLS
-// cout << "w" << endl << w << endl;
-#endif
 
     // initialize the value for the while guard
     // max_index will contain the index of the max coeff anf max_w is the max
@@ -91,20 +91,38 @@ FixedVector nnls(const FixedMatrix& A,
     unsigned int max_index = R[0];
     unsigned int remove_index = 0;
 
+    #ifdef DEBUG_NNLS_GPU
     printf("Max index %u, remove index %u\n", max_index, remove_index);
-
+    #endif
     for (unsigned int i = 0; i < R.size(); ++i) {
-      auto index = R[i];
+			auto index = R[i];
       if (w(index) > w(max_index)) {
-        max_index = index;
+				max_index = index;
         remove_index = i;
       }
     }
-
+    #ifdef DEBUG_NNLS_GPU
+		printf("before the erase\n");
+		printf("P ");
+		print_device_vector(P);
+		printf("R ");
+		print_device_vector(R);
+		
+		printf("Max index %u, remove index %u\n", max_index, remove_index);
+    #endif
+		
     P.push_back(max_index);
     // R.erase(R.begin()+remove_index);
     R.erase(remove_index);
 
+    #ifdef DEBUG_NNLS_GPU
+		printf("after the erase\n");
+		printf("P ");
+		print_device_vector(P);
+		printf("R ");
+		print_device_vector(R);
+		#endif
+		// fflush(NULL);
     // termination condition
     if (R.empty() || w[max_index] < eps)
       break;
@@ -123,31 +141,38 @@ FixedVector nnls(const FixedMatrix& A,
     FixedVector s = A_P.colPivHouseholderQr().solve(b);
 #endif
 
+    #ifdef DEBUG_NNLS_GPU
+    printf("after the decomposition\n");
+    #endif
+    
     for (auto index : R)
-      s[index] = 0;
-
+    s[index] = 0;
+    
     // inner loop
     while (true) {
       auto min_s = std::numeric_limits<double>::max();
-
+      
       for (auto index : P)
-        min_s = std::min(s[index], min_s);
-
-#ifdef DEBUG_FNNLS
+      min_s = std::min(s[index], min_s);
+      
+			#ifdef DEBUG_FNNLS
       cout << "min_s " << min_s << endl;
-#endif
-
+			#endif
+      
       if (min_s > 0)
-        break;
-
+      break;
+      
       auto alpha = std::numeric_limits<double>::max();
-
+      
       for (auto index : P) {
         if (s[index] <= 0) {
           alpha = std::min(-x[index] / (s[index] - x[index]), alpha);
         }
       }
-
+      
+      printf("alpha %d", alpha);
+      // fflush(NULL);
+      
       for (auto index : P)
         x[index] += alpha * (s[index] - x[index]);
 
@@ -194,15 +219,15 @@ __global__ void nnls_kernel(NNLS_args* args,
                             double eps,
                             unsigned int max_iterations) {
   // thread idx
-  printf("hello nnls\n");
+  // printf("hello nnls\n");
   int i = blockIdx.x * blockDim.x + threadIdx.x;
-  printf("thread index %i\n", i);
+  // printf("thread index %i\n", i);
   if (i >= n)
     return;
 	auto& A = args[i].A;
-	printf("inside the kernel\n");
-	print_fixed_matrix(A);
+	// printf("inside the kernel\n");
+	// print_fixed_matrix(A);
 	auto& b = args[i].b;
-	print_fixed_vector(b);
+	// print_fixed_vector(b);
   x[i] = nnls(A, b, eps, max_iterations);
 }
