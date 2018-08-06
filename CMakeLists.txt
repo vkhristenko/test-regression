@@ -1,20 +1,26 @@
 cmake_minimum_required(VERSION 3.8.0)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
+# set(CMAKE_RULE_MESSAGES OFF)
 
 # project name
 project(test-regression)
 
-set(CMAKE_BUILD_TYPE "Debug")
+if(NOT DEBUG)
+set(CMAKE_BUILD_TYPE "Release")
+endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -O2")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
 if (DEBUG)
     message("DEBUG MODE")
     add_definitions(-DDEBUG)
+    set(CMAKE_BUILD_TYPE "Debug")
+
     # add_definitions(-DDEBUG_FNNLS_GPU)
     # add_definitions(-DDEBUG_NNLS_GPU)
     # add_definitions(-DDEBUG_NNLS_CPU)
@@ -30,6 +36,7 @@ if (CUDA_FOUND)
         # set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS_DEBUG} -DDEBUG_FNNLS_GPU")
         # set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS_DEBUG} -DDEBUG_NNLS_GPU")
         set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS_DEBUG} -G -g")
+        # set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS_DEBUG} -Xcompiler -rdynamic -lineinfo ")
     endif()
     set (CUDA_NVCC_FLAGS_RELEASE "${CUDA_NVCC_FLAGS_RELEASE} -Xptxas -O2,-v" )
 endif()

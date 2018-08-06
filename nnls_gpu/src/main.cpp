@@ -4,11 +4,9 @@
 #include <numeric>
 #include <vector>
 
-// #include "../interface/nnls.h"
-// #include "../interface/fnnls.h"
-// #include "../interface/data_types.h"
 #include "../interface/eigen_nnls.h"
 #include "../interface/kernel_wrapper.h"
+#include "../interface/test_wrapper.h"
 #include "io/interface/ecal_data_io.h"
 
 using namespace std;
@@ -30,12 +28,14 @@ int main(const int argc, char** const argv) {
   vector<double> eigen_error;
   vector<double> nnls_error;
   vector<double> fnnls_error;
+  vector<double> delta;
 
   vector<NNLS_args> args;
+
   vector<FixedVector> nnls_results;
+  vector<FixedVector> eigen_results;
   vector<FixedVector> fnnls_results;
 
-  vector<double> delta;
   int iteration = 0;
   for (auto const& p : entries) {
     FixedVector const& b = p.first;
@@ -62,6 +62,7 @@ int main(const int argc, char** const argv) {
     if (!status)
       return -1;
     auto x = eigen_nnls.x();
+    eigen_results.push_back(x);
 
 #ifdef VERBOSE
     cout << "eigen" << endl;
@@ -82,10 +83,14 @@ int main(const int argc, char** const argv) {
   fnnls_results = fnnls_wrapper(args);
 
   for (int i = 0; i < tests; ++i) {
+    cout << "EIGEN" << endl << eigen_results[i] << endl;
+    cout << "NNLS" << endl << nnls_results[i] << endl;
+    cout << "FNNLS" << endl << fnnls_results[i] << endl;
     double error = (args[i].b - args[i].A * nnls_results[i]).squaredNorm();
     nnls_error.push_back(error);
     error = (args[i].b - args[i].A * fnnls_results[i]).squaredNorm();
     fnnls_error.push_back(error);
+    delta.push_back((nnls_results[i] - eigen_results[i]).norm());
   }
 
   double max = *std::max_element(eigen_error.begin(), eigen_error.end());

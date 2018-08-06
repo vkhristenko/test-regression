@@ -62,7 +62,9 @@ FixedVector nnls(const FixedMatrix& A,
   // decomposition
 
 	vector<unsigned int> P;
-	vector<unsigned int> R(VECTOR_SIZE);
+  vector<unsigned int> R(VECTOR_SIZE);
+  vector<unsigned int> tmp;
+
 
 // initial set of indexes
 	#pragma unroll
@@ -110,7 +112,7 @@ FixedVector nnls(const FixedMatrix& A,
 		
 		printf("Max index %u, remove index %u\n", max_index, remove_index);
     #endif
-		
+  
     P.push_back(max_index);
     // R.erase(R.begin()+remove_index);
     R.erase(remove_index);
@@ -159,8 +161,7 @@ FixedVector nnls(const FixedMatrix& A,
       cout << "min_s " << min_s << endl;
 			#endif
       
-      if (min_s > 0)
-      break;
+      if (min_s > 0) break;
       
       auto alpha = std::numeric_limits<double>::max();
       
@@ -170,19 +171,23 @@ FixedVector nnls(const FixedMatrix& A,
         }
       }
       
+      #ifdef DEBUG_NNLS_GPU
       printf("alpha %d", alpha);
+      #endif
       // fflush(NULL);
       
       for (auto index : P)
         x[index] += alpha * (s[index] - x[index]);
 
-      vector<unsigned int> tmp;
+      tmp.clear();
 
       for (int i = P.size() - 1; i >= 0; --i) {
-        auto index = P[i];
-        if (x[index] == 0) {
+        unsigned int index = P[i];
+        if (x[index] == 0.) {
           R.push_back(index);
           tmp.push_back(i);
+          // printf("iteration i %u\n", i);
+          // fflush(NULL);
         }
       }
 
@@ -203,8 +208,7 @@ FixedVector nnls(const FixedMatrix& A,
       s = A_P.colPivHouseholderQr().solve(b);
 #endif
 
-      for (auto index : R)
-        s[index] = 0;
+      for (auto index : R) s[index] = 0;
     }
 
     x = s;
@@ -220,14 +224,15 @@ __global__ void nnls_kernel(NNLS_args* args,
                             unsigned int max_iterations) {
   // thread idx
   // printf("hello nnls\n");
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  // printf("thread index %i\n", i);
-  if (i >= n)
-    return;
+  int i = blockIdx.x*blockDim.x + threadIdx.x;
+  // printf("thread index %i n %i\n", i,n);
+  if (i >= n) return;
+  // printf("thread index %i n %i\n", i,n);
+
 	auto& A = args[i].A;
+	auto& b = args[i].b;
 	// printf("inside the kernel\n");
 	// print_fixed_matrix(A);
-	auto& b = args[i].b;
 	// print_fixed_vector(b);
   x[i] = nnls(A, b, eps, max_iterations);
 }

@@ -15,7 +15,7 @@ using namespace Eigen;
 
 auto tests = 100;
 
-// #define VERBOSE
+#define VERBOSE
 
 int main(const int argc, char** const argv) {
   //   reading input from file

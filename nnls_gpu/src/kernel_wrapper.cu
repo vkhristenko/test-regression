@@ -25,7 +25,7 @@ std::vector<FixedVector> nnls_wrapper(
                             double eps,
                             unsigned int max_iterations){
 
-        cudaDeviceSetLimit(cudaLimitPrintfFifoSize, 0);
+        // cudaDeviceSetLimit(cudaLimitPrintfFifoSize, 0);
         // host solution vector
         std::vector<FixedVector> x(args.size());
         
@@ -72,9 +72,13 @@ std::vector<FixedVector> nnls_wrapper(
 
         int nthreadsPerBlock = 256;
         int nblocks = (args.size() + nthreadsPerBlock - 1) / nthreadsPerBlock;
+        cout << "threads per block " << nthreadsPerBlock << 
+        " blocks " << nblocks <<
+        " input size " << args.size() << endl; 
         nnls_kernel<<<nblocks, nthreadsPerBlock>>>(d_args, d_x, args.size(), eps, max_iterations);
-        nnls_kernel<<<2,1>>>(d_args, d_x, args.size(), eps, max_iterations);
+        // nnls_kernel<<<10,10>>>(d_args, d_x, args.size(), eps, max_iterations);
         // nnls_kernel<<<args.size(),1>>>(d_args, d_x, args.size(), eps, max_iterations);
+        // nnls_kernel<<<10, 10>>>(d_args, d_x, args.size(), eps, max_iterations);
         cudaDeviceSynchronize();
         assert_if_error("nnls kernel");
         printf("finish kernel nnls\n");
@@ -85,7 +89,13 @@ std::vector<FixedVector> nnls_wrapper(
         // clear and exit
         cudaFree(d_args);
         cudaFree(d_x);
-
+        #ifdef DEBUG_NNLS_WRAPPER
+        for(const auto& result: x){
+            cout << "x" << endl;
+            cout << result.transpose() << endl;
+            // break;
+        }
+        #endif
         return x;
     }
     
@@ -112,8 +122,8 @@ std::vector<FixedVector> nnls_wrapper(
         printf("launch kernel fnnsl\n");
         int nthreadsPerBlock = 256;
         int nblocks = (args.size() + nthreadsPerBlock - 1) / nthreadsPerBlock;
-        // fnnls_kernel<<<nblocks, nthreadsPerBlock>>>(d_args, d_x, args.size(), eps, max_iterations);
-        fnnls_kernel<<<1,1>>>(d_args, d_x, args.size(), eps, max_iterations);
+        fnnls_kernel<<<nblocks, nthreadsPerBlock>>>(d_args, d_x, args.size(), eps, max_iterations);
+        // fnnls_kernel<<<1,1>>>(d_args, d_x, args.size(), eps, max_iterations);
         cudaDeviceSynchronize();
         assert_if_error("fnnls");
         printf("finish kernel fnnls\n");
@@ -125,6 +135,12 @@ std::vector<FixedVector> nnls_wrapper(
         cudaFree(d_args);
         cudaFree(d_x);
 
+        // for(const auto& result: x){
+            // cout << "x" << endl;
+            // cout << result.transpose() << endl;
+            // break;
+        // }
+        
         return x;            
 
     }

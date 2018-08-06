@@ -14,7 +14,7 @@ typedef Eigen::Matrix<double, VECTOR_SIZE, 1> FixedVector;
 #define USE_HOUSEHOLDER 2
 
 #ifndef DECOMPOSITION
-#define DECOMPOSITION USE_HOUSEHOLDER
+#define DECOMPOSITION USE_LDLT
 #endif
 
 #endif

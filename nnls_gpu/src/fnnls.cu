@@ -37,9 +37,8 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 	printf("debug fnnls");
 	print_fixed_matrix(A);
 	print_fixed_vector(b);
-	#else
-    printf("hello world\n");
-    #endif
+	printf("hello world\n");
+	#endif
 	
  	// Fast NNLS (fnnls) algorithm as per 
 	// http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
@@ -66,6 +65,8 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 
 	auto AtA = A.transpose() * A;
 	auto Atb = A.transpose() * b;
+
+	vector<unsigned int> tmp;
 
 	// main loop 
 	for (int iter=0; iter<max_iterations; ++iter){
@@ -132,16 +133,15 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 			for (auto index: P)
 				x[index] += alpha*(s[index]-x[index]);
 
-			vector<unsigned int> tmp;
-
-			for(int i=P.size()-1; i>=0; --i){
-				auto index = P[i]; 
-				if(x[index]==0){
-					R.push_back(index);
-					tmp.push_back(i);
-				}
-			}
-
+			tmp.clear();
+			
+      for (int i = P.size() - 1; i >= 0; --i) {
+        auto index = P[i];
+        if (x[index] == 0.) {
+          R.push_back(index);
+          tmp.push_back(i);
+        }
+      }
 			// for(auto index: tmp) P.erase(P.begin()+index);
 			for(auto index: tmp) P.erase(index);
 			
@@ -159,7 +159,6 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 			
 			for(auto index: R) s[index]=0;
 
-			return x;
 		}
 
 		x = s;
@@ -174,9 +173,9 @@ FixedVector fnnls(const FixedMatrix &A, const FixedVector &b, const double eps, 
 
 __global__ void fnnls_kernel(NNLS_args *args, FixedVector* x, unsigned int n, double eps, unsigned int max_iterations){
 	// thread idx
-    printf("hello fnnls\n");
+    // printf("hello fnnls\n");
 	int i = blockIdx.x*blockDim.x + threadIdx.x;
-	printf("thread index %i\n", i);
+	// printf("thread index %i\n", i);
 	if (i>=n) return;
 	auto &A = args[i].A;
 	auto &b = args[i].b;

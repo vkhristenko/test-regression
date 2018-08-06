@@ -12,5 +12,6 @@ endif()
 #     add_definitions(-DDEBUG_FNNLS_GPU)
 # endif()
 
-add_executable(nnls_gpu src/nnls.cu src/fnnls.cu src/kernel_wrapper.cu src/main.cpp)
+add_executable(nnls_gpu src/nnls.cu src/fnnls.cu src/kernel_wrapper.cu 
+    src/test_wrapper.cu src/test.cu src/main.cpp)
 target_link_libraries(nnls_gpu ${CUDA_LIBRARIES} io ${ROOT_LIBRARIES} nnls_gpu_kernels)
