@@ -29,18 +29,19 @@ SampleVector amplitudes(SampleVector::Zero());
 
 TFile *fout;
 TH1D *h01;
+TH1D *hDuration;
 
 
-
-void initHist()
+void initHist(std::string const& out_file)
 {
-  fout = new TFile("output.root","recreate");
-  h01 = new TH1D("h01", "dA", 1000, -20.0, 20.0);
+  fout = new TFile(out_file.c_str(),"recreate");
+  h01 = new TH1D("h01", "dA", 1000, -5, 5);
+  hDuration = new TH1D("Duration", "Duration", 100, 0, 5000);
 }
 
-void init()
+void init(std::string const& out_file)
 {
-  initHist();
+  initHist(out_file);
   
   // intime sample is [2]
   double pulseShapeTemplate[NSAMPLES+2];
@@ -81,8 +82,7 @@ void init()
 
 
 
-void run(std::string inputFile, std::string outFile)
-{
+void run(std::string inputFile, int max_iterations, int entries_per_kernel = 100) {
   
   TFile *file2 = new TFile(inputFile.c_str());
   
@@ -93,9 +93,6 @@ void run(std::string inputFile, std::string outFile)
   tree->SetBranchAddress("amplitudeTruth",      &amplitudeTruth);
   tree->SetBranchAddress("samples",             &samples);
   int nentries = tree->GetEntries();
-  
-  
-  
   
   float time_shift = 13. ; //---- default is 13
   float pedestal_shift = 0.;
@@ -108,8 +105,6 @@ void run(std::string inputFile, std::string outFile)
   
   std::vector<TH1F*> v_pulses;
   std::vector<TH1F*> v_amplitudes_reco;
-  
-  std::cout << " outFile = " << outFile << std::endl;
   
   fout->cd();
   TTree* newtree = (TTree*) tree->CloneTree(0); //("RecoAndSim");
@@ -142,48 +137,96 @@ void run(std::string inputFile, std::string outFile)
   v_amplitudes_reco.clear();
   
   
-  
-  
-  
-  
-  
-  for(int ievt=0; ievt<nentries; ++ievt){
-    tree->GetEntry(ievt);
-    for(int i=0; i<NSAMPLES; i++){
-      amplitudes[i] = samples->at(i);
-    }
-    
-    double pedval = 0.;
-    double pedrms = 1.0;
-    PulseChiSqSNNLS pulsefunc;
-    
-    pulsefunc.disableErrorCalculation();
-    bool status = pulsefunc.DoFit(amplitudes,noisecor,pedrms,activeBX,fullpulse,fullpulsecov);
-    double chisq = pulsefunc.ChiSq();
+  struct Args {
+      SampleVector samples;
+      SampleMatrix samplecor;
+      double pederr;
+      BXVector bxs;
+      FullSampleVector fullpulse;
+      FullSampleMatrix fullpulsecov;
 
-    std::cout << "status = " << status << std::endl;
-    std::cout << chisq << std::endl;
-    
-    unsigned int ipulseintime = 0;
-    for (unsigned int ipulse=0; ipulse<pulsefunc.BXs().rows(); ++ipulse) {
-      if (pulsefunc.BXs().coeff(ipulse)==0) {
-        ipulseintime = ipulse;
-        break;
+      Args(SampleVector const& samples,
+           SampleMatrix const& samplecor,
+           double pederr,
+           BXVector const& bxs,
+           FullSampleVector fullpulse,
+           FullSampleMatrix fullpulsecov)
+        : samples(samples), samplecor(samplecor), pederr(pederr), bxs(bxs), 
+          fullpulse(fullpulse), fullpulsecov(fullpulsecov)
+      {}
+  };
+
+  struct Output {
+      double chi2;
+      double ampl;
+      int status;
+
+      Output(double chi2, double ampl, int status) 
+          : chi2{chi2}, ampl{ampl}, status{status}
+      {}
+  };
+  
+  std::cout 
+            << "max_iterations: " << max_iterations << std::endl
+            << "entries_per_kernel: " << entries_per_kernel << std::endl;
+  
+  for (auto it=0; it<max_iterations; ++it) {
+      // vector of input parameters to the kernel
+      std::vector<Args> vargs;
+
+      for (int ie=0; ie<entries_per_kernel; ++ie) {
+          tree->GetEntry(ie % tree->GetEntries());
+          for (int i=0; i<NSAMPLES; ++i)
+              amplitudes[i] = samples->at(i);
+
+          double pedval = 0.;
+          double pedrms = 1.0;
+          vargs.emplace_back(amplitudes, noisecor, pedrms, activeBX, fullpulse, fullpulsecov);
       }
-    }
-    double aMax = status ? pulsefunc.X()[ipulseintime] : 0.;
-    std::cout << "aMax = " << aMax << std::endl;
-    std::cout << "amplitudeTruth" << amplitudeTruth << std::endl;
-    //  double aErr = status ? pulsefunc.Errors()[ipulseintime] : 0.;
-    
-//     std::cout << " aMax = " << aMax << " amplitudeTruth = " << amplitudeTruth << "  chisq = " << chisq << std::endl;
-    
-    h01->Fill(aMax - amplitudeTruth);
+
+      auto kernel = [](std::vector<Args> const& vargs) -> std::vector<Output> {
+          std::vector<Output> vresults;
+          for (auto& args : vargs) {
+              PulseChiSqSNNLS func;
+              func.disableErrorCalculation();
+              auto status = func.DoFit(args.samples, args.samplecor, args.pederr,
+                                       args.bxs, args.fullpulse, args.fullpulsecov);
+              double chi2 = func.ChiSq();
+              unsigned int ip_in_time = 0;
+              for (unsigned int ip=0; ip<func.BXs().rows(); ++ip) {
+                  if (func.BXs().coeff(ip) == 0) {
+                      ip_in_time = ip;
+                      break;
+                  }
+              }
+              double ampl = status ? func.X()[ip_in_time] : 0.;
+              vresults.emplace_back(chi2, ampl, status);
+          }
+
+          return vresults;
+      };
+      std::cout << "iteration: " << it
+                 << " wrapper start with vargs.size() = " << vargs.size() << std::endl;
+      auto start_time = std::chrono::high_resolution_clock::now();
+      auto vresults = kernel(vargs);
+      auto end_time = std::chrono::high_resolution_clock::now();
+      std::cout << "wrapper end with vresults.size() " << vresults.size() << std::endl;
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+            end_time - start_time).count();
+      hDuration->Fill(duration);
+      std::cout << "duration = " << duration << std::endl;
+
+      for (auto& results : vresults) {
+          h01->Fill(results.ampl - amplitudeTruth);
+      }
   }
+  
   fout->cd();
   newtree->Write();
   std::cout << "  Mean of REC-MC = " << h01->GetMean() << " GeV" << std::endl;
-  std::cout << "   RMS of REC-MC = " << h01->GetRMS() << " GeV" << std::endl;
+  std::cout << "  RMS of REC-MC = " << h01->GetRMS() << " GeV" << std::endl;
+  std::cout << "  Entries Total = " << h01->GetEntries() << std::endl;
+  std::cout << "  Mean Duration = " << hDuration->GetMean() << std::endl;
 }
 
 void saveHist()
@@ -191,6 +234,7 @@ void saveHist()
   
   fout->cd();
   h01->Write();
+  hDuration->Write();
   fout->Close();
 }
 
@@ -198,19 +242,23 @@ void saveHist()
 
 int main(int argc, char** argv) {
   std::string inputFile = "data/samples_signal_10GeV_pu_0.root";
+  auto max_iterations = 10;
+  auto entries_per_kernel = 100;
+
   if (argc>=2) {
     inputFile = argv[1];
   }
+  if (argc>=3)
+      max_iterations = atoi(argv[2]);
+  if (argc>=4)
+      entries_per_kernel = atoi(argv[3]);
   
-  std::string outFile = "output.root";
-  if (argc>=3) {
-    outFile = argv[2];
-  }
+  std::string out_file = "output_cpu.root";
 
   std::cout << "1111" << std::endl;
-  init();
+  init(out_file);
   std::cout << "2222" << std::endl; 
-  run(inputFile, outFile);
+  run(inputFile, max_iterations, entries_per_kernel);
   std::cout << "3333" << std::endl;
   saveHist();
   std::cout << "4444" << std::endl;

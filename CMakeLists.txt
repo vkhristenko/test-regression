@@ -74,6 +74,7 @@ add_subdirectory(gen)
 add_subdirectory(multifit_cpu)
 add_subdirectory(multifit_cpu_v2)
 add_subdirectory(nnls_cpu)
+add_subdirectory(test_nnls_cpu)
 add_subdirectory(io)
 
 find_package(OpenCL REQUIRED)

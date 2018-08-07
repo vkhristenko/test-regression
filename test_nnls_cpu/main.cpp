@@ -4,18 +4,18 @@
 #include <numeric>
 #include <vector>
 
-#include "../interface/data_types.h"
-#include "../interface/eigen_nnls.h"
-#include "../interface/fnnls.h"
-#include "../interface/nnls.h"
 #include "io/interface/ecal_data_io.h"
+#include "nnls_cpu/interface/data_types.h"
+#include "nnls_cpu/interface/eigen_nnls.h"
+#include "nnls_cpu/interface/fnnls.h"
+#include "nnls_cpu/interface/nnls.h"
 
 using namespace std;
 using namespace Eigen;
 
 auto tests = 100;
 
-#define VERBOSE
+// #define VERBOSE
 
 int main(const int argc, char** const argv) {
   //   reading input from file
