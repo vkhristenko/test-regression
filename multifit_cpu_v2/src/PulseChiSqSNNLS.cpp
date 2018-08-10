@@ -202,8 +202,19 @@ bool PulseChiSqSNNLS::NNLS() {
   // Fast NNLS (fnnls) algorithm as per
   // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
 
-  auto& A = _pulsemat;
-  auto& b = _sampvec;
+  // As it is this is not a chi-square problem. In order to put it into a solvable 
+  // form they have to take the noise into account, thus they decompose 
+  // the covariance matrix into LLT because the inverse of the covariance matrix 
+  // is given by LL^T . In math Cov^(-1) = LL^T
+  // Then setting P = pulse matrix and s = sample vector
+  // the chi square Ax=b in this case is: min[(Px - s)^T][Cov(Px -s)^-1]
+  // can be formulated as min (LPx = Ls)
+  // in which instead of multiplying by the inverse covariance matrix, this one
+  // gets decomposed and the matrix L is multiplied by the terms. 
+
+  auto& A= _covdecomp.matrixL().solve(_pulsemat);
+
+  auto& b = _covdecomp.matrixL().solve(_sampvec);
 
   // std::cout << A << std::endl;
   // std::cout << b << std::endl;
@@ -212,10 +223,12 @@ bool PulseChiSqSNNLS::NNLS() {
   auto epsilon = 1e-11;
   auto max_iter = 1000;
 
-  auto& x = _ampvec;
+  // auto const & x = _ampvec;
+  FixedVector x = FixedVector(_ampvec);
 
-  x = nnls(A, b, epsilon, max_iter);
+  nnls(A, b, x, epsilon, max_iter);
 
+  _ampvec = x;
   /*
     const unsigned int npulse = _bxs.rows();
     SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);

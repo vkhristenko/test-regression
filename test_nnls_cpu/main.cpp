@@ -56,9 +56,11 @@ int main(const int argc, char** const argv) {
     if (!status)
       return -1;
     auto x = eigen_nnls.x();
-    auto x2 = nnls(A, b, 1e-21, 1000);
+    FixedVector x2 = FixedVector::Zero();
+    nnls(A, b, x2, 1e-21, 1000);
     // exit(0);
-    auto x3 = fnnls(A, b, 1e-21, 1000);
+    FixedVector x3 = FixedVector::Zero();
+    fnnls(A, b, x3, 1e-21, 1000);
     delta.push_back((x - x2).norm());
 
 #ifdef VERBOSE

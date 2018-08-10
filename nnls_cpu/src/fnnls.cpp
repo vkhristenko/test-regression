@@ -11,10 +11,12 @@
 using namespace std;
 using namespace Eigen;
 
-FixedVector fnnls(const FixedMatrix& A,
+void fnnls(const FixedMatrix& A,
                   const FixedVector& b,
+                  FixedVector &x,
                   const double eps,
-                  const unsigned int max_iterations) {
+                  const unsigned int max_iterations
+                  ) {
   // Fast NNLS (fnnls) algorithm as per
   // http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
   // page 8
@@ -37,7 +39,6 @@ FixedVector fnnls(const FixedMatrix& A,
     R[i] = i;
 
   // initial solution vector
-  FixedVector x = FixedVector::Zero();
 
   auto AtA = A.transpose() * A;
   auto Atb = A.transpose() * b;
@@ -198,6 +199,4 @@ FixedVector fnnls(const FixedMatrix& A,
 
     x = s;
   }
-
-  return x;
 }
