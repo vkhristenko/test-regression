@@ -1,5 +1,6 @@
 #include <Eigen/Dense>
 
+#include <algorithm>
 #include <vector>
 
 #ifdef DEBUG_FNNLS_CPU
@@ -12,11 +13,10 @@ using namespace std;
 using namespace Eigen;
 
 void fnnls(const FixedMatrix& A,
-                  const FixedVector& b,
-                  FixedVector &x,
-                  const double eps,
-                  const unsigned int max_iterations
-                  ) {
+           const FixedVector& b,
+           FixedVector& x,
+           const double eps,
+           const unsigned int max_iterations) {
   // Fast NNLS (fnnls) algorithm as per
   // http://users.wfu.edu/plemmons/papers/Chennnonneg.pdf
   // page 8
@@ -32,6 +32,7 @@ void fnnls(const FixedMatrix& A,
 
   std::vector<unsigned int> P;
   std::vector<unsigned int> R(VECTOR_SIZE);
+  std::vector<unsigned int> tmp;
 
 // initial set of indexes
 #pragma unroll
@@ -40,7 +41,7 @@ void fnnls(const FixedMatrix& A,
 
   // initial solution vector
 
-  auto AtA = A.transpose() * A;
+  auto AtA = (A.transpose() * A);
   auto Atb = A.transpose() * b;
 
   // main loop
@@ -49,7 +50,6 @@ void fnnls(const FixedMatrix& A,
     cout << "iter " << iter << endl;
 #endif
 
-    // FNNLS
     FixedVector w = Atb - (AtA * x);
 
 #ifdef DEBUG_FNNLS_CPU
@@ -92,15 +92,33 @@ void fnnls(const FixedMatrix& A,
     cout << endl;
 #endif
 
+#if DECOMPOSITION != USE_HOUSEHOLDER
+    std::sort(P.begin(), P.end());
+    Eigen::Matrix<double, -1, -1, 0, 10, 10> AtA_P =
+        sub_matrix<FixedMatrix, std::vector<unsigned int> >(AtA, P);
+    Eigen::Matrix<double, -1, 1, 0, 10, 1> Atb_P =
+        sub_vector<FixedVector, std::vector<unsigned int> >(Atb, P);
+    FixedVector s = FixedVector::Zero();
+#elif DECOMPOSITION == USE_HOUSEHOLDER
     FixedMatrix A_P = FixedMatrix::Zero();
-
-    for (auto index : P)
+    for (auto index : P) {
       A_P.col(index) = A.col(index);
+    }
+#endif
 
 #if DECOMPOSITION == USE_LLT
-    FixedVector s = A_P.llt().matrixL().solve(b);
+    Eigen::Matrix<double, -1, 1, 0, 10, 1> tmp_s = AtA_P.llt().solve(Atb_P);
+    // Eigen::Matrix<double, -1, 1, 0, 10, 1> tmp_s = AtA_P.inverse() * Atb_P;
+    for (unsigned int i = 0; i < P.size(); i++) {
+      auto index = P[i];
+      s[index] = tmp_s[i];
+    }
 #elif DECOMPOSITION == USE_LDLT
-    FixedVector s = A_P.ldlt().matrixL().solve(b);
+    Eigen::Matrix<double, -1, 1, 0, 10, 1> tmp_s = AtA_P.ldlt().solve(Atb_P);
+    for (unsigned int i = 0; i < P.size(); i++) {
+      auto index = P[i];
+      s[index] = tmp_s[i];
+    }
 #elif DECOMPOSITION == USE_HOUSEHOLDER
     FixedVector s = A_P.colPivHouseholderQr().solve(b);
 #endif
@@ -111,18 +129,6 @@ void fnnls(const FixedMatrix& A,
 
     // inner loop
     while (true) {
-      auto min_s = std::numeric_limits<double>::max();
-
-      for (auto index : P)
-        min_s = std::min(s[index], min_s);
-
-#ifdef DEBUG_FNNLS_CPU
-      cout << "min_s " << min_s << endl;
-#endif
-
-      if (min_s > 0)
-        break;
-
       auto alpha = std::numeric_limits<double>::max();
 
       for (auto index : P) {
@@ -130,6 +136,10 @@ void fnnls(const FixedMatrix& A,
           alpha = std::min(-x[index] / (s[index] - x[index]), alpha);
         }
       }
+
+      if (std::numeric_limits<double>::max() == alpha)
+        break;
+
 #ifdef DEBUG_FNNLS_CPU
 
       cout << "alpha " << alpha << endl;
@@ -138,14 +148,11 @@ void fnnls(const FixedMatrix& A,
 
 #endif
 
-      for (auto index : P)
-        x[index] += alpha * (s[index] - x[index]);
+      x += alpha * (s - x);
 
 #ifdef DEBUG_FNNLS_CPU
       cout << "x after" << endl << x << endl;
 #endif
-
-      std::vector<unsigned int> tmp;
 
 #ifdef DEBUG_FNNLS_CPU
       cout << "P  before" << endl;
@@ -157,6 +164,8 @@ void fnnls(const FixedMatrix& A,
         cout << elem << " ";
       cout << endl;
 #endif
+
+      tmp.clear();
 
       for (int i = P.size() - 1; i >= 0; --i) {
         auto index = P[i];
@@ -180,23 +189,35 @@ void fnnls(const FixedMatrix& A,
       cout << endl;
 #endif
 
-      A_P.setZero();
-
-      for (auto index : P)
-        A_P.col(index) = A.col(index);
-
-#if DECOMPOSITION == USE_LLT
-      s = A_P.llt().matrixL().solve(b);
-#elif DECOMPOSITION == USE_LDLT
-      s = A_P.ldlt().matrixL().solve(b);
+#if DECOMPOSITION != USE_HOUSEHOLDER
+      std::sort(P.begin(), P.end());
+      AtA_P = sub_matrix<FixedMatrix, std::vector<unsigned int> >(AtA, P);
+      Atb_P = sub_vector<FixedVector, std::vector<unsigned int> >(Atb, P);
+      s.setZero();
 #elif DECOMPOSITION == USE_HOUSEHOLDER
-      s = A_P.colPivHouseholderQr().solve(b);
+      A_P.setZero();
+      for (auto index : P) {
+        A_P.col(index) = A.col(index);
+      }
 #endif
 
-      for (auto index : R)
-        s[index] = 0;
+#if DECOMPOSITION == USE_LLT
+      tmp_s = AtA_P.llt().solve(Atb_P);
+      // tmp_s = AtA_P.inverse() * Atb_P;
+      for (unsigned int i = 0; i < P.size(); i++) {
+        auto index = P[i];
+        s[index] = tmp_s[i];
+      }
+#elif DECOMPOSITION == USE_LDLT
+      tmp_s = AtA_P.ldlt().solve(Atb_P);
+      for (unsigned int i = 0; i < P.size(); i++) {
+        auto index = P[i];
+        s[index] = tmp_s[i];
+      }
+#elif DECOMPOSITION == USE_HOUSEHOLDER
+      A_P.colPivHouseholderQr().solve(b);
+#endif
     }
-
     x = s;
   }
 }

@@ -201,7 +201,6 @@ void nnls(const FixedMatrix& A,
       cout << endl;
 #endif
 
-      // NNLS
 
       A_P.setZero();
 
@@ -214,6 +213,7 @@ void nnls(const FixedMatrix& A,
       s = A_P.ldlt().matrixL().solve(b);
 #elif DECOMPOSITION == USE_HOUSEHOLDER
       s = A_P.colPivHouseholderQr().solve(b);
+
 #endif
 
       for (auto index : R)
@@ -223,7 +223,6 @@ void nnls(const FixedMatrix& A,
       cout << "s after " << s << endl;
 #endif
     }
-
     x = s;
   }
 }

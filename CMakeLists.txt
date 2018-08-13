@@ -20,7 +20,6 @@ if (DEBUG)
     message("DEBUG MODE")
     add_definitions(-DDEBUG)
     set(CMAKE_BUILD_TYPE "Debug")
-
     # add_definitions(-DDEBUG_FNNLS_GPU)
     # add_definitions(-DDEBUG_NNLS_GPU)
     # add_definitions(-DDEBUG_NNLS_CPU)

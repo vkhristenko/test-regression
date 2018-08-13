@@ -1,6 +1,7 @@
 #include "multifit_cpu/interface/PulseChiSqSNNLS.h"
 #include <math.h>
 #include <iostream>
+#include "nnls_cpu/interface/eigen_nnls.h"
 #include "nnls_cpu/interface/fnnls.h"
 #include "nnls_cpu/interface/nnls.h"
 
@@ -202,17 +203,17 @@ bool PulseChiSqSNNLS::NNLS() {
   // Fast NNLS (fnnls) algorithm as per
   // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
 
-  // As it is this is not a chi-square problem. In order to put it into a solvable 
-  // form they have to take the noise into account, thus they decompose 
-  // the covariance matrix into LLT because the inverse of the covariance matrix 
+  // As it is this is not a chi-square problem. In order to put it into a
+  // solvable form they have to take the noise into account, thus they decompose
+  // the covariance matrix into LLT because the inverse of the covariance matrix
   // is given by LL^T . In math Cov^(-1) = LL^T
   // Then setting P = pulse matrix and s = sample vector
   // the chi square Ax=b in this case is: min[(Px - s)^T][Cov(Px -s)^-1]
   // can be formulated as min (LPx = Ls)
   // in which instead of multiplying by the inverse covariance matrix, this one
-  // gets decomposed and the matrix L is multiplied by the terms. 
+  // gets decomposed and the matrix L is multiplied by the terms.
 
-  auto& A= _covdecomp.matrixL().solve(_pulsemat);
+  auto& A = _covdecomp.matrixL().solve(_pulsemat);
 
   auto& b = _covdecomp.matrixL().solve(_sampvec);
 
@@ -224,11 +225,24 @@ bool PulseChiSqSNNLS::NNLS() {
   auto max_iter = 1000;
 
   // auto const & x = _ampvec;
+
+  // if (_ampvec.isZero(0)){
+  // _ampvec = A.llt().solve(b);
+  // std::cout << x << std::endl;
+  // }
+  // std::cout << A << std::endl;
+
+  // Eigen::NNLS<FixedMatrix> eigen_nnls(A, max_iter, epsilon);
+  // eigen_nnls.setX(_ampvec);
+  // auto status = eigen_nnls.solve(b);
+  // assert(status);
+  // _ampvec = eigen_nnls.x();
+
   FixedVector x = FixedVector(_ampvec);
-
-  nnls(A, b, x, epsilon, max_iter);
-
+  fnnls(A, b, x, epsilon, max_iter);
+  // exit(0);
   _ampvec = x;
+
   /*
     const unsigned int npulse = _bxs.rows();
     SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);

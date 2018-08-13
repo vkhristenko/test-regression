@@ -99,6 +99,9 @@ public:
     _AtA = A.transpose() * A;
   }
 
+  void setX(ColVectorType x){
+    _x = x;
+  }
 
   /** \brief Solves the NNLS problem.
    * The dimension of @c b must be equal to the number of rows of @c A, given to the constructor
@@ -311,7 +314,7 @@ bool NNLS<MatrixType>::solve(const ColVectorType &b, Heuristic heuristic)
 #endif
 
   // Initialize solver
-  _num_ls = 0; _x.setZero();
+  _num_ls = 0; //_x.setZero();
 
   // Together with _Np, P separates the space of coefficients into a active (Z) and passive (P)
   // set. The first _Np elements form the passive set P and the remaining elements form the
