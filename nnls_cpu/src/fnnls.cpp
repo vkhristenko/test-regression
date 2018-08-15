@@ -45,42 +45,28 @@ void fnnls(const FixedMatrix& A,
   // in order to avoid that I substituted the pseudoinverse whit the QR
   // decomposition
 
-  // std::vector<bool> P(VECTOR_SIZE, false);
-  // std::vector<bool> R(VECTOR_SIZE, true);
-
   // I'm substituting the vectors P and R that represents active and passive set
   // with a boolean vector: if active_set[i] the i belogns to R else to P
 
-  // std::vector<bool> active_set(VECTOR_SIZE, true);
   bool active_set[VECTOR_SIZE];
   memset(active_set, true, VECTOR_SIZE * sizeof(bool));
 
-  // print_active_set(active_set);
-
-  // std::vector<unsigned int> tmp;
-
-  // initial set of indexes
-
-  // #pragma unroll
-  // for (unsigned int i = 0; i < VECTOR_SIZE; ++i)
-  // R[i] = i;
-
-  // initial solution vector
+#ifdef DEBUG_FNNLS_CPU
+  print_active_set(active_set);
+#endif
 
   auto AtA = A.transpose() * A;
   auto Atb = A.transpose() * b;
 
-#if DECOMPOSITION != USE_HOUSEHOLDER
   Eigen::Matrix<double, -1, -1, 0, 10, 10> AtA_P;
   Eigen::Matrix<double, -1, 1, 0, 10, 1> Atb_P;
   Eigen::Matrix<double, -1, 1, 0, 10, 1> tmp_s;
-#endif
 
-  FixedVector s = FixedVector::Zero();
+  FixedVector s;
   FixedVector w;
 
   // main loop
-  for (int iter = 0; iter < max_iterations; ++iter) {
+  for (auto iter = 0; iter < max_iterations; ++iter) {
 #ifdef DEBUG_FNNLS_CPU
     cout << "iter " << iter << endl;
 #endif
@@ -97,67 +83,48 @@ void fnnls(const FixedMatrix& A,
     unsigned int max_index = 0;
     // unsigned int remove_index = 0;
 
+    // start from -1 just because after the next loop one element will be set to
+    // inactive
     int n_active = -1;
 
 #pragma vectorise
     for (auto i = 0; i < VECTOR_SIZE; ++i) {
       if (active_set[i]) {
         ++n_active;
-        if (w[i] > w[max_index]) {
+        if (w[i] > w[max_index])
           max_index = i;
-        }
       }
     }
-    // print_active_set(active_set);
 
 #ifdef DEBUG_FNNLS_CPU
+    print_active_set(active_set);
     cout << "max index " << max_index << endl;
 #endif
 
+    // setting one element to inactive not decrementing n_active because I
+    // already took it into account
     active_set[max_index] = false;
 
-    // print_active_set(active_set);
-
-    // std::cout << "n_active " << n_active << std::endl;
+#ifdef DEBUG_FNNLS_CPU
+    print_active_set(active_set);
+    std::cout << "n_active " << n_active << std::endl;
+#endif
 
     // termination condition
     // if n_active == 0 then exit
     if (!n_active || w[max_index] < eps)
       break;
-
-#if DECOMPOSITION != USE_HOUSEHOLDER
-    // std::sort(P.begin(), P.end());
+    //
     AtA_P = sub_matrix<FixedMatrix, bool[VECTOR_SIZE]>(AtA, active_set,
                                                        VECTOR_SIZE - n_active);
     Atb_P = sub_vector<FixedVector, bool[VECTOR_SIZE]>(Atb, active_set,
                                                        VECTOR_SIZE - n_active);
-    // s.setZero();
-#elif DECOMPOSITION == USE_HOUSEHOLDER
-    FixedMatrix A_P = FixedMatrix::Zero();
-    for (auto index : P) {
-      A_P.col(index) = A.col(index);
-    }
-#endif
-
-#if DECOMPOSITION == USE_LLT
     tmp_s = AtA_P.llt().solve(Atb_P);
-    auto index = 0;
+    //
 #pragma unroll
-    for (auto i = 0; i < VECTOR_SIZE; i++) {
-      if (active_set[i])
-        s[i] = 0.;
-      else
-        s[i] = tmp_s[index++];
+    for (auto i = 0, idx = 0; i < VECTOR_SIZE; i++) {
+      s[i] = active_set[i] ? 0 : tmp_s[idx++];
     }
-#elif DECOMPOSITION == USE_LDLT
-    tmp_s = AtA_P.ldlt().solve(Atb_P);
-    for (auto i = 0; i < P.size(); i++) {
-      auto index = P[i];
-      s[index] = tmp_s[i];
-    }
-#elif DECOMPOSITION == USE_HOUSEHOLDER
-    s = A_P.colPivHouseholderQr().solve(b);
-#endif
 
 #ifdef DEBUG_FNNLS_CPU
     cout << "s" << endl << s << endl;
@@ -192,57 +159,22 @@ void fnnls(const FixedMatrix& A,
       cout << "x after" << endl << x << endl;
 #endif
 
-#ifdef DEBUG_FNNLS_CPU
-      // cout << "P  before" << endl;
-      // for (auto elem : P)
-      //   cout << elem << " ";
-      // cout << endl;
-      // cout << "R before" << endl;
-      // for (auto elem : R)
-      //   cout << elem << " ";
-      // cout << endl;
-#endif
-
 #pragma vectorise
       for (auto i = 0; i < VECTOR_SIZE; i++) {
-        if (!active_set[i] && x[i] == 0) {
+        if (!active_set[i] && x[i] == 0.) {
           active_set[i] = true;
           ++n_active;
         }
       }
 
-#if DECOMPOSITION != USE_HOUSEHOLDER
       AtA_P = sub_matrix<FixedMatrix, bool[VECTOR_SIZE]>(
           AtA, active_set, VECTOR_SIZE - n_active);
       Atb_P = sub_vector<FixedVector, bool[VECTOR_SIZE]>(
           Atb, active_set, VECTOR_SIZE - n_active);
-#elif DECOMPOSITION == USE_HOUSEHOLDER
-      A_P.setZero();
-      for (auto index : P) {
-        A_P.col(index) = A.col(index);
-      }
-#endif
-
-#if DECOMPOSITION == USE_LLT
       tmp_s = AtA_P.llt().solve(Atb_P);
-      auto idx = 0;
 #pragma vectorise
-      for (unsigned int i = 0; i < VECTOR_SIZE; i++) {
-        // auto index = P[i];
-        if (active_set[i])
-          s[i] = 0;
-        else
-          s[i] = tmp_s[idx++];
-      }
-#elif DECOMPOSITION == USE_LDLT
-      tmp_s = AtA_P.ldlt().solve(Atb_P);
-      for (unsigned int i = 0; i < P.size(); i++) {
-        auto index = P[i];
-        s[index] = tmp_s[i];
-      }
-#elif DECOMPOSITION == USE_HOUSEHOLDER
-      s = A_P.colPivHouseholderQr().solve(b);
-#endif
+      for (auto i = 0, idx = 0; i < VECTOR_SIZE; i++)
+        s[i] = active_set[i] ? 0 : tmp_s[idx++];
     }
   }
 }

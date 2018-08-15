@@ -25,34 +25,25 @@ Eigen::Matrix<typename M::Scalar,
               Eigen::Dynamic,
               M::Options,
               M::RowsAtCompileTime,
-              M::ColsAtCompileTime>
-sub_matrix(const M& full, const V& index, unsigned int size) {
+              M::ColsAtCompileTime> inline sub_matrix(const M& full,
+                                                      const V& index,
+                                                      unsigned int size) {
   using matrix_t =
       Eigen::Matrix<typename M::Scalar, Eigen::Dynamic, Eigen::Dynamic,
                     M::Options, M::RowsAtCompileTime, M::ColsAtCompileTime>;
   matrix_t _matrix(size, size);
 
-  // std::cout << "full" << std::endl << full << std::endl;
-
-  auto idx = 0;
 #pragma unroll
-  for (int i = 0; i < VECTOR_SIZE; i++) {
-    if (index[i])
-      continue;
-    // std::cout << i << ' ';
-    auto idy = 0;
+  for (auto i = 0, idx = 0; i < VECTOR_SIZE; i++) {
+    if (!index[i]) {
 #pragma vectorise
-    for (int j = 0; j < VECTOR_SIZE; j++) {
-      if (index[j])
-        continue;
-      _matrix(idx, idy) = full(i, j);
-      ++idy;
+      for (auto j = 0, idy = 0; j < VECTOR_SIZE; j++) {
+        if (!index[j])
+          _matrix(idx, idy++) = full(i, j);
+      }
+      ++idx;
     }
-    ++idx;
   }
-  // std::cout << std::endl
-  // << "small matrix " << std::endl
-  // << _matrix << std::endl;
   return _matrix;
 }
 
@@ -62,24 +53,17 @@ Eigen::Matrix<typename M::Scalar,
               1,
               M::Options,
               M::RowsAtCompileTime,
-              1>
-sub_vector(const M& full, const V& index, unsigned int size) {
+              1> inline sub_vector(const M& full,
+                                   const V& index,
+                                   unsigned int size) {
   using matrix_t = Eigen::Matrix<typename M::Scalar, Eigen::Dynamic, 1,
                                  M::Options, M::RowsAtCompileTime, 1>;
   matrix_t _vector(size);
-  // std::cout << "full vector" << std::endl << full << std::endl;
-
-  auto idx = 0;
 #pragma unroll
-  for (int i = 0; i < VECTOR_SIZE; i++) {
-    if (index[i])
-      continue;
-    // std::cout << i << ' ';
-    _vector[idx++] = full[i];
+  for (auto i = 0, idx = 0; i < VECTOR_SIZE; i++) {
+    if (!index[i])
+      _vector[idx++] = full[i];
   }
-  // std::cout << std::endl
-  // << "small vector " << std::endl
-  // << _vector << std::endl;
   return _vector;
 }
 
