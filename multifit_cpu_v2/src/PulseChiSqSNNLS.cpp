@@ -35,6 +35,7 @@ bool PulseChiSqSNNLS::DoFit(const SampleVector& samples,
   // about this
   _pulsemat = SamplePulseMatrix::Zero(nsample, npulse);
   _ampvec = PulseVector::Zero(npulse);
+  // _ampvec.setZero();
   _errvec = PulseVector::Zero(npulse);
   _nP = 0;
   _chisq = 0.;
@@ -213,16 +214,17 @@ bool PulseChiSqSNNLS::NNLS() {
   // in which instead of multiplying by the inverse covariance matrix, this one
   // gets decomposed and the matrix L is multiplied by the terms.
 
-  auto& A = _covdecomp.matrixL().solve(_pulsemat);
-
-  auto& b = _covdecomp.matrixL().solve(_sampvec);
+  // auto A = _pulsemat;
+  // auto b = _sampvec;
+  FixedMatrix A = _covdecomp.matrixL().solve(_pulsemat);
+  FixedVector b = _covdecomp.matrixL().solve(_sampvec);
 
   // std::cout << A << std::endl;
   // std::cout << b << std::endl;
 
   // TODO: this should be a parameter not a magic number
   auto epsilon = 1e-11;
-  auto max_iter = 1000;
+  auto max_iter = 10;
 
   // auto const & x = _ampvec;
 
@@ -237,10 +239,10 @@ bool PulseChiSqSNNLS::NNLS() {
   // auto status = eigen_nnls.solve(b);
   // assert(status);
   // _ampvec = eigen_nnls.x();
-
   FixedVector x = FixedVector(_ampvec);
   fnnls(A, b, x, epsilon, max_iter);
   // exit(0);
+
   _ampvec = x;
 
   /*
