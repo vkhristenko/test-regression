@@ -1,6 +1,10 @@
-#include "multifit_cpu/interface/PulseChiSqSNNLS.h"
+#include "../interface/PulseChiSqSNNLS.h"
 #include <math.h>
 #include <iostream>
+#include "nnls_cpu/interface/eigen_nnls.h"
+#include "nnls_cpu/interface/fnnls.h"
+#include "nnls_cpu/interface/nnls.h"
+#include "nnls_cpu/interface/inplace_fnnls.h"
 
 PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {
   // In later versions of eigen this should not be necessary
@@ -32,6 +36,7 @@ bool PulseChiSqSNNLS::DoFit(const SampleVector& samples,
   // about this
   _pulsemat = SamplePulseMatrix::Zero(nsample, npulse);
   _ampvec = PulseVector::Zero(npulse);
+  // _ampvec.setZero();
   _errvec = PulseVector::Zero(npulse);
   _nP = 0;
   _chisq = 0.;
@@ -200,90 +205,131 @@ bool PulseChiSqSNNLS::NNLS() {
   // Fast NNLS (fnnls) algorithm as per
   // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
 
-  const unsigned int npulse = _bxs.rows();
-  SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);
-  PulseMatrix aTamat(npulse, npulse);
-  aTamat.triangularView<Eigen::Lower>() = invcovp.transpose() * invcovp;
-  aTamat = aTamat.selfadjointView<Eigen::Lower>();
-  PulseVector aTbvec =
-      invcovp.transpose() * _covdecomp.matrixL().solve(_sampvec);
-  PulseVector wvec(npulse);
+  // As it is this is not a chi-square problem. In order to put it into a
+  // solvable form they have to take the noise into account, thus they decompose
+  // the covariance matrix into LLT because the inverse of the covariance matrix
+  // is given by LL^T . In math Cov^(-1) = LL^T
+  // Then setting P = pulse matrix and s = sample vector
+  // the chi square Ax=b in this case is: min[(Px - s)^T][Cov(Px -s)^-1]
+  // can be formulated as min (LPx = Ls)
+  // in which instead of multiplying by the inverse covariance matrix, this one
+  // gets decomposed and the matrix L is multiplied by the terms.
 
-  for (int iter = 0; iter < 1000; ++iter) {
-    // can only perform this step if solution is guaranteed viable
-    if (iter > 0 || _nP == 0) {
-      if (_nP == npulse)
-        break;
+  // auto A = _pulsemat;
+  // auto b = _sampvec;
+  FixedMatrix A = _covdecomp.matrixL().solve(_pulsemat);
+  FixedVector b = _covdecomp.matrixL().solve(_sampvec);
 
-      const unsigned int nActive = npulse - _nP;
+  // std::cout << A << std::endl;
+  // std::cout << b << std::endl;
 
-      wvec.tail(nActive) =
-          aTbvec.tail(nActive) -
-          (aTamat.selfadjointView<Eigen::Lower>() * _ampvec).tail(nActive);
+  // TODO: this should be a parameter not a magic number
+  auto epsilon = 1e-11;
+  auto max_iter = 10;
 
-      Index idxwmax;
-      double wmax = wvec.tail(nActive).maxCoeff(&idxwmax);
+  // auto const & x = _ampvec;
 
-      // convergence
-      if (wmax < 1e-11)
-        break;
+  // if (_ampvec.isZero(0)){
+  // _ampvec = A.llt().solve(b);
+  // std::cout << x << std::endl;
+  // }
+  // std::cout << A << std::endl;
 
-      // unconstrain parameter
-      Index idxp = _nP + idxwmax;
-      // printf("adding index %i, orig index
-      // %i\n",int(idxp),int(_bxs.coeff(idxp)));
-      aTamat.col(_nP).swap(aTamat.col(idxp));
-      aTamat.row(_nP).swap(aTamat.row(idxp));
-      _pulsemat.col(_nP).swap(_pulsemat.col(idxp));
-      std::swap(aTbvec.coeffRef(_nP), aTbvec.coeffRef(idxp));
-      std::swap(_ampvec.coeffRef(_nP), _ampvec.coeffRef(idxp));
-      std::swap(_bxs.coeffRef(_nP), _bxs.coeffRef(idxp));
-      ++_nP;
-    }
+  // Eigen::NNLS<FixedMatrix> eigen_nnls(A, max_iter, epsilon);
+  // eigen_nnls.setX(_ampvec);
+  // auto status = eigen_nnls.solve(b);
+  // assert(status);
+  // _ampvec = eigen_nnls.x();
+  FixedVector x = FixedVector(_ampvec);
+  inplace_fnnls(A, b, x, epsilon, max_iter);
+  // exit(0);
 
-    while (_nP > 0) {
-      PulseVector ampvecpermtest = _ampvec;
-      // solve for unconstrained parameters
-      ampvecpermtest.head(_nP) =
-          aTamat.topLeftCorner(_nP, _nP).ldlt().solve(aTbvec.head(_nP));
+  _ampvec = x;
 
-      // check solution
-      if (ampvecpermtest.head(_nP).minCoeff() > 0.) {
-        _ampvec.head(_nP) = ampvecpermtest.head(_nP);
-        break;
+  /*
+    const unsigned int npulse = _bxs.rows();
+    SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);
+    PulseMatrix aTamat(npulse,npulse);
+    aTamat.triangularView<Eigen::Lower>() = invcovp.transpose()*invcovp;
+    aTamat = aTamat.selfadjointView<Eigen::Lower>();
+    PulseVector aTbvec =
+    invcovp.transpose()*_covdecomp.matrixL().solve(_sampvec); PulseVector
+    wvec(npulse);
+
+
+    for (int iter=0; iter<1000; ++iter){
+      //can only perform this step if solution is guaranteed viable
+      if (iter>0 || _nP==0) {
+        if ( _nP==npulse ) break;
+
+        const unsigned int nActive = npulse - _nP;
+
+        wvec.tail(nActive) = aTbvec.tail(nActive) -
+    (aTamat.selfadjointView<Eigen::Lower>()*_ampvec).tail(nActive);
+
+        Index idxwmax;
+        double wmax = wvec.tail(nActive).maxCoeff(&idxwmax);
+
+        //convergence
+        if (wmax<1e-11) break;
+
+        //unconstrain parameter
+        Index idxp = _nP + idxwmax;
+        //printf("adding index %i, orig index
+    %i\n",int(idxp),int(_bxs.coeff(idxp)));
+        aTamat.col(_nP).swap(aTamat.col(idxp));
+        aTamat.row(_nP).swap(aTamat.row(idxp));
+        _pulsemat.col(_nP).swap(_pulsemat.col(idxp));
+        std::swap(aTbvec.coeffRef(_nP),aTbvec.coeffRef(idxp));
+        std::swap(_ampvec.coeffRef(_nP),_ampvec.coeffRef(idxp));
+        std::swap(_bxs.coeffRef(_nP),_bxs.coeffRef(idxp));
+        ++_nP;
       }
 
-      // update parameter vector
-      Index minratioidx = 0;
+      while (_nP>0) {
+        PulseVector ampvecpermtest = _ampvec;
+        //solve for unconstrained parameters
+        ampvecpermtest.head(_nP) =
+    aTamat.topLeftCorner(_nP,_nP).ldlt().solve(aTbvec.head(_nP));
 
-      double minratio = std::numeric_limits<double>::max();
-      for (unsigned int ipulse = 0; ipulse < _nP; ++ipulse) {
-        if (ampvecpermtest.coeff(ipulse) <= 0.) {
-          double ratio = _ampvec.coeff(ipulse) /
-                         (_ampvec.coeff(ipulse) - ampvecpermtest.coeff(ipulse));
-          if (ratio < minratio) {
-            minratio = ratio;
-            minratioidx = ipulse;
+        //check solution
+        if (ampvecpermtest.head(_nP).minCoeff()>0.) {
+          _ampvec.head(_nP) = ampvecpermtest.head(_nP);
+          break;
+        }
+
+        //update parameter vector
+        Index minratioidx=0;
+
+        double minratio = std::numeric_limits<double>::max();
+        for (unsigned int ipulse=0; ipulse<_nP; ++ipulse) {
+          if (ampvecpermtest.coeff(ipulse)<=0.) {
+            double ratio =
+    _ampvec.coeff(ipulse)/(_ampvec.coeff(ipulse)-ampvecpermtest.coeff(ipulse));
+            if (ratio<minratio) {
+              minratio = ratio;
+              minratioidx = ipulse;
+            }
           }
         }
+
+        _ampvec.head(_nP) += minratio*(ampvecpermtest.head(_nP) -
+    _ampvec.head(_nP));
+
+        //avoid numerical problems with later ==0. check
+        _ampvec.coeffRef(minratioidx) = 0.;
+
+        //printf("removing index %i, orig idx
+    %i\n",int(minratioidx),int(_bxs.coeff(minratioidx)));
+        aTamat.col(_nP-1).swap(aTamat.col(minratioidx));
+        aTamat.row(_nP-1).swap(aTamat.row(minratioidx));
+        _pulsemat.col(_nP-1).swap(_pulsemat.col(minratioidx));
+        std::swap(aTbvec.coeffRef(_nP-1),aTbvec.coeffRef(minratioidx));
+        std::swap(_ampvec.coeffRef(_nP-1),_ampvec.coeffRef(minratioidx));
+        std::swap(_bxs.coeffRef(_nP-1),_bxs.coeffRef(minratioidx));
+        --_nP;
       }
-
-      _ampvec.head(_nP) +=
-          minratio * (ampvecpermtest.head(_nP) - _ampvec.head(_nP));
-
-      // avoid numerical problems with later ==0. check
-      _ampvec.coeffRef(minratioidx) = 0.;
-
-      // printf("removing index %i, orig idx
-      // %i\n",int(minratioidx),int(_bxs.coeff(minratioidx)));
-      aTamat.col(_nP - 1).swap(aTamat.col(minratioidx));
-      aTamat.row(_nP - 1).swap(aTamat.row(minratioidx));
-      _pulsemat.col(_nP - 1).swap(_pulsemat.col(minratioidx));
-      std::swap(aTbvec.coeffRef(_nP - 1), aTbvec.coeffRef(minratioidx));
-      std::swap(_ampvec.coeffRef(_nP - 1), _ampvec.coeffRef(minratioidx));
-      std::swap(_bxs.coeffRef(_nP - 1), _bxs.coeffRef(minratioidx));
-      --_nP;
     }
-  }
+    */
   return true;
 }

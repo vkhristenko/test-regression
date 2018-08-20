@@ -8,8 +8,8 @@
 
 
 #include <iostream>
-#include "multifit_cpu/interface/PulseChiSqSNNLS.h"
-#include "multifit_cpu/interface/Pulse.h"
+#include "../interface/PulseChiSqSNNLS.h"
+#include "../interface/Pulse.h"
 
 #include "TTree.h"
 #include "TF1.h"

@@ -1,0 +1,11 @@
+message("compiling multifit gpu")
+
+if (CUDA_FOUND)
+    file(GLOB CUSOURCES src/*.cu)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --expt-relaxed-constexpr")
+    cuda_add_library(multifit_gpu_kernels ${CUSOURCES})
+    target_link_libraries(multifit_gpu_kernels)
+endif()
+
+add_executable(legacy_multifit_gpu src/multifit.cpp src/PulseChiSqSNNLS.cu src/PulseChiSqSNNLSWrapper.cu)
+target_link_libraries(legacy_multifit_gpu ${ROOT_LIBRARIES} ${CUDA_LIBRARIES} multifit_gpu_kernels)

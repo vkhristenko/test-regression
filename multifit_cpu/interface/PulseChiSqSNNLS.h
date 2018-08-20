@@ -4,6 +4,7 @@
 #include <array>
 #include <set>
 #include "EigenMatrixTypes.h"
+// #include "nnls_cpu/interface/datatypes.h"
 
 class PulseChiSqSNNLS {
  public:
@@ -43,7 +44,7 @@ class PulseChiSqSNNLS {
   SampleVector _sampvec;
   SampleMatrix _invcov;
   SamplePulseMatrix _pulsemat;
-  PulseVector _ampvec;
+  SampleVector _ampvec;
   PulseVector _errvec;
   PulseVector _ampvecmin;
 

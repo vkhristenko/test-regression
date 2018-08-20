@@ -13,6 +13,4 @@ typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,0,10,10> PulseMatrix;
 typedef Eigen::Matrix<double,10,Eigen::Dynamic,0,10,10> SamplePulseMatrix;
 typedef Eigen::LLT<SampleMatrix> SampleDecompLLT;
 
-
-
 #endif // multifit_cpu_interface_eigendefs
