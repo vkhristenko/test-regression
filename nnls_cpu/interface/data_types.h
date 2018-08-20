@@ -9,6 +9,11 @@ const unsigned long VECTOR_SIZE = 10;
 typedef Eigen::Matrix<double, MATRIX_SIZE, MATRIX_SIZE> FixedMatrix;
 typedef Eigen::Matrix<double, VECTOR_SIZE, 1> FixedVector;
 
+typedef Eigen::PermutationMatrix<VECTOR_SIZE> FixedPermutation;
+
+typedef Eigen::Matrix<double, -1, -1, 0, 10, 10> FixedDynamicMatrix;
+typedef Eigen::Matrix<double, -1, 1, 0, 10, 1> FixedDynamicVector;
+
 #define USE_LDLT 0
 #define USE_LLT 1
 #define USE_HOUSEHOLDER 2

@@ -4,6 +4,7 @@
 #include "nnls_cpu/interface/eigen_nnls.h"
 #include "nnls_cpu/interface/fnnls.h"
 #include "nnls_cpu/interface/nnls.h"
+#include "nnls_cpu/interface/inplace_fnnls.h"
 
 PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {
   // In later versions of eigen this should not be necessary

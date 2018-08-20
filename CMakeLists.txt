@@ -4,7 +4,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 # set(CMAKE_RULE_MESSAGES OFF)
 
 # project name
-project(test-regression)
+project(test-regression LANGUAGES CXX CUDA)
 
 if(NOT DEBUG)
 set(CMAKE_BUILD_TYPE "Release")

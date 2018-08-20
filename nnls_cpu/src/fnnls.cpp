@@ -1,8 +1,5 @@
 #include <Eigen/Dense>
 
-#include <algorithm>
-#include <vector>
-
 #ifdef DEBUG_FNNLS_CPU
 #include <iostream>
 #endif
@@ -14,7 +11,7 @@
 using namespace std;
 using namespace Eigen;
 
-void print_active_set(std::vector<bool> v, std::string s = "") {
+void print_active_set(bool v[VECTOR_SIZE], std::string s = "") {
   std::cout << s;
   for (size_t i = 0; i < VECTOR_SIZE; i++) {
     std::cout << i << ' ';
@@ -80,12 +77,11 @@ void fnnls(const FixedMatrix& A,
     // initialize the value for the while guard
     // max_index will contain the index of the max coeff anf max_w is the max
     // coeff
-    unsigned int max_index = 0;
-    // unsigned int remove_index = 0;
-
+    auto max_index = 0;
     // start from -1 just because after the next loop one element will be set to
     // inactive
-    int n_active = -1;
+    auto n_active = -1;
+    // unsigned int remove_index = 0;
 
 #pragma vectorise
     for (auto i = 0; i < VECTOR_SIZE; ++i) {
@@ -115,29 +111,38 @@ void fnnls(const FixedMatrix& A,
     if (!n_active || w[max_index] < eps)
       break;
     //
-    AtA_P = sub_matrix<FixedMatrix, bool[VECTOR_SIZE]>(AtA, active_set,
-                                                       VECTOR_SIZE - n_active);
-    Atb_P = sub_vector<FixedVector, bool[VECTOR_SIZE]>(Atb, active_set,
-                                                       VECTOR_SIZE - n_active);
-    tmp_s = AtA_P.llt().solve(Atb_P);
-    //
-#pragma unroll
-    for (auto i = 0, idx = 0; i < VECTOR_SIZE; i++) {
-      s[i] = active_set[i] ? 0 : tmp_s[idx++];
-    }
-
-#ifdef DEBUG_FNNLS_CPU
-    cout << "s" << endl << s << endl;
-#endif
 
     // inner loop
     while (true) {
-      auto alpha = std::numeric_limits<double>::max();
+      if (n_active >= VECTOR_SIZE) {
+        x = s;
+        break;
+      }
+      //
+      AtA_P = sub_matrix<FixedMatrix, bool[VECTOR_SIZE]>(
+          AtA, active_set, VECTOR_SIZE - n_active);
+      Atb_P = sub_vector<FixedVector, bool[VECTOR_SIZE]>(
+          Atb, active_set, VECTOR_SIZE - n_active);
+      tmp_s = AtA_P.llt().solve(Atb_P);
+      //
+#pragma unroll
+      for (auto i = 0, idx = 0; i < VECTOR_SIZE; i++) {
+        s[i] = active_set[i] ? 0 : tmp_s[idx++];
+      }
 
+#ifdef DEBUG_FNNLS_CPU
+      cout << "s" << endl << s << endl;
+#endif
+      auto alpha = std::numeric_limits<double>::max();
+      Index alpha_idx = -1;
 #pragma vectorise
       for (auto i = 0; i < VECTOR_SIZE; i++) {
         if (!active_set[i] && s[i] <= 0.) {
-          alpha = std::min(-x[i] / (s[i] - x[i]), alpha);
+          auto const tmp = -x[i] / (s[i] - x[i]);
+          if (tmp < alpha) {
+            alpha = tmp;
+            alpha_idx = i;
+          }
         }
       }
       if (std::numeric_limits<double>::max() == alpha) {
@@ -154,27 +159,13 @@ void fnnls(const FixedMatrix& A,
 #endif
 
       x += alpha * (s - x);
+      x[alpha_idx] = 0;
+      active_set[alpha_idx] = true;
+      ++n_active;
 
 #ifdef DEBUG_FNNLS_CPU
       cout << "x after" << endl << x << endl;
 #endif
-
-#pragma vectorise
-      for (auto i = 0; i < VECTOR_SIZE; i++) {
-        if (!active_set[i] && x[i] == 0.) {
-          active_set[i] = true;
-          ++n_active;
-        }
-      }
-
-      AtA_P = sub_matrix<FixedMatrix, bool[VECTOR_SIZE]>(
-          AtA, active_set, VECTOR_SIZE - n_active);
-      Atb_P = sub_vector<FixedVector, bool[VECTOR_SIZE]>(
-          Atb, active_set, VECTOR_SIZE - n_active);
-      tmp_s = AtA_P.llt().solve(Atb_P);
-#pragma vectorise
-      for (auto i = 0, idx = 0; i < VECTOR_SIZE; i++)
-        s[i] = active_set[i] ? 0 : tmp_s[idx++];
     }
   }
 }
