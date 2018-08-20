@@ -20,11 +20,11 @@ testing cms hcal/ecal regression
 - `legacy_multifit_cpu`: old cms_sw hcal/ecal code.
 - `legacy_multifit_cpu`: gpu porting og old cms_sw hcal/ecal code.
 - `multifit_cpu`: cms_sw hcal/ecal code updated with the new version of nnls/fnnls.
-- `multifit_gpu`: gpu porting of `multifit_gpu` (WIP).
+- `multifit_gpu`: gpu porting of `multifit_cpu` (WIP).
 - `nnls_cpu`: new version of nnls/fnnls and inplace fnnls by Marco. 
 - `nnls_gpu`: gpu wrappers of `nnls_cpu`.
 - `test_nnls_cpu`: tests for nnls and io.
 
-## on vinavx2 machien
+## on vinavx2 machine
 - `source /data/user/vkhriste/setup.sh`
 - proceed to _build_ and _run_
