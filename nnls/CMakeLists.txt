@@ -1,0 +1,12 @@
+if (CUDA_FOUND)
+    file(GLOB CUSOURCES src/*.cu)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --expt-relaxed-constexpr -x cu")
+    # set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -x cu")
+    # set(nnls_kernels STATIC)
+    cuda_add_library(nnls_kernels ${CUSOURCES})
+    target_link_libraries(nnls_kernels)
+endif()
+    
+file (GLOB SOURCES src/*.cpp)
+add_library(nnls STATIC ${SOURCES})
+target_link_libraries(nnls ${CUDA_LIBRARIES} nnls_kernels)    

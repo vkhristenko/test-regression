@@ -4,10 +4,9 @@
 #include <numeric>
 #include <vector>
 
-#include "../interface/eigen_nnls.h"
-#include "../interface/kernel_wrapper.h"
-#include "../interface/test_wrapper.h"
 #include "io/interface/ecal_data_io.h"
+#include "nnls_gpu/interface/eigen_nnls.h"
+#include "nnls_gpu/interface/kernel_wrapper.h"
 
 using namespace std;
 using namespace Eigen;

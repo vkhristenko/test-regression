@@ -14,3 +14,12 @@ __device__ __host__
                   const unsigned int max_iterations = 1000);
 
 #endif
+
+#ifdef NVCC
+__global__ void inplace_fnnls_kernel(NNLS_args *args, 
+                 FixedVector* x,
+                 const unsigned int n,
+                 const double eps=1e-11,
+                 const unsigned int max_iterations=1000);
+
+#endif

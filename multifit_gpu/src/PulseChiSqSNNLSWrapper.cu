@@ -33,7 +33,7 @@ std::vector<Output> doFitWrapper(std::vector<DoFitArgs> const& vargs) {
     cudaError err = cudaGetLastError();
     std::string name = "multifit_gpu";
     if (err != cudaSuccess) {
-        std::cout << "cuda error!" << std::endl
+        std::cout << "cuda eror!" << std::endl
             << cudaGetErrorString(err) << std::endl;
         std::cout << "test " << name << " failed" << std::endl;
     }

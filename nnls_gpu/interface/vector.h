@@ -22,8 +22,7 @@ class vector {
     array[_size] = elem;
 
     _size++;
-  
-  }
+    }
 
   __host__ __device__ void erase(const unsigned long index) {
     _size--;

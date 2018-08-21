@@ -1,10 +1,10 @@
 #include "../interface/PulseChiSqSNNLS.h"
 #include <math.h>
 #include <iostream>
-#include "nnls_cpu/interface/eigen_nnls.h"
-#include "nnls_cpu/interface/fnnls.h"
-#include "nnls_cpu/interface/nnls.h"
-#include "nnls_cpu/interface/inplace_fnnls.h"
+#include "nnls/interface/eigen_nnls.h"
+#include "nnls/interface/fnnls.h"
+#include "nnls/interface/inplace_fnnls.h"
+#include "nnls/interface/nnls.h"
 
 PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {
   // In later versions of eigen this should not be necessary
