@@ -15,5 +15,4 @@ set_target_properties(legacy_multifit_gpu_device PROPERTIES CUDA_SEPARABLE_COMPI
 #endif()
 
 add_executable(legacy_multifit_gpu src/multifit.cpp)
-#set_property(TARGET legacy_multifit_gpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 target_link_libraries(legacy_multifit_gpu ${ROOT_LIBRARIES} ${CUDA_LIBRARIES} legacy_multifit_gpu_device)
