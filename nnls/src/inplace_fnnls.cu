@@ -6,7 +6,7 @@ using namespace Eigen;
 
 
 // #define DEBUG_FNNLS_CPU
-#ifdef NVCC
+#ifdef __CUDA_ARCH__
 __device__ __host__ 
 #endif
 void inplace_fnnls(const FixedMatrix& A,
@@ -151,28 +151,3 @@ void inplace_fnnls(const FixedMatrix& A,
   }
   x = x.transpose() * permutation.transpose();
 }
-
-
-#ifdef NVCC
-__global__ void inplace_fnnls_kernel(NNLS_args* args,
-                             FixedVector* x,
-                             unsigned int n,
-                             double eps,
-                             unsigned int max_iterations) {
-  // thread idx
-  // printf("hello nnls\n");
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  // printf("thread index %i n %i\n", i,n);
-  if (i >= n)
-    return;
-  // printf("thread index %i n %i\n", i,n);
-
-  auto& A = args[i].A;
-  auto& b = args[i].b;
-
-  // printf("inside the kernel\n");
-  // print_fixed_matrix(A);
-  // print_fixed_vector(b);
-  inplace_fnnls(A, b, x[i], eps, max_iterations);
-}
-#endif

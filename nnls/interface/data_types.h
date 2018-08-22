@@ -1,7 +1,7 @@
-#include <Eigen/Dense>
-
 #ifndef NNLS_DATA_TYPES
 #define NNLS_DATA_TYPES
+
+#include <Eigen/Dense>
 
 const unsigned long MATRIX_SIZE = 10;
 const unsigned long VECTOR_SIZE = 10;
@@ -25,6 +25,9 @@ typedef Eigen::Matrix<double, -1, 1, 0, 10, 1> FixedDynamicVector;
 #include <iostream>
 
 template <typename M, typename V>
+#ifdef __CUDA_ARCH__
+__device__ __host__
+#endif
 Eigen::Matrix<typename M::Scalar,
               Eigen::Dynamic,
               Eigen::Dynamic,
@@ -53,6 +56,9 @@ Eigen::Matrix<typename M::Scalar,
 }
 
 template <typename M, typename V>
+#ifdef __CUDA_ARCH__
+__device__ __host__
+#endif
 Eigen::Matrix<typename M::Scalar,
               Eigen::Dynamic,
               1,
@@ -72,10 +78,12 @@ Eigen::Matrix<typename M::Scalar,
   return _vector;
 }
 
-// #ifdef NVCC
 typedef struct NNLS_args {
   FixedMatrix const A;
   FixedVector const b;
+  #ifdef __CUDA_ARCH__
+  __device__ __host__
+  #endif
   NNLS_args(FixedMatrix const A, FixedVector const b) : A(A), b(b){};
 } NNLS_args;
 // #endif

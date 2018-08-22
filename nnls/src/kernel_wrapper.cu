@@ -1,6 +1,6 @@
-#include "../interface/kernel_wrapper.h"
-#include "../interface/fnnls.h"
-// #include "../interface/kernels.h"
+#include "nnls/interface/kernel_wrapper.h"
+#include "nnls/interface/fnnls.h"
+#include "nnls/interface/inplace_fnnls.h"
 
 #include <iostream>
 #include <string>
@@ -63,4 +63,48 @@ std::vector<FixedVector> fnnls_wrapper(std::vector<NNLS_args> const& args,
   // }
 
   return x;
+}
+
+__global__ void inplace_fnnls_kernel(NNLS_args* args,
+                                   FixedVector* x,
+                                      unsigned int n,
+                                      double eps,
+                              unsigned int max_iterations) {
+   // thread idx
+   // printf("hello nnls\n");
+   int i = blockIdx.x * blockDim.x + threadIdx.x;
+   // printf("thread index %i n %i\n", i,n);
+   if (i >= n)
+         return;
+    // printf("thread index %i n %i\n", i,n);
+     
+    auto& A = args[i].A;
+    auto& b = args[i].b;
+     
+    // printf("inside the kernel\n");
+    // print_fixed_matrix(A);
+    // print_fixed_vector(b);
+    inplace_fnnls(A, b, x[i], eps, max_iterations);
+}
+
+__global__ void fnnls_kernel(NNLS_args* args,
+                                      FixedVector* x,
+                                      unsigned int n,
+                                      double eps,
+                                      unsigned int max_iterations) {
+    // thread idx
+    // printf("hello nnls\n");
+   int i = blockIdx.x * blockDim.x + threadIdx.x;
+   // printf("thread index %i n %i\n", i,n);
+   if (i >= n)
+         return;
+    // printf("thread index %i n %i\n", i,n);
+     
+    auto& A = args[i].A;
+    auto& b = args[i].b;
+     
+    // printf("inside the kernel\n");
+    // print_fixed_matrix(A);
+    // print_fixed_vector(b);
+    fnnls(A, b, x[i], eps, max_iterations);
 }

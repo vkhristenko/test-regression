@@ -1,12 +1,30 @@
-if (CUDA_FOUND)
-    file(GLOB CUSOURCES src/*.cu)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --expt-relaxed-constexpr -x cu")
-    # set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -x cu")
-    # set(nnls_kernels STATIC)
-    cuda_add_library(nnls_kernels ${CUSOURCES})
-    target_link_libraries(nnls_kernels)
-endif()
-    
+#if (CUDA_FOUND)
+#    file(GLOB CUSOURCES src/*.cu)
+#    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --expt-relaxed-constexpr")
+#    # set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -x cu")
+#    # set(nnls_kernels STATIC)
+#    cuda_add_library(nnls_kernels ${CUSOURCES})
+#    target_link_libraries(nnls_kernels)
+#endif()
+ 
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}")
+set(CUDA_SEPARABLE_COMPILATION ON)
+
 file (GLOB SOURCES src/*.cpp)
+file (GLOB CUSOURCES src/*.cu)
+
+add_library(nnls_device STATIC 
+    ${CUSOURCES})
+target_compile_options(nnls_device PRIVATE ${CUDA_FLAGS})
+set_target_properties(nnls_device PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
 add_library(nnls STATIC ${SOURCES})
-target_link_libraries(nnls ${CUDA_LIBRARIES} nnls_kernels)    
+#set_property(TARGET nnls 
+#                 PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+#set_property(TARGET nnls PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+target_link_libraries(nnls nnls_device ${CUDA_LIBRARIES})
+
+#target_link_libraries(nnls ${CUDA_LIBRARIES})    
+
+#add_library(nnls STATIC ${SOURCES} ${CUSOURCES})
+#target_link_libraries(nnls ${CUDA_LIBRARIES} nnls_kernels)    

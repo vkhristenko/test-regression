@@ -22,7 +22,7 @@ void print_active_set(bool v[VECTOR_SIZE], std::string s = "") {
 
 using namespace Eigen;
 
-#ifdef NVCC
+#ifdef __CUDA_ARCH__
 __device__ __host__
 #endif
     void
@@ -171,28 +171,3 @@ __device__ __host__
     }
   }
 }
-
-#ifdef NVCC
-__global__ void fnnls_kernel(NNLS_args* args,
-                             FixedVector* x,
-                             unsigned int n,
-                             double eps,
-                             unsigned int max_iterations) {
-  // thread idx
-  // printf("hello nnls\n");
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  // printf("thread index %i n %i\n", i,n);
-  if (i >= n)
-    return;
-  // printf("thread index %i n %i\n", i,n);
-
-  auto& A = args[i].A;
-  auto& b = args[i].b;
-
-  // printf("inside the kernel\n");
-  // print_fixed_matrix(A);
-  // print_fixed_vector(b);
-  fnnls(A, b, x[i], eps, max_iterations);
-}
-#endif
-

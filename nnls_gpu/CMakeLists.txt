@@ -6,4 +6,4 @@ if (CUDA_FOUND)
 endif()
 
 add_library(nnls_gpu STATIC ${CUSOURCES})
-target_link_libraries(nnls_gpu ${CUDA_LIBRARIES} io ${ROOT_LIBRARIES} nnls_cpu nnls_gpu_kernels)
+target_link_libraries(nnls_gpu ${CUDA_LIBRARIES} io nnls_cpu nnls_gpu_kernels)
