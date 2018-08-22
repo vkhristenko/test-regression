@@ -1,11 +1,11 @@
 #ifndef multifit_cpu_interface_pulse
 #define multifit_cpu_interface_pulse
 
-#include <TRandom.h>
-#include <TMath.h>
 #include <TFile.h>
-#include <TTree.h>
 #include <TGraph.h>
+#include <TMath.h>
+#include <TRandom.h>
+#include <TTree.h>
 
 TRandom rnd;
 
@@ -15,45 +15,41 @@ const int NBXTOTAL = 2800;
 // length of a waveform in 1ns steps
 // const int WFLENGTH  = 500;
 // length of a waveform in 1ns/4 steps
-const int WFLENGTH  = 500*4;
+const int WFLENGTH = 500 * 4;
 
 // number of samples per hit
-const int NSAMPLES   = 10;
+const int NSAMPLES = 10;
 
 // distance between samples in 1ns steps
-const int NFREQ      = 25;
+const int NFREQ = 25;
 
 // position of a 1st sample inside waveform
 // const int IDSTART    = 180+13;
-const int IDSTART    = 150+13;
-// 
+const int IDSTART = 150 + 13;
+//
 
 // CRRC shaping time in ns. It is used to calculate noise
 // correlations. For QIE, set it to 1e-1
 const double TAU = 43.0;
 
 // filename with pulse shape
-const TString FNAMESHAPE       = "../data/EmptyFile.root";
+const TString FNAMESHAPE = "../data/EmptyFile.root";
 
-
-
-class Pulse{
-  
+class Pulse {
   double weights_[NSAMPLES];
   double mC_[NSAMPLES];
   double mL_[NSAMPLES][NSAMPLES];
-  TGraph *grPS_;
+  TGraph* grPS_;
   float tMin_;
   float fPar0_;
   float fPar1_;
-  TFile *filePS_;
-  
-public:
-  
+  TFile* filePS_;
+
+ public:
   Pulse();
   Pulse(TString fn);
   ~Pulse();
-  TGraph* grPS() {return grPS_; };
+  TGraph* grPS() { return grPS_; };
   float tMin() const { return tMin_; };
   float fPar0() const { return fPar0_; };
   float fPar1() const { return fPar1_; };
@@ -62,106 +58,97 @@ public:
   double cholesky(int i, int j) const { return mL_[i][j]; };
   void NoiseInit();
   double fShape(double);
-  
 };
 
-
-Pulse::Pulse()
-{
+Pulse::Pulse() {
   filePS_ = new TFile(FNAMESHAPE.Data());
   grPS_ = (TGraph*)filePS_->Get("PulseShape/grPulseShape");
-  TTree *trPS = (TTree*)filePS_->Get("PulseShape/Tail");
-  trPS->SetBranchAddress("timeMin",      &tMin_);
+  TTree* trPS = (TTree*)filePS_->Get("PulseShape/Tail");
+  trPS->SetBranchAddress("timeMin", &tMin_);
   trPS->SetBranchAddress("expAmplitude", &fPar0_);
-  trPS->SetBranchAddress("expTime",      &fPar1_);
+  trPS->SetBranchAddress("expTime", &fPar1_);
   trPS->GetEntry(0);
-  
+
   // In-time sample is i=5
-  
-  for(int i=0; i<NSAMPLES; i++){
-    double x = double( IDSTART + NFREQ * i - WFLENGTH / 2);
+
+  for (int i = 0; i < NSAMPLES; i++) {
+    double x = double(IDSTART + NFREQ * i - WFLENGTH / 2);
     weights_[i] = fShape(x);
   }
-  
+
   NoiseInit();
 }
 
-
-Pulse::Pulse(TString fn)
-{
+Pulse::Pulse(TString fn) {
   filePS_ = new TFile(fn.Data());
   grPS_ = (TGraph*)filePS_->Get("PulseShape/grPulseShape");
-  TTree *trPS = (TTree*)filePS_->Get("PulseShape/Tail");
-  trPS->SetBranchAddress("timeMin",      &tMin_);
+  TTree* trPS = (TTree*)filePS_->Get("PulseShape/Tail");
+  trPS->SetBranchAddress("timeMin", &tMin_);
   trPS->SetBranchAddress("expAmplitude", &fPar0_);
-  trPS->SetBranchAddress("expTime",      &fPar1_);
+  trPS->SetBranchAddress("expTime", &fPar1_);
   trPS->GetEntry(0);
-  
+
   // In-time sample is i=5
-  
-  for(int i=0; i<NSAMPLES; i++){
-    double x = double( IDSTART + NFREQ * i - WFLENGTH / 2);
+
+  for (int i = 0; i < NSAMPLES; i++) {
+    double x = double(IDSTART + NFREQ * i - WFLENGTH / 2);
     weights_[i] = fShape(x);
   }
-  
+
   NoiseInit();
 }
 
+Pulse::~Pulse() {}
 
-Pulse::~Pulse()
-{
-}
-
-
-double Pulse::fShape(double x)
-{
-  if( grPS_ !=0 && x > 0.){
+double Pulse::fShape(double x) {
+  if (grPS_ != 0 && x > 0.) {
     //     if(x<tMin_){
-    if (x<800){
+    if (x < 800) {
       double y = grPS_->Eval(x);
-      if(y<=0) y=0;
+      if (y <= 0)
+        y = 0;
       return y;
-    }else{
-      return fPar0_ * exp( -x * fPar1_ );
+    } else {
+      return fPar0_ * exp(-x * fPar1_);
     }
-  }else{
+  } else {
     return 0.;
   }
 }
 
-
-
-void Pulse::NoiseInit()
-{
-  for(int i=0; i<NSAMPLES; i++){
-    double y = 1. - exp( -double(NFREQ * i) / (sqrt(2.) * TAU));
+void Pulse::NoiseInit() {
+  for (int i = 0; i < NSAMPLES; i++) {
+    double y = 1. - exp(-double(NFREQ * i) / (sqrt(2.) * TAU));
     mC_[i] = 1. - y * y;
   }
-  
+
   // initialize
-  for(int i=0; i<NSAMPLES; ++i){
-    for(int j=0; j<NSAMPLES; ++j){
-      mL_[i][j]=0;
+  for (int i = 0; i < NSAMPLES; ++i) {
+    for (int j = 0; j < NSAMPLES; ++j) {
+      mL_[i][j] = 0;
     }
   }
-  
+
   // decomposition
   mL_[0][0] = sqrt(mC_[0]);
-  for( int col=1; col<NSAMPLES; col++){
-    mL_[0][col]=0;
+  for (int col = 1; col < NSAMPLES; col++) {
+    mL_[0][col] = 0;
   }
-  for( int row=1; row<NSAMPLES; row++){
-    for( int col=0; col<row; col++ ){
+  for (int row = 1; row < NSAMPLES; row++) {
+    for (int col = 0; col < row; col++) {
       double sum1 = 0;
-      int m=abs(row-col);
-      for( int k=0; k<col; ++k) sum1 += mL_[row][k]*mL_[col][k];
-      mL_[row][col] = (mC_[m] - sum1)/mL_[col][col];
+      int m = abs(row - col);
+      for (int k = 0; k < col; ++k)
+        sum1 += mL_[row][k] * mL_[col][k];
+      mL_[row][col] = (mC_[m] - sum1) / mL_[col][col];
     }
     double sum2 = 0;
-    for( int k=0; k<row; ++k) sum2 += mL_[row][k]*mL_[row][k];
-    mL_[row][row] = sqrt( mC_[0] - sum2 );
-    for( int col=row+1; col<NSAMPLES; col++ ) mL_[row][col] = 0;
+    for (int k = 0; k < row; ++k)
+      sum2 += mL_[row][k] * mL_[row][k];
+    mL_[row][row] = sqrt(mC_[0] - sum2);
+    for (int col = row + 1; col < NSAMPLES; col++)
+      mL_[row][col] = 0;
   }
 }
 
-#endif // multifit_cpu_interface_pulse
+#endif  // multifit_cpu_interface_pulse

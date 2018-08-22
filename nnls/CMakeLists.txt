@@ -7,9 +7,6 @@
 #    target_link_libraries(nnls_kernels)
 #endif()
  
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}")
-set(CUDA_SEPARABLE_COMPILATION ON)
-
 file (GLOB SOURCES src/*.cpp)
 file (GLOB CUSOURCES src/*.cu)
 

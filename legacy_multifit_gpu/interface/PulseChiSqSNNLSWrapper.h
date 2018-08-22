@@ -2,7 +2,7 @@
 #define PULSECHISQSNNLSWRAPPER
 
 // #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
-// #define EIGEN_DONT_VECTORIZE 
+// #define EIGEN_DONT_VECTORIZE
 
 #include <vector>
 
