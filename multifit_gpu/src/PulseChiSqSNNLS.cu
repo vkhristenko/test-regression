@@ -211,8 +211,8 @@ __host__ __device__ bool PulseChiSqSNNLS::NNLS() {
   // std::cout << b << std::endl;
 
   // TODO: this should be a parameter not a magic number
-  auto epsilon = 1e-11;
-  auto max_iter = 1000;
+  auto const epsilon = 1e-11;
+  auto const max_iter = 1000;
   FixedVector x = FixedVector(_ampvec);
   inplace_fnnls(A, b, x, epsilon, max_iter);
 

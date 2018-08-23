@@ -224,8 +224,8 @@ bool PulseChiSqSNNLS::NNLS() {
   // std::cout << b << std::endl;
 
   // TODO: this should be a parameter not a magic number
-  auto epsilon = 1e-11;
-  auto max_iter = 10;
+  auto const epsilon = 1e-11;
+  auto const max_iter = 10;
 
   // auto const & x = _ampvec;
 
