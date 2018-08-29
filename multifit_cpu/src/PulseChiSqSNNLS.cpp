@@ -6,6 +6,10 @@
 #include "nnls/interface/inplace_fnnls.h"
 #include "nnls/interface/nnls.h"
 
+#ifdef PROFILE
+#include <ittnotify.h>
+#endif
+
 PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {
   // In later versions of eigen this should not be necessary
   Eigen::initParallel();
@@ -201,6 +205,16 @@ double PulseChiSqSNNLS::ComputeApproxUncertainty(unsigned int ipulse) {
   return 1. / _covdecomp.matrixL().solve(_pulsemat.col(ipulse)).norm();
 }
 
+void FlushCache() {
+  int r = rand();
+  const int N = 1e6;
+  int* tmp = new int[N];
+  for (int i = 0; i < N; i++) {
+    tmp[i] = r;
+  }
+  delete tmp;
+}
+
 bool PulseChiSqSNNLS::NNLS() {
   // Fast NNLS (fnnls) algorithm as per
   // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
@@ -241,8 +255,18 @@ bool PulseChiSqSNNLS::NNLS() {
   // assert(status);
   // _ampvec = eigen_nnls.x();
   FixedVector x = FixedVector(_ampvec);
+#ifdef PROFILE
+  // __itt_resume();
+#endif
+  // for (int i = 0; i < 10; i++) {
+  // std::cout << i << std::endl;
+  // FlushCache();
+  // x.setZero();
   inplace_fnnls(A, b, x, epsilon, max_iter);
-  // exit(0);
+  // }
+#ifdef PROFILE
+  // __itt_pause();
+#endif
 
   _ampvec = x;
 

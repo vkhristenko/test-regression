@@ -6,7 +6,8 @@
 const unsigned long MATRIX_SIZE = 10;
 const unsigned long VECTOR_SIZE = 10;
 
-typedef Eigen::Matrix<double, MATRIX_SIZE, MATRIX_SIZE> FixedMatrix;
+typedef Eigen::Matrix<double, MATRIX_SIZE, MATRIX_SIZE, Eigen::ColMajor>
+    FixedMatrix;
 typedef Eigen::Matrix<double, VECTOR_SIZE, 1> FixedVector;
 
 typedef Eigen::PermutationMatrix<VECTOR_SIZE> FixedPermutation;
@@ -28,14 +29,14 @@ template <typename M, typename V>
 #ifdef __CUDA_ARCH__
 __device__ __host__
 #endif
-Eigen::Matrix<typename M::Scalar,
-              Eigen::Dynamic,
-              Eigen::Dynamic,
-              M::Options,
-              M::RowsAtCompileTime,
-              M::ColsAtCompileTime> inline sub_matrix(const M& full,
-                                                      const V& index,
-                                                      unsigned int size) {
+    Eigen::Matrix<typename M::Scalar,
+                  Eigen::Dynamic,
+                  Eigen::Dynamic,
+                  M::Options,
+                  M::RowsAtCompileTime,
+                  M::ColsAtCompileTime> inline sub_matrix(const M& full,
+                                                          const V& index,
+                                                          unsigned int size) {
   using matrix_t =
       Eigen::Matrix<typename M::Scalar, Eigen::Dynamic, Eigen::Dynamic,
                     M::Options, M::RowsAtCompileTime, M::ColsAtCompileTime>;
@@ -59,14 +60,14 @@ template <typename M, typename V>
 #ifdef __CUDA_ARCH__
 __device__ __host__
 #endif
-Eigen::Matrix<typename M::Scalar,
-              Eigen::Dynamic,
-              1,
-              M::Options,
-              M::RowsAtCompileTime,
-              1> inline sub_vector(const M& full,
-                                   const V& index,
-                                   unsigned int size) {
+    Eigen::Matrix<typename M::Scalar,
+                  Eigen::Dynamic,
+                  1,
+                  M::Options,
+                  M::RowsAtCompileTime,
+                  1> inline sub_vector(const M& full,
+                                       const V& index,
+                                       unsigned int size) {
   using matrix_t = Eigen::Matrix<typename M::Scalar, Eigen::Dynamic, 1,
                                  M::Options, M::RowsAtCompileTime, 1>;
   matrix_t _vector(size);
@@ -81,10 +82,11 @@ Eigen::Matrix<typename M::Scalar,
 typedef struct NNLS_args {
   FixedMatrix const A;
   FixedVector const b;
-  #ifdef __CUDA_ARCH__
+#ifdef __CUDA_ARCH__
   __device__ __host__
-  #endif
-  NNLS_args(FixedMatrix const A, FixedVector const b) : A(A), b(b){};
+#endif
+  NNLS_args(FixedMatrix const A, FixedVector const b)
+      : A(A), b(b){};
 } NNLS_args;
 // #endif
 

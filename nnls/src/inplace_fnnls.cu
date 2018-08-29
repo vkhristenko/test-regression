@@ -5,7 +5,45 @@
 using namespace Eigen;
 
 
-// #define DEBUG_FNNLS_CPU
+#ifdef __CUDA_ARCH__
+__device__ __host__ 
+#endif
+inline FixedMatrix transpose_multiply(const FixedMatrix &A){
+  FixedMatrix result;
+  #pragma unroll MATRIX_SIZE
+  for(auto i = 0; i < MATRIX_SIZE; ++i){    
+  for(auto j = i; j < MATRIX_SIZE; ++j){
+      result.data()[j*MATRIX_SIZE + i] = 0;
+      #pragma vectorise
+      for(auto k = 0; k < MATRIX_SIZE; ++k)
+        result.data()[j*MATRIX_SIZE + i] += A.data()[i*MATRIX_SIZE+k]*A.data()[j*MATRIX_SIZE+k];
+      result.data()[i*MATRIX_SIZE + j] = result.data()[j*MATRIX_SIZE + i];
+    }
+    // result = result.selfadjointView<Eigen::Upper>();
+  }
+  return result;
+}
+
+// #ifdef __CUDA_ARCH__
+// __global__ void transpose_multiply_kernel(const FixedMatrix *A, FixedMatrix *result){
+//     int i = blockIdx.x * blockDim.x + threadIdx.x;
+//     for(auto j = i; j < MATRIX_SIZE; ++j){
+//       #pragma vectorise
+//       for(auto k = 0; k < MATRIX_SIZE; ++k)
+//         result->data()[j*MATRIX_SIZE + i] += A->data()[i*MATRIX_SIZE+k]*A->data()[j*MATRIX_SIZE+k];
+//     }
+// }
+
+// __device__ __host__ 
+// inline FixedMatrix transpose_multiply_wrapper(const FixedMatrix &A){
+//   FixedMatrix result = FixedMatrix::Zero();
+//   transpose_multiply_kernel<1, 10>(A, &result);
+//   return result;
+// }
+
+
+// #endifs
+
 #ifdef __CUDA_ARCH__
 __device__ __host__ 
 #endif
@@ -32,10 +70,19 @@ void inplace_fnnls(const FixedMatrix& A,
 
   // bool active_set[VECTOR_SIZE];
   // memset(active_set, true, VECTOR_SIZE * sizeof(bool));
+
+
   auto nPassive = 0;
 
-  FixedMatrix AtA = A.transpose() * A; 
-  FixedVector Atb = A.transpose() * b;
+  // #ifdef __CUDA_ARCH__
+  // FixedMatrix AtA = transpose_wrapper(A);
+  // #endif
+  // #ifndef __CUDA_ARCH__
+  FixedMatrix AtA = transpose_multiply(A);
+  // #endif
+  // FixedMatrix AtA = A.transpose() * A;
+  // assert(AtA == A.transpose() * A);
+  FixedVector Atb = A.transpose() *b;
 
   FixedVector s;
   FixedVector w;
@@ -150,4 +197,5 @@ void inplace_fnnls(const FixedMatrix& A,
     }
   }
   x = x.transpose() * permutation.transpose();
+  
 }

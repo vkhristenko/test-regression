@@ -16,6 +16,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
+if(PROFILE)
+# set(VTune_DIR "/cvmfs/projects.cern.ch/intelsw/psxe/linux/x86_64/2018/vtune_amplifier_2018.3.0.558279/bin64")
+    set(CMAKE_CXX_FLAGS "-O2 -g")
+    set(CMAKE_CXX_COMPILER "/cvmfs/projects.cern.ch/intelsw/psxe/linux/x86_64/2018/compilers_and_libraries_2018.2.199/linux/bin/intel64/icpc") 
+    set(CMAKE_C_COMPILER "/cvmfs/projects.cern.ch/intelsw/psxe/linux/x86_64/2018/compilers_and_libraries_2018.2.199/linux/bin/intel64/icc") 
+    set(EIGEN_HOME "/data/user/vkhriste/eigen/eigen")
+    add_definitions(-DPROFILE)
+endif()
+
+
 if (DEBUG)
     message("DEBUG MODE")
     add_definitions(-DDEBUG)
@@ -72,9 +82,9 @@ add_subdirectory(legacy_multifit_cpu)
 add_subdirectory(io)
 # add_subdirectory(test_nnls_cpu)
 
-find_package(OpenCL REQUIRED)
-if (OpenCL_FOUND)
+find_package(OpenCL)
 if (TURNOFF_OPENCL)
+if (OpenCL_FOUND)
 else()
 add_subdirectory(multifit_ocl)
 endif()

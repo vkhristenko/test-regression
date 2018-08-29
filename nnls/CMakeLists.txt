@@ -6,6 +6,11 @@
 #    cuda_add_library(nnls_kernels ${CUSOURCES})
 #    target_link_libraries(nnls_kernels)
 #endif()
+
+# set(VTune_DIR "/cvmfs/projects.cern.ch/intelsw/psxe/linux/x86_64/2018/vtune_amplifier_2018.3.0.558279/bin64")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
+# set(CMAKE_NVCC_FLAGS "${CMAKE_NVCC_FLAGS} -O2 -g")
  
 file (GLOB SOURCES src/*.cpp)
 file (GLOB CUSOURCES src/*.cu)
