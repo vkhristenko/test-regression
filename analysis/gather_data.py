@@ -1,8 +1,9 @@
 from subprocess import Popen, PIPE
+from time import sleep
 
 iterations = 10
 filename = '../data/mysample_1000_-13.000_0.000_10_25.00_10.00_0.00_1.000_1.00_0.00_slew_1.00.root'
-versions = ['legacy_multifit_cpu', 'legacy_multifit_gpu', 'multifit_cpu',
+versions = ['multifit_cpu', 'legacy_multifit_cpu', 'legacy_multifit_gpu',
             'multifit_gpu', 'multifit_gpu_swap', 'multifit_cpu_swap']
 
 for version in versions:
@@ -15,4 +16,6 @@ for version in versions:
                 line = str(process.stdout.readline(), encoding='UTF-8')
                 if 'Mean Duration' in line:
                     print(channels, line.split(' ')[-1][:-1], file=f)
+                    print(channels, line.split(' ')[-1][:-1])
                     break
+            sleep(1)

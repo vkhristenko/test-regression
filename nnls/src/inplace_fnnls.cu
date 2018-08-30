@@ -12,7 +12,7 @@ inline FixedMatrix transpose_multiply(const FixedMatrix &A){
   FixedMatrix result;
   #pragma unroll MATRIX_SIZE
   for(auto i = 0; i < MATRIX_SIZE; ++i){    
-  for(auto j = i; j < MATRIX_SIZE; ++j){
+    for(auto j = i; j < MATRIX_SIZE; ++j){
       result.data()[j*MATRIX_SIZE + i] = 0;
       #pragma vectorise
       for(auto k = 0; k < MATRIX_SIZE; ++k)
@@ -25,24 +25,39 @@ inline FixedMatrix transpose_multiply(const FixedMatrix &A){
 }
 
 // #ifdef __CUDA_ARCH__
-// __global__ void transpose_multiply_kernel(const FixedMatrix *A, FixedMatrix *result){
-//     int i = blockIdx.x * blockDim.x + threadIdx.x;
-//     for(auto j = i; j < MATRIX_SIZE; ++j){
-//       #pragma vectorise
-//       for(auto k = 0; k < MATRIX_SIZE; ++k)
-//         result->data()[j*MATRIX_SIZE + i] += A->data()[i*MATRIX_SIZE+k]*A->data()[j*MATRIX_SIZE+k];
+// __global__
+// #endif
+// void matrixMultiplicationKernel(const FixedMatrix* A, FixedMatrix* C);
+// // #endif // __CUDA_ARCH__
+
+
+// #ifdef __CUDA_ARCH__
+// __global__ void matrixMultiplicationKernel(const FixedMatrix* A, FixedMatrix* C) {
+
+//   int ROW = blockIdx.y*blockDim.y+threadIdx.y;
+//   int COL = blockIdx.x*blockDim.x+threadIdx.x;
+
+//   C->data()[ROW * MATRIX_SIZE + COL] = 0;
+
+//   for (int i = 0; i < MATRIX_SIZE; i++) {
+//     C->data()[ROW * MATRIX_SIZE + COL] += 
+//         A->data()[ROW * MATRIX_SIZE + i] * A->data()[i * MATRIX_SIZE + COL];
 //     }
+//   C->data()[COL * MATRIX_SIZE + ROW] = C->data()[ROW *MATRIX_SIZE + COL];
 // }
 
-// __device__ __host__ 
-// inline FixedMatrix transpose_multiply_wrapper(const FixedMatrix &A){
-//   FixedMatrix result = FixedMatrix::Zero();
-//   transpose_multiply_kernel<1, 10>(A, &result);
+// __device__
+// FixedMatrix matrixMultiplication(const FixedMatrix &A){
+//   FixedMatrix result;
+//   // declare the number of blocks per grid and the number of threads per block
+//   // use 1 to 512 threads per block
+//   dim3 threadsPerBlock(MATRIX_SIZE, MATRIX_SIZE);
+//   dim3 blocksPerGrid(1, 1);
+//   matrixMultiplicationKernel<<<blocksPerGrid,threadsPerBlock>>>(&A, &result);
 //   return result;
 // }
 
-
-// #endifs
+// #endif
 
 #ifdef __CUDA_ARCH__
 __device__ __host__ 
@@ -73,15 +88,14 @@ void inplace_fnnls(const FixedMatrix& A,
 
 
   auto nPassive = 0;
-
+  
   // #ifdef __CUDA_ARCH__
-  // FixedMatrix AtA = transpose_wrapper(A);
+  //FixedMatrix AtA = matrixMultiplication(A);
+  // #else
+  //FixedMatrix AtA = transpose_multiply(A);
   // #endif
-  // #ifndef __CUDA_ARCH__
-  FixedMatrix AtA = transpose_multiply(A);
-  // #endif
-  // FixedMatrix AtA = A.transpose() * A;
   // assert(AtA == A.transpose() * A);
+  FixedMatrix AtA = A.transpose() * A;
   FixedVector Atb = A.transpose() *b;
 
   FixedVector s;
@@ -112,7 +126,7 @@ void inplace_fnnls(const FixedMatrix& A,
     const auto max_w = w.tail(nActive).maxCoeff(&w_max_idx);
 
     // check for convergence
-    if (max_w < eps )
+    if (max_w < eps)
       break;
 
     // cout << "n active " << nActive << endl;
@@ -166,6 +180,7 @@ void inplace_fnnls(const FixedMatrix& A,
           }
         }
       }
+
       if (std::numeric_limits<double>::max() == alpha) {
         x.head(nPassive) = s.head(nPassive);
         break;
@@ -196,6 +211,5 @@ void inplace_fnnls(const FixedMatrix& A,
                           permutation.indices()[alpha_idx]);
     }
   }
-  x = x.transpose() * permutation.transpose();
-  
+  x = x.transpose() * permutation.transpose();  
 }
