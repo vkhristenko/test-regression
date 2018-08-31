@@ -16,6 +16,11 @@ testing cms hcal/ecal regression
 - run multifit cpu `./multifit_cpu/multifit_cpu ../data/<filename> <num_iterations> <num_channels_per_iteration>`
 - run multifit gpu `./multifit_gpu/multifit_gpu ../data/<filename> <num_iterations> <num_channels_per_iteration>`
 
+## to profile cache utilization
+- compile with -g and optimizations
+- run `valgrind --tool=cachegrind <program>` specifying the program to be profiled
+- run `KCachegrind` with on the file produced by `valgrind` to visualize the results
+
 ## Structure
 
 - `gen`: test data generator.
