@@ -4,6 +4,7 @@ message("compiling multifit gpu")
 file(GLOB CUSOURCES src/*.cu)
 add_library(multifit_gpu_device STATIC ${CUSOURCES})
 target_compile_options(multifit_gpu_device PRIVATE ${CUDA_FLAGS})
+
 set_target_properties(multifit_gpu_device PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 # endif()
 
