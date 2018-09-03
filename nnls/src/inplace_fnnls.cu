@@ -96,6 +96,7 @@ void inplace_fnnls(const FixedMatrix& A,
 
   auto nPassive = 0;
   
+  /*
   #ifdef __CUDA_ARCH__
   FixedMatrix AtA;
   matrixMultiplication(A, AtA);
@@ -110,6 +111,8 @@ void inplace_fnnls(const FixedMatrix& A,
   FixedMatrix AtA = transpose_multiply(A);
   #endif
   assert(AtA == A.transpose() * A);
+  */
+  FixedMatrix AtA = transpose_multiply(A);
   // FixedMatrix AtA = A.transpose() * A;
   FixedVector Atb = A.transpose() *b;
 
