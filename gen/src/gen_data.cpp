@@ -291,8 +291,6 @@ int main(int argc, char** argv) {
         // adding the pu times the scale factor to the waveform
         pileup_signal.at(iwf) = temp + energyPU.at(ibx) * pSh.fShape(t) * puFactor;            
 //         std::cout << " pileup_signal [" << iwf << "] = " << pileup_signal.at(iwf) << std::endl;    
-        // add pileup to nominal
-        pulse_signal.at(iwf)  = temp + energyPU.at(ibx) * pSh.fShape(t) * puFactor;
       }
     }
 
@@ -330,15 +328,18 @@ int main(int argc, char** argv) {
       int pulse_index = TMath::Nint(4 * (IDSTART + i * NFREQ - pulse_shift));
       samples.at(i) += pulse_signal.at(pulse_index);
 
-      int pileup_index = TMath::Nint(4 * (IDSTART + i * NFREQ - pileup_shift));
-
       //---- slew rate
       if (distortion_sample_4 != 1) {
-        if (i == 4)
-          samples.at(i) += distortion_sample_4 * pulse_signal.at(pulse_index);
-        else
-          samples.at(i) += pulse_signal.at(pulse_index);
+        if (i==4) samples.at(i) += distortion_sample_4 * pulse_signal.at(pulse_index);
+        else      samples.at(i) +=                       pulse_signal.at(pulse_index);        
       }
+      else {
+        samples.at(i) += pulse_signal.at(pulse_index);
+      }
+      
+      int pileup_index = TMath::Nint(4*(IDSTART + i * NFREQ - pileup_shift));
+      samples.at(i) += pileup_signal.at(pileup_index);
+      
     }
 
     // Add pedestal
