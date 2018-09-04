@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
   // CRRC shaping time in ns. For QIE, set it to 1e-1
   float pulse_tau = 43;
 
-  // ADD WHAT THIS IS
+  // Different eta regions have different pileup energy distributions (saved in the root file)
   const float eta = 0.0;
 
   // pedestal shift in GeV
@@ -68,29 +68,30 @@ int main(int argc, char** argv) {
   char* wf_name;
 
   // Changing variables if passed in on the command line
-  if (argc >= 2)
+  if (argc >= 2) // temporal_shift
     pulse_shift = atof(argv[1]);
-  if (argc >= 3)
+  if (argc >= 3) // number_of_events
     nEventsTotal = atoi(argv[2]);
-  if (argc >= 4)
+  if (argc >= 4) // NSAMPLES
     NSAMPLES = atoi(argv[3]);
-  if (argc >= 5)
+  if (argc >= 5) // NFREQ
     NFREQ = atof(argv[4]);
-  if (argc >= 6)
+  if (argc >= 6) // nPU
     nPU = atof(argv[5]);
-  if (argc >= 7)
+  if (argc >= 7) // signalAmplitude
     signalAmplitude = atof(argv[6]);
-  if (argc >= 8)
+  if (argc >= 8) // sigmaNoise
     sigmaNoiseScale = atof(argv[7]);
-  if (argc >= 9)
+  if (argc >= 9) // puFactor
     puFactor = atof(argv[8]);
-  if (argc >= 10) {
+  if (argc >= 10) // wf_name_string
+  {
     wf_name = argv[9];
   } else {
     std::string wf_name_string = "CRRC43";
     wf_name = (char*)wf_name_string.c_str();
   }
-  if (argc >= 11)
+  if (argc >= 11) // pu_shift
     pileup_shift = atof(argv[10]);
 
   sigmaNoise = sigmaNoise * sigmaNoiseScale;
@@ -103,10 +104,10 @@ int main(int argc, char** argv) {
   // Currently, this option will be ignored unless a 0 or a 1 is passed to it.
   // May add more flexibility in the future.
   float correlation_flag = 0.5;
-  if (argc >= 12)
+  if (argc >= 12) //  noise-correlation
     correlation_flag = atof(argv[11]);
 
-  if (argc >= 13)
+  if (argc >= 13) // pedestal
     pedestal = atof(argv[12]);
 
   //---- fix the correct BX
@@ -121,7 +122,7 @@ int main(int argc, char** argv) {
   //----    1. --> 100%, meaning no distortion
   //----    0.90 --> 90%, meaning the point is multiplied by 0.90
   float distortion_sample_4 = 1.;
-  if (argc >= 14)
+  if (argc >= 14) // distortion_sample_4
     distortion_sample_4 = atof(argv[13]);
 
   std::cout << " NSAMPLES = " << NSAMPLES << std::endl;
@@ -288,15 +289,16 @@ int main(int argc, char** argv) {
         double t = (BX0 - ibx) * 25. + iwf / 4. - (500 / 2) + 25.;
         double temp = pileup_signal.at(iwf);
         // adding the pu times the scale factor to the waveform
-        pileup_signal.at(iwf) =
-            temp + energyPU.at(ibx) * pSh.fShape(t) * puFactor;
+        pileup_signal.at(iwf) = temp + energyPU.at(ibx) * pSh.fShape(t) * puFactor;            
+//         std::cout << " pileup_signal [" << iwf << "] = " << pileup_signal.at(iwf) << std::endl;    
+        // add pileup to nominal
+        pulse_signal.at(iwf)  = temp + energyPU.at(ibx) * pSh.fShape(t) * puFactor;
       }
     }
 
     // Add signal to the waveform
     for (int iwf = 0; iwf < nWF; iwf++) {
-      pulse_signal.at(iwf) +=
-          signalTruth * pSh.fShape(iwf / 4. - (500 / 2) + 25.);
+      pulse_signal.at(iwf) += signalTruth * pSh.fShape(iwf / 4. - (500 / 2) + 25.);
     }
 
     // Construct the digitized points
