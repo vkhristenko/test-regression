@@ -31,11 +31,13 @@ SampleVector amplitudes(SampleVector::Zero());
 
 TFile* fout;
 TH1D* h01;
+TH1D *hAmpl;
 TH1D* hDuration;
 
 void initHist(std::string const& out_file) {
   fout = new TFile(out_file.c_str(), "recreate");
   h01 = new TH1D("h01", "dA", 1000, -5, 5);
+  hAmpl = new TH1D("reco_ampl", "reco ampl", 100, 5, 15);
   hDuration = new TH1D("Duration", "Duration", 100, 0, 5000);
 }
 
@@ -222,6 +224,7 @@ void run(std::string inputFile,
 
     for (auto& results : vresults) {
       h01->Fill(results.ampl - amplitudeTruth);
+      hAmpl->Fill(results.ampl);
     }
   }
 
@@ -236,6 +239,7 @@ void run(std::string inputFile,
 void saveHist() {
   fout->cd();
   h01->Write();
+  hAmpl->Write();
   hDuration->Write();
   fout->Close();
 }
