@@ -99,7 +99,9 @@ void run(std::string inputFile,
   std::vector<std::vector<double> > complete_samplesReco;
   std::vector<double> complete_chi2;
   std::vector<double> complete_pedestal;
-
+  std::vector<double> pulseShapeTemplate;  
+  std::vector<int> activeBXs;
+  
   int ipulseintime = 0;
   newtree->Branch("chi2", &return_chi2, "chi2/F");
   newtree->Branch("samplesReco", &samplesReco);
@@ -110,11 +112,20 @@ void run(std::string inputFile,
   newtree->Branch("complete_pedestal", &complete_pedestal);
   newtree->Branch("best_pedestal", &best_pedestal, "best_pedestal/F");
   newtree->Branch("best_chi2", &best_chi2, "best_chi2/F");
-
+  newtree->Branch("pulseShapeTemplate",   &pulseShapeTemplate);
+  newtree->Branch("activeBXs",     &activeBXs);
+  
+  for(int i=0; i<(NSAMPLES+7*int(25 /NFREQ)); i++) {
+    double x;
+    x = double( IDSTART + NFREQ * i + 3*25. - 500 / 2. );  //----> 500 ns is fixed!  
+    pulseShapeTemplate.push_back( pSh.fShape(x));
+  }
+  
   int totalNumberOfBxActive = 10;
 
   for (unsigned int ibx = 0; ibx < totalNumberOfBxActive; ++ibx) {
     samplesReco.push_back(0.);
+    activeBXs.push_back( ibx * int(25 /NFREQ) - 5 * int(25 /NFREQ) ); //----> -5 BX are active w.r.t. 0 BX
   }
 
   v_amplitudes_reco.clear();
@@ -155,17 +166,40 @@ void run(std::string inputFile,
       std::cout << "skipping first iteration" << std::endl;
     std::cout << "duration = " << duration << std::endl;
 
-    for (auto& results : vresults) {
-      // std::cout << "status = " << results.status << std::endl;
-      // std::cout << "chi2 = " << results.chi2 << std::endl;
-
-      // double aMax = status ? pulsefunc.X()[ipulseintime] : 0.;
-      double aMax = results.ampl;
-      // std::cout << "aMax = " << aMax << std::endl;
-      // std::cout << "amplitudeTruth = " << amplitudeTruth << std::endl;
-      h01->Fill(aMax - amplitudeTruth);
-      hAmpl->Fill(aMax);
+  
+    if (it == 0){
+      int ientry = 0;
+      for (auto& results : vresults) {
+        tree->GetEntry(ientry);
+        
+        // std::cout << "status = " << results.status << std::endl;
+        // std::cout << "chi2 = " << results.chi2 << std::endl;
+        
+        // double aMax = status ? pulsefunc.X()[ipulseintime] : 0.;
+        double aMax = results.ampl;
+        // std::cout << "aMax = " << aMax << std::endl;
+        // std::cout << "amplitudeTruth = " << amplitudeTruth << std::endl;
+        h01->Fill(aMax - amplitudeTruth);
+        hAmpl->Fill(aMax);
+        
+        //---- all reconstructed pulses
+        //       samplesReco = results.v_amplitudes;
+        //---- save all reconstructed amplitudes
+        samplesReco.clear();
+        for (unsigned int ip=0; ip<results.BXs.rows(); ++ip) {
+          samplesReco.push_back(0.);
+        }
+        
+        for (unsigned int ip=0; ip<results.BXs.rows(); ++ip) {
+          samplesReco[ (int(results.BXs.coeff(ip))) + 5] = (results.X)[ ip ];
+        }
+        
+        newtree-> Fill();
+        ientry++;  
+        
+      }
     }
+    
   }
 
   // print some stats

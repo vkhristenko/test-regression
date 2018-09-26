@@ -326,7 +326,10 @@ __global__ void kernel_multifit(DoFitArgs *vargs, Output *vresults, unsigned int
     }
 
     // assing the result
-    vresults[i] = Output{pulse.ChiSq(), status ? pulse.X()[ip_in_time] : 0.0, status};
+    BXVector BXs_results = pulse.BXs();
+    PulseVector X_results = pulse.X();
+    
+    vresults[i] = Output{pulse.ChiSq(), status ? pulse.X()[ip_in_time] : 0.0, status, BXs_results, X_results};
 
     // assing the result
     //vresults[i] = DoFitResults{pulse.ChiSq(), pulse.BXs(), pulse.X(), (bool) status}; 

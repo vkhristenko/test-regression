@@ -326,7 +326,6 @@ int main(int argc, char** argv) {
     // Add signal and pileup
     for (int i = 0; i < NSAMPLES; ++i) {
       int pulse_index = TMath::Nint(4 * (IDSTART + i * NFREQ - pulse_shift));
-      samples.at(i) += pulse_signal.at(pulse_index);
 
       //---- slew rate
       if (distortion_sample_4 != 1) {
