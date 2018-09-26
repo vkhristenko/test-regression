@@ -29,6 +29,8 @@ struct Output {
   double chi2;
   double ampl;
   int status;
+  BXVector BXs;
+  PulseVector X;
 };
 
 struct DoFitResults {

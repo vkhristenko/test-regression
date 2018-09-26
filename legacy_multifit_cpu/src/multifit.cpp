@@ -242,19 +242,21 @@ void run(std::string inputFile, int max_iterations, int entries_per_kernel = 100
       hDuration->Fill(duration);
       std::cout << "duration = " << duration << std::endl;
 
-      int ientry = 0;
-      for (auto& results : vresults) {
-        tree->GetEntry(ientry);
-        
-        h01->Fill(results.ampl - amplitudeTruth);
-        hAmpl->Fill(results.ampl);
-        //---- all reconstructed pulses
-        samplesReco = results.v_amplitudes;
-        
-        newtree-> Fill();
-        ientry++;  
-        
-//         std::cout << " ientry = " << ientry << std::endl;
+      if (it == 0){
+        int ientry = 0;
+        for (auto& results : vresults) {
+          tree->GetEntry(ientry);
+          
+          h01->Fill(results.ampl - amplitudeTruth);
+          hAmpl->Fill(results.ampl);
+          //---- all reconstructed pulses
+          samplesReco = results.v_amplitudes;
+          
+          newtree-> Fill();
+          ientry++;  
+          
+          //         std::cout << " ientry = " << ientry << std::endl;
+        }
       }
       
   }

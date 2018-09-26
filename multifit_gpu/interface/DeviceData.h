@@ -29,6 +29,9 @@ struct Output {
   double chi2;
   double ampl;
   int status;
+//   std::vector<double> v_amplitudes;
+  BXVector BXs;
+  PulseVector X;
 };
 
 struct DoFitResults {
