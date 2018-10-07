@@ -40,5 +40,6 @@ lib/
 multifit_cpu_swap/
 multifit_gpu_swap/
 profile/
+.ipynb_checkpoints/
 
 *.root
