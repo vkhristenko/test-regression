@@ -20,6 +20,7 @@ def run(args):
     iterations = args.iterations
     for num_channels in [2 ** x for x in range(10, 17)]:
         process = Popen([args.exe, args.inp, str(iterations), str(num_channels)], stdout=PIPE)
+        print("number of channels = %d" % num_channels)
         duration = parse_stdout(process.stdout)
         values.append(duration)
     return values
