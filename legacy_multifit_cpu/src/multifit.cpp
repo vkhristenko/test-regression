@@ -237,7 +237,7 @@ void saveHist()
   
   fout->cd();
   h01->Write();
-  hAmpl->Write()m
+  hAmpl->Write();
   hDuration->Write();
   fout->Close();
 }
