@@ -21,28 +21,20 @@ message(OpenCL_VERSION_MINOR = ${OpenCL_VERSION_MINOR})
 message("-------------------------------------------")
 include_directories(SYSTEM ${OpenCL_INCLUDE_DIRS})
 include_directories(${OpenCL_INCLUDE_DIRS})
-# set (LINK_LIBRARIES ${OpenCL_LIBRARIES} ${LINK_LIBRARIES})
-
-# include_directories(${PROJECT_SOURCE_DIR})
 
 message("-------------------------------------------")
+file(GLOB LIBSOURCES src/*.cpp)
+file(GLOB TESTSOURCES tests/*.cpp)
 
+# build a lib from src/ sources
+add_library(multifit_ocl_lib SHARED ${LIBSOURCES})
+target_link_libraries(multifit_ocl_lib ${OpenCL_LIBRARIES})
 
-set(SOURCES main.cpp)
-set(OPENCL_FILES ./kenels/matrix_mult.cl)
-
-message("sources:")
-message(${SOURCES})
-message("kernels:")
-message(${OPENCL_FILES})
-
-# if(OPENCL_FILES)
-#  foreach(OPENCL_FILE ${OPENCL_FILES})
-#      configure_file(${OPENCL_FILE} ${OPENCL_FILE} COPYONLY)
-#  endforeach()
-# endif()
-
-
-add_executable(ocl_test ${SOURCES})
-target_link_libraries(ocl_test OpenCL::OpenCL)
-
+# build tests from tests/ 
+foreach(TESTSOURCE ${TESTSOURCES})
+    string(REPLACE "*.cpp" "" EXEC ${TESTSOURCE})
+    get_filename_component(EXEC ${EXEC} NAME)
+    message("adding executable ${EXEC}")
+    add_executable(multifit_ocl_${EXEC} ${TESTSOURCE})
+    target_link_libraries(multifit_ocl_${EXEC} ${OpenCL_LIBRARIES} multifit_ocl_lib)
+endforeach(TESTSOURCE)

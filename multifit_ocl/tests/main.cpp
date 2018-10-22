@@ -37,58 +37,17 @@
 // Verification is performed against the same computation on the host CPU.
 ///////////////////////////////////////////////////////////////////////////////////
 
-#define CL_HPP_ENABLE_EXCEPTIONS
-#define CL_HPP_TARGET_OPENCL_VERSION 120
-#define CL_HPP_MINIMUM_OPENCL_VERSION 120
-#include "multifit_ocl/include/cl2.hpp"
+#include "multifit_ocl/include/cl_pretty_print.hpp"
 
 #include <iostream>
 using namespace std;
 
-#define print_info_option(device, option, mod) \
-    std::cout << mod #option " = " << device.getInfo<option>() << "\n"
-
-#define print_pretty(expr, mod) \
-    std::cout << mod #expr " = " << expr << "\n"
-
 // Entry point.
 int main(int argc, char **argv) {
 	vector<cl::Platform> platforms;
-	cl::Platform::get(&platforms);	
+	cl::Platform::get(&platforms);
+    clapi::pretty_print_all(platforms, std::cout, "\t\t");
 
-	for (auto &platform : platforms){
-		cout << "Platform:" << platform.getInfo<CL_PLATFORM_NAME>() << endl;
-		cout << "Profile:" << platform.getInfo<CL_PLATFORM_PROFILE>() << endl;
-		cout << "Version:" << platform.getInfo<CL_PLATFORM_VERSION>() << endl;
-		cout << "Extensions:" << platform.getInfo<CL_PLATFORM_EXTENSIONS>() << endl;
-        std::vector<cl::Device> devices;
-        platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
-
-        // print out all devices
-        std::cout << "Number of devices: " << devices.size() << std::endl;
-        int idevice = 0;
-        std::cout << "--------------------------" << std::endl;
-        for (auto const& d : devices) {
-            std::cout << "Device " << idevice << std::endl;
-            print_info_option(d, CL_DEVICE_NAME, "\t\t");
-            print_info_option(d, CL_DEVICE_OPENCL_C_VERSION, "\t\t");
-            print_info_option(d, CL_DEVICE_MAX_COMPUTE_UNITS, "\t\t");
-            print_info_option(d, CL_DEVICE_LOCAL_MEM_SIZE, "\t\t");
-            print_info_option(d, CL_DEVICE_GLOBAL_MEM_SIZE, "\t\t");
-            print_info_option(d, CL_DEVICE_MAX_MEM_ALLOC_SIZE, "\t\t");
-            print_info_option(d, CL_DEVICE_MAX_WORK_GROUP_SIZE, "\t\t");
-
-            //std::vector<std::size_t> work_item_sizes;
-            auto work_item_sizes = d.getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>();
-            std::cout << "\t\tmax work group sizes:\n";
-            for (auto const& ws : work_item_sizes)
-                print_pretty(ws, "\t\t\t");
-        
-            std::cout << "--------------------------" << std::endl;
-            ++idevice;
-        }
-	}
-
-  cout << endl;
-  return 0;
+    cout << endl;
+    return 0;
 }
