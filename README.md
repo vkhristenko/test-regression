@@ -10,6 +10,7 @@ testing cms hcal/ecal regression
 - `cmake ../ -DTURNOFF_CUDA=ON to disable cuda>`
 - `cmake ../ -DTURNOFF_OPENCL=ON to disable opencl>`
 - if u r @vinavx2 use: `cmake ../ -DEIGEN_HOME=/data/user/vkhriste/eigen/eigen -DOpenCL_INCLUDE_DIR=/usr/local/cuda-9.2/include`
+- if u r @olsky03 use: `cmake ../ -DEIGEN_HOME=/data/vkhriste/eigen/ -DTURNOFF_CUDA=ON -DOpenCL_INCLUDE_DIR=/data/PAC/inteldevstack/intelFPGA_pro/hld/host/include -DOpenCL_LIBRARY=/data/PAC/inteldevstack/intelFPGA_pro/hld/host/linux64/lib/libOpenCL.so`
 
 ## to run
 - generate pulses `./gen/gen_data -13`
