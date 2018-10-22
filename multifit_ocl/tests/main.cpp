@@ -37,36 +37,17 @@
 // Verification is performed against the same computation on the host CPU.
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include "CL/cl.hpp"
+#include "multifit_ocl/include/cl_pretty_print.hpp"
 
 #include <iostream>
 using namespace std;
 
-
-vector<cl::Platform> platforms;
-vector<cl::Device> cpus;
-vector<cl::Device> gpus;
-
-
 // Entry point.
 int main(int argc, char **argv) {
 	vector<cl::Platform> platforms;
-	cl::Platform::get(&platforms);	
+	cl::Platform::get(&platforms);
+    clapi::pretty_print_all(platforms, std::cout, "\t\t");
 
-	for (auto &platform : platforms){
-		cout << "Platform:" << platform.getInfo<CL_PLATFORM_NAME>() << endl;
-		cout << "Profile:" << platform.getInfo<CL_PLATFORM_PROFILE>() << endl;
-		cout << "Version:" << platform.getInfo<CL_PLATFORM_VERSION>() << endl;
-		cout << "Extensions:" << platform.getInfo<CL_PLATFORM_EXTENSIONS>() << endl;
-		platform.getDevices(CL_DEVICE_TYPE_CPU, &cpus);
-		platform.getDevices(CL_DEVICE_TYPE_GPU, &gpus);
-	}
-
-	cl::Context cpus_context(cpus);
-	cl::Context gpus_context(gpus);
-  cout << endl;
-  return 0;
+    cout << endl;
+    return 0;
 }
-
-
-

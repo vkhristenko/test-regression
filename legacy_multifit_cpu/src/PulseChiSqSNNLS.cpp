@@ -1,6 +1,75 @@
 #include "../interface/PulseChiSqSNNLS.h"
+#include <exception>
 #include <math.h>
 #include <iostream>
+
+void eigen_solve_submatrix(PulseMatrix& mat, PulseVector& invec, PulseVector& outvec, unsigned NP) {
+  using namespace Eigen;
+  switch( NP ) { // pulse matrix is always square.
+  case 10:
+    {
+      Matrix<double,10,10> temp = mat.topLeftCorner<10,10>();
+      outvec.head<10>() = temp.ldlt().solve(invec.head<10>());
+    }
+    break;
+  case 9:
+    {
+      Matrix<double,9,9> temp = mat.topLeftCorner<9,9>();
+      outvec.head<9>() = temp.ldlt().solve(invec.head<9>());
+    }
+    break;
+  case 8:
+    {
+      Matrix<double,8,8> temp = mat.topLeftCorner<8,8>();
+      outvec.head<8>() = temp.ldlt().solve(invec.head<8>());
+    }
+    break;
+  case 7:
+    {
+      Matrix<double,7,7> temp = mat.topLeftCorner<7,7>();
+      outvec.head<7>() = temp.ldlt().solve(invec.head<7>());
+    }
+    break;
+  case 6:
+    {
+      Matrix<double,6,6> temp = mat.topLeftCorner<6,6>();
+      outvec.head<6>() = temp.ldlt().solve(invec.head<6>());
+    }
+    break;
+  case 5:
+    {
+      Matrix<double,5,5> temp = mat.topLeftCorner<5,5>();
+      outvec.head<5>() = temp.ldlt().solve(invec.head<5>());
+    }
+    break;
+  case 4:
+    {
+      Matrix<double,4,4> temp = mat.topLeftCorner<4,4>();
+      outvec.head<4>() = temp.ldlt().solve(invec.head<4>());
+    }
+    break;
+  case 3: 
+    {
+      Matrix<double,3,3> temp = mat.topLeftCorner<3,3>();
+      outvec.head<3>() = temp.ldlt().solve(invec.head<3>());
+    }
+    break;
+  case 2:
+    {
+      Matrix<double,2,2> temp = mat.topLeftCorner<2,2>();
+      outvec.head<2>() = temp.ldlt().solve(invec.head<2>());
+    }
+    break;
+  case 1:
+    {
+      Matrix<double,1,1> temp = mat.topLeftCorner<1,1>();
+      outvec.head<1>() = temp.ldlt().solve(invec.head<1>());
+    }
+    break;
+  default:
+    throw std::runtime_error{"wrong switch stmt parameter"};
+  }
+}
 
 PulseChiSqSNNLS::PulseChiSqSNNLS() : _chisq(0.), _computeErrors(true) {
   // In later versions of eigen this should not be necessary
@@ -201,6 +270,7 @@ bool PulseChiSqSNNLS::NNLS() {
   // http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.157.9203&rep=rep1&type=pdf
 
   const unsigned int npulse = _bxs.rows();
+
   SamplePulseMatrix invcovp = _covdecomp.matrixL().solve(_pulsemat);
   PulseMatrix aTamat(npulse, npulse);
   aTamat.triangularView<Eigen::Lower>() = invcovp.transpose() * invcovp;
@@ -209,7 +279,8 @@ bool PulseChiSqSNNLS::NNLS() {
       invcovp.transpose() * _covdecomp.matrixL().solve(_sampvec);
   PulseVector wvec(npulse);
 
-  for (int iter = 0; iter < 1000; ++iter) {
+  int iter = 0;
+  for (iter = 0; iter < 1000; ++iter) {
     // can only perform this step if solution is guaranteed viable
     if (iter > 0 || _nP == 0) {
       if (_nP == npulse)
@@ -243,9 +314,11 @@ bool PulseChiSqSNNLS::NNLS() {
 
     while (_nP > 0) {
       PulseVector ampvecpermtest = _ampvec;
+
       // solve for unconstrained parameters
-      ampvecpermtest.head(_nP) =
-          aTamat.topLeftCorner(_nP, _nP).ldlt().solve(aTbvec.head(_nP));
+      //ampvecpermtest.head(_nP) =
+      //    aTamat.topLeftCorner(_nP, _nP).ldlt().solve(aTbvec.head(_nP));
+      eigen_solve_submatrix(aTamat, aTbvec, ampvecpermtest, _nP);
 
       // check solution
       if (ampvecpermtest.head(_nP).minCoeff() > 0.) {
@@ -285,5 +358,6 @@ bool PulseChiSqSNNLS::NNLS() {
       --_nP;
     }
   }
+
   return true;
 }
