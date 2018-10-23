@@ -40,7 +40,9 @@ void pretty_print_cl_device(cl::Device const& device,
     print_info_option(os, device, CL_DEVICE_MAX_CLOCK_FREQUENCY, indent);
     print_info_option(os, device, CL_DEVICE_AVAILABLE, indent);
     print_info_option(os, device, CL_DEVICE_COMPILER_AVAILABLE, indent);
+#if __APPLE__
     print_info_option(os, device, CL_DEVICE_OPENCL_C_VERSION, indent);
+#endif
     print_info_option(os, device, CL_DEVICE_MAX_COMPUTE_UNITS, indent);
     print_info_option(os, device, CL_DEVICE_LOCAL_MEM_SIZE, indent);
     print_info_option(os, device, CL_DEVICE_GLOBAL_MEM_SIZE, indent);

@@ -30,11 +30,21 @@ file(GLOB TESTSOURCES tests/*.cpp)
 add_library(multifit_ocl_lib SHARED ${LIBSOURCES})
 target_link_libraries(multifit_ocl_lib ${OpenCL_LIBRARIES})
 
+if (UNIX AND NOT APPLE)
+    set (INTEL_LINK_OPTIONS "-L/data/PAC/inteldevstack/intelFPGA_pro/hld/linux64/lib -L/data/vkhriste/opencl_bsp/linux64/lib  -L/data/PAC/inteldevstack/intelFPGA_pro/hld/host/linux64/lib -Wl,--no-as-needed -lalteracl  -lintel_opae_mmd -lrt -lelf")
+    message(INTEL_LINK_OPTIONS = ${INTEL_LINK_OPTIONS})
+elseif()
+    set(INTEL_LINK_OPTIONS)
+endif()
+
+message(INTEL_LINK_OPTIONS = ${INTEL_LINK_OPTIONS})
+
 # build tests from tests/ 
 foreach(TESTSOURCE ${TESTSOURCES})
     string(REPLACE "*.cpp" "" EXEC ${TESTSOURCE})
     get_filename_component(EXEC ${EXEC} NAME)
     message("adding executable ${EXEC}")
     add_executable(multifit_ocl_${EXEC} ${TESTSOURCE})
-    target_link_libraries(multifit_ocl_${EXEC} ${OpenCL_LIBRARIES} multifit_ocl_lib)
+    target_link_libraries(multifit_ocl_${EXEC} PRIVATE ${INTEL_LINK_OPTIONS}
+        ${OpenCL_LIBRARIES} multifit_ocl_lib)
 endforeach(TESTSOURCE)
