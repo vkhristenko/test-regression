@@ -51,5 +51,7 @@ std::vector<Output> doFitWrapper(std::vector<DoFitArgs> const& vargs) {
   cudaFree(d_args);
   cudaFree(d_results);
 
+  std::cout << "vresults.size() [still inside] = " << results.size() << std::endl;
+  
   return results;
 }

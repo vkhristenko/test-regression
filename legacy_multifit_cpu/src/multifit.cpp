@@ -116,7 +116,9 @@ void run(std::string inputFile, int max_iterations, int entries_per_kernel = 100
   std::vector < std::vector<double> > complete_samplesReco;
   std::vector <double> complete_chi2;
   std::vector <double> complete_pedestal;
-  
+  std::vector<double> pulseShapeTemplate;  
+  std::vector<int> activeBXs;
+
   int ipulseintime = 0;
   newtree->Branch("chi2",   &return_chi2, "chi2/F");
   newtree->Branch("samplesReco",   &samplesReco);
@@ -127,13 +129,23 @@ void run(std::string inputFile, int max_iterations, int entries_per_kernel = 100
   newtree->Branch("complete_pedestal",          &complete_pedestal);
   newtree->Branch("best_pedestal",   &best_pedestal, "best_pedestal/F");
   newtree->Branch("best_chi2",   &best_chi2, "best_chi2/F");
+  newtree->Branch("pulseShapeTemplate",   &pulseShapeTemplate);
+  newtree->Branch("activeBXs",     &activeBXs);
+  
+  for(int i=0; i<(NSAMPLES+7*int(25 /NFREQ)); i++) {
+    double x;
+    x = double( IDSTART + NFREQ * i + 3*25. - 500 / 2. );  //----> 500 ns is fixed!  
+    pulseShapeTemplate.push_back( pSh.fShape(x));
+  }
   
   
   int totalNumberOfBxActive = 10;
   
   for (unsigned int ibx=0; ibx<totalNumberOfBxActive; ++ibx) {
     samplesReco.push_back(0.);
+    activeBXs.push_back( ibx * int(25 /NFREQ) - 5 * int(25 /NFREQ) ); //----> -5 BX are active w.r.t. 0 BX
   }
+  
   
   
   v_amplitudes_reco.clear();
@@ -162,9 +174,10 @@ void run(std::string inputFile, int max_iterations, int entries_per_kernel = 100
       double chi2;
       double ampl;
       int status;
-
-      Output(double chi2, double ampl, int status) 
-          : chi2{chi2}, ampl{ampl}, status{status}
+      std::vector<double> v_amplitudes;
+      
+      Output(double chi2, double ampl, int status, std::vector<double> v_amplitudes) 
+      : chi2{chi2}, ampl{ampl}, status{status}, v_amplitudes{v_amplitudes}
       {}
   };
   
@@ -202,7 +215,18 @@ void run(std::string inputFile, int max_iterations, int entries_per_kernel = 100
                   }
               }
               double ampl = status ? func.X()[ip_in_time] : 0.;
-              vresults.emplace_back(chi2, ampl, status);
+              
+              //---- save all reconstructed amplitudes
+              std::vector<double> v_ampl;
+              for (unsigned int ip=0; ip<func.BXs().rows(); ++ip) {
+                v_ampl.push_back(0.);
+              }
+              
+              for (unsigned int ip=0; ip<func.BXs().rows(); ++ip) {
+                v_ampl[ (int(func.BXs().coeff(ip))) + 5] = (func.X())[ ip ];
+              }
+              
+              vresults.emplace_back(chi2, ampl, status, v_ampl);
           }
 
           return vresults;
@@ -218,10 +242,23 @@ void run(std::string inputFile, int max_iterations, int entries_per_kernel = 100
       hDuration->Fill(duration);
       std::cout << "duration = " << duration << std::endl;
 
-      for (auto& results : vresults) {
+      if (it == 0){
+        int ientry = 0;
+        for (auto& results : vresults) {
+          tree->GetEntry(ientry);
+          
           h01->Fill(results.ampl - amplitudeTruth);
           hAmpl->Fill(results.ampl);
+          //---- all reconstructed pulses
+          samplesReco = results.v_amplitudes;
+          
+          newtree-> Fill();
+          ientry++;  
+          
+          //         std::cout << " ientry = " << ientry << std::endl;
+        }
       }
+      
   }
   
   fout->cd();

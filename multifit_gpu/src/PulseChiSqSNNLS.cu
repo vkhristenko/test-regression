@@ -248,10 +248,21 @@ __global__ void kernel_multifit(DoFitArgs* vargs,
     }
   }
 
+  
+  //---- save all reconstructed amplitudes
+//   std::vector<double> v_ampl;
+//   for (unsigned int ip=0; ip<pulse.BXs().rows(); ++ip) {
+//     v_ampl.push_back(0.);
+//   }
+//   
+//   for (unsigned int ip=0; ip<pulse.BXs().rows(); ++ip) {
+//     v_ampl[ (int(pulse.BXs().coeff(ip))) + 5] = (pulse.X())[ ip ];
+//   }
+  
   // assing the result
-  vresults[i] =
-      Output{pulse.ChiSq(), status ? pulse.X()[ip_in_time] : 0.0, status};
-
+//   vresults[i] = Output{pulse.ChiSq(), status ? pulse.X()[ip_in_time] : 0.0, status, v_ampl};
+  vresults[i] = Output{pulse.ChiSq(), status ? pulse.X()[ip_in_time] : 0.0, status, pulse.BXs(), pulse.X()};
+  
   // assing the result
   // vresults[i] = DoFitResults{pulse.ChiSq(), pulse.BXs(), pulse.X(), (bool)
   // status};
