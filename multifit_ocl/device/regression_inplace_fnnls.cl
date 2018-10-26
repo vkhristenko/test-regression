@@ -14,37 +14,43 @@ __kernel void regression(__global float const *vsamples,
 // definitions of constants
 //
 #define NUM_TIME_SAMPLES 10
-#defien NUM_TIME_SAMPLES_SQ 100 
-#define SIZE NUM_TIME_SAMPLES
-#define SIZE_SQ NUM_TIME_SAMPLES_SQ
+#define NUM_TIME_SAMPLES_SQ 100 
+typedef float data_type;
 
 //
 // actual fast nnls
 //
-void inplace_fnnls(float const *A
-                   float const *b,
-                   float const * x,
+void inplace_fnnls(__global data_type const *A,
+                   __global data_type const *b,
+                   __global data_type const * x,
+                   float const epsilon,
+                   unsigned int const max_iterations);
+void inplace_fnnls(__global data_type const *A,
+                   __global data_type const *b,
+                   __global data_type const * x,
                    float const epsilon,
                    unsigned int const max_iterations) {
     // 
     int npassive = 0;
+
+    
 }
 
 //
 // a wrapper around inplace_fnnls to arrange the data per work item
 //
-__kernel void inplace_fnlls_facade(__global float const *vA,
-                                   __global float const *vb,
-                                   __global float const *vx,
+__kernel void inplace_fnlls_facade(__global data_type const *vA,
+                                   __global data_type const *vb,
+                                   __global data_type const *vx,
                                    float const epsilon,
                                    unsigned int const max_iterations) {
     // get the global index - identifies the detector channel 
     int idx = get_global_id(0);
         
     // get the pointer to the right location for the idx
-    float const *ptrA = vA + idx * SIZE_SQ;
-    float const *ptrb = vb + idx * SIZE;
-    float const *ptrx = vx + idx * SIZE;
+    __global data_type const *ptrA = vA + idx * NUM_TIME_SAMPLES_SQ;
+    __global data_type const *ptrb = vb + idx * NUM_TIME_SAMPLES;
+    __global data_type const *ptrx = vx + idx * NUM_TIME_SAMPLES;
 
     // launch the fnnls itself for the right worker item
     inplace_fnnls(ptrA, ptrb, ptrx, epsilon, max_iterations);
