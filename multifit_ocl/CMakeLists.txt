@@ -46,5 +46,5 @@ foreach(TESTSOURCE ${TESTSOURCES})
     message("adding executable ${EXEC}")
     add_executable(multifit_ocl_${EXEC} ${TESTSOURCE})
     target_link_libraries(multifit_ocl_${EXEC} PRIVATE ${INTEL_LINK_OPTIONS}
-        ${OpenCL_LIBRARIES} multifit_ocl_lib)
+        ${OpenCL_LIBRARIES} multifit_ocl_lib ${Boost_LIBRARIES})
 endforeach(TESTSOURCE)

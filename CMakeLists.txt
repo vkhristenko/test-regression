@@ -30,6 +30,8 @@ if(PROFILE)
     add_definitions(-DPROFILE)
 endif()
 
+# boost
+find_package(Boost COMPONENTS program_options system REQUIRED)
 
 if (DEBUG)
     message("DEBUG MODE")

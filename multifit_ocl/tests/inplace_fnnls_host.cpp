@@ -4,6 +4,8 @@
 #include <vector>
 #include <map>
 
+#include <boost/program_options.hpp>
+
 #include "multifit_ocl/include/cl_pretty_print.hpp"
 #include "multifit_ocl/include/utils.hpp"
 
@@ -33,19 +35,33 @@ std::string get_source(std::string const& source_file_name) {
                        std::istreambuf_iterator<char>()};
 }
 
-struct bad_args {};
-std::vector<std::string> parse_args(int argc, char **argv) {
-    std::vector<std::string> args;
-    if (argc<2)
-        throw bad_args{};
-
-    args.push_back(argv[1]);
-    argc==3 ? args.push_back(argv[2]) : args.push_back("");
-
-    return args;
-}
-
 int main(int argc, char **argv ) {
+    //
+    // use boost to parse the cli args
+    //
+    namespace po = boost::program_options;
+    po::options_description desc{"allowed program options"};
+    std::string intel {"Intel"};
+    bool compile_only = true;
+    bool dump_source = false;
+    desc.add_options()
+        ("help", "produce help msgs")
+        ("device-type", po::value<std::string>(), "a device type: ['cpu' | 'gpu' | 'fpga']")
+        ("manufacturer", po::value<std::string>(&intel)->default_value("Intel"), "manufacturer of the device: ['Intel', 'Nvidia']")
+        ("compile-only", po::value<bool>(&compile_only)->default_value(true), "if true (default) should just compile and print the compilation log")
+        ("dump-source", po::value<bool>(&dump_source)->default_value(false), "if should dump the opencl source code to standard output")
+    ;
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    if (vm.count("help") || argc<2) {
+        std::cout << desc << std::endl;
+        return 0;
+    }
+
+    auto device_type_name = vm["device-type"].as<std::string>();
+    auto manufac_name = vm["manufacturer"].as<std::string>();
+
+    /*
     std::vector<std::string> args;
     try {
         args = parse_args(argc, argv);
@@ -53,6 +69,7 @@ int main(int argc, char **argv ) {
         std::cout << "bad cli rguments" << std::endl;
         exit(1);
     }
+    */
 
     // predefine several conversions
     std::map<std::string, int> typename_to_type {
@@ -75,13 +92,13 @@ int main(int argc, char **argv ) {
     auto &p = platforms[0];
 
     // select the right device
-    auto dtype_to_use = typename_to_type[args[0]];
+    auto dtype_to_use = typename_to_type[device_type_name];
     std::vector<cl::Device> devices;
     p.getDevices(dtype_to_use, &devices);
     cl::Device const* ptr_d = nullptr;
     if (devices.size() > 1) {
         for (auto const& device : devices ) {
-            for (auto const& p : typename_to_producer[args[1]]) {
+            for (auto const& p : typename_to_producer[manufac_name]) {
                 if (clapi::get_device_name(device).find(p) != std::string::npos) 
                     ptr_d = &device;
             }
@@ -89,7 +106,7 @@ int main(int argc, char **argv ) {
     } else if (devices.size() == 1){
         ptr_d = &devices[0];
     } else {
-        std::cout << "no devices of type " << args[0] << std::endl;
+        std::cout << "no devices of type " << device_type_name << std::endl;
         exit(1);
     }
     auto &d = *ptr_d;
@@ -133,10 +150,12 @@ int main(int argc, char **argv ) {
         std::string path_to_source_file = "/Users/vk/software/test-regression/multifit_ocl/device";
         std::string source_file {path_to_source_file + "/" + "regression_inplace_fnnls.cl"};
         auto source = get_source(source_file);
-        std::cout << "got a source file" << source.size() << std::endl;
-        std::cout << "--- source start ---" << std::endl;
-        std::cout << source << std::endl;
-        std::cout << "--- source end ---" << std::endl;
+        std::cout << "got a source file: " << source.size() << " Bytes in total"<< std::endl;
+        if (dump_source) {
+            std::cout << "--- source start ---" << std::endl;
+            std::cout << source << std::endl;
+            std::cout << "--- source end ---" << std::endl;
+        }
 #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)
         program = cl::Program{ctx, source};
 #else
@@ -164,7 +183,12 @@ int main(int argc, char **argv ) {
         exit(1);
     }
     std::cout << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(d) << std::endl;
-    std::cout << "a program has been built for devices" << std::endl;
+    std::cout << "a program has been built" << std::endl;
+
+    if (compile_only) {
+        std::cout << "compile only mode. set --compile-only=false to actually run" << std::endl;
+        return 0;
+    }
 
     // a queue
     std::cout << "initialize a command queue" << std::endl;
