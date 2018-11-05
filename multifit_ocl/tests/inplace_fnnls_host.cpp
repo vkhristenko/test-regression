@@ -42,13 +42,12 @@ int main(int argc, char **argv ) {
     namespace po = boost::program_options;
     po::options_description desc{"allowed program options"};
     std::string intel {"Intel"};
-    bool compile_only = true;
     bool dump_source = false;
     desc.add_options()
         ("help", "produce help msgs")
         ("device-type", po::value<std::string>(), "a device type: ['cpu' | 'gpu' | 'fpga']")
         ("manufacturer", po::value<std::string>(&intel)->default_value("Intel"), "manufacturer of the device: ['Intel', 'Nvidia']")
-        ("compile-only", po::value<bool>(&compile_only)->default_value(true), "if true (default) should just compile and print the compilation log")
+        ("compile-only", po::value<bool>()->default_value(true), "if true (default) should just compile and print the compilation log")
         ("dump-source", po::value<bool>(&dump_source)->default_value(false), "if should dump the opencl source code to standard output")
     ;
     po::variables_map vm;
@@ -60,6 +59,8 @@ int main(int argc, char **argv ) {
 
     auto device_type_name = vm["device-type"].as<std::string>();
     auto manufac_name = vm["manufacturer"].as<std::string>();
+    auto compile_only = vm["compile-only"].as<bool>();
+
 
     /*
     std::vector<std::string> args;
