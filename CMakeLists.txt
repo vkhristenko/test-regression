@@ -90,6 +90,7 @@ endif()
 add_subdirectory(gen)
 add_subdirectory(legacy_multifit_cpu)
 add_subdirectory(io)
+add_subdirectory(linalgebra)
 # add_subdirectory(test_nnls_cpu)
 
 if (NOT TURNOFF_OPENCL)
