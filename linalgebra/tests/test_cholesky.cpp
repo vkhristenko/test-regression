@@ -3,7 +3,8 @@
 #include "linalgebra/interface/cholesky.hpp"
 #include "Eigen/Dense"
 
-void print_matrix(data_type *pM, int n) {
+template<typename T>
+void print_matrix(T *pM, int n) {
     for (int i=0; i<n; i++) {
         for (int j=0; j<n; j++) {
             std::cout << pM[i*n + j] << "   ";
@@ -13,6 +14,8 @@ void print_matrix(data_type *pM, int n) {
 }
 
 int main() {
+    using data_type = float;
+
     constexpr int n = 3;
     data_type pM[n * n];
     data_type pL[n * n];
