@@ -36,3 +36,23 @@ testing cms hcal/ecal regression
 ## on vinavx2 machine
 - `source /data/user/vkhriste/setup.sh`
 - proceed to _build_ and _run_
+
+## Current Work
+
+### Lin Algebra Reimpl Roadmap
+- _DONE:_ outline the fnnls algorithm
+- _DONE:_ implement cholesky and forward/backward solvers + tests
+- Verify that we can skip full recomputation of cholesky/solvers when adding rows/columns.
+
+### OpenCL with fpga
+- finalize the fnnls kernel + lin algebra stuff + input for the kernel
+- test compilation/running on a cpu/gpu
+ - use predefined matrices/vectors
+- compile the bitstream for the fpga and test varying the multiplicity of channels 
+ - _note_: this is just a single fnnls.
+ - do a similar test with eigen based impl
+ - compare ballpark wall clock
+- decide how to deal with the rest of the __legacy impl (PulseChiSqSNNLS.cpp)__
+
+### GPU/CPU 
+- test if lin algebra primitives reimpls could be beneficial for gpu/cpu eigen impls
