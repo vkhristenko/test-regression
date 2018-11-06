@@ -42,6 +42,7 @@ testing cms hcal/ecal regression
 ### Lin Algebra Reimpl Roadmap
 - _DONE:_ implement cholesky and forward/backward solvers + tests
 - Verify that we can skip full recomputation of cholesky/solvers when adding rows/columns.
+ - _Only in-between removal of row/column is left to test_
 
 ### OpenCL with fpga
 - _DONE:_ outline the fnnls algorithm
