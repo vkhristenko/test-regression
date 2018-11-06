@@ -4,7 +4,7 @@
 #include "common.hpp"
 
 /*
- * Fused Cholesky + Forward/Backward Substitutions Solvers
+ * Fused Cholesky + Forward Substitutions Solver
  * assume 
  *   0) view_size - size of the matrix view within matrix of dimension size.
  *   view_size is the newly updated view size after adding a row/column
@@ -13,12 +13,11 @@
  *   2) that pL points to the lower triangular matrix which has been the result of 
  *   Cholesky before adding a new row/column
  *   3) py the result of doing Ly=b
- *   4) px the result of doing L^T x = y
  *
  */
 template<typename T>
-void fused_cholesky_substitution_solver_rcaddition(
-        T *pM, T *pL, T *pb, T *px, T *py, int full_size, int view_size) {
+void fused_cholesky_forward_substitution_solver_rcaddition(
+        T *pM, T *pL, T *pb,T *py, int full_size, int view_size) {
     using data_type = T;
 
     /*
@@ -57,15 +56,6 @@ void fused_cholesky_substitution_solver_rcaddition(
     // compute the new value (view_size - 1 ) of the result of forward substitution
     data_type y_last = total / diag_value;
     py[row] = y_last;
-
-    // compute solutions using updates.
-    // last value is trivial, the rest are computed using updates
-    // from the previous solutions
-    data_type x_last = y_last / diag_value;
-    px[row] = x_last;
-    for (int i=view_size-2; i>=0; --i) {
-        px[i] = px[i] - M_LINEAR_ACCESS(pL, i, row, full_size) * x_last / M_LINEAR_ACCESS(pL, i, i, full_size);
-    }
 }
 
 #endif // fused_cholesky_substitution_hpp
