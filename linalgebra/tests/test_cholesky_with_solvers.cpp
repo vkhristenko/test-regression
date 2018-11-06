@@ -57,7 +57,7 @@ int main() {
 
     std::cout << "************* cholesky impl stuff ***************" << std::endl;
     print_matrix(pM, n);
-    cholesky_decomp(pM, pL, n);
+    cholesky_decomp(pM, pL, n, n);
     std::cout << "*** matrix L ***" << std::endl;
     print_matrix(pL, n);
 
