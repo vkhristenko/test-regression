@@ -63,9 +63,9 @@ int main() {
 
     std::cout << "try to solve with cholesky" << std::endl;
     data_type ptmp[n];
-    solve_forward_substitution(pL, pb, ptmp, n);
+    solve_forward_substitution(pL, pb, ptmp, n, n);
     print_vector(ptmp, n);
-    solve_backward_substitution(pL, ptmp, psolution, n);
+    solve_backward_substitution(pL, ptmp, psolution, n, n);
     print_vector(psolution, n);
 
     return 0;

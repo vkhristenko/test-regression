@@ -57,8 +57,8 @@ int main() {
 
     cholesky_decomp(pM, pL, size, size);
     data_type ptmp[size];
-    solve_forward_substitution(pL, pb, ptmp, size);
-    solve_backward_substitution(pL, ptmp, psolution, size);
+    solve_forward_substitution(pL, pb, ptmp, size, size);
+    solve_backward_substitution(pL, ptmp, psolution, size, size);
     print_vector(psolution, size);
     print_vectors_side_by_side(psolution, solution, size);
 
