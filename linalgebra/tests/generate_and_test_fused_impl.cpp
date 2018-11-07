@@ -107,7 +107,6 @@ int main() {
     //
     std::cout << "*** print matrix before swap *** " << std::endl;
     print_matrix(pM, size);
-    print_vector(pM + )
     swap_row_column(pM, position, size-1, size, size);
     std::cout << "*** print mattrix after swap ***" << std::endl;
     print_matrix(pM, size);

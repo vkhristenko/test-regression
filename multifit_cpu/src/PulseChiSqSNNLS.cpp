@@ -4,6 +4,7 @@
 #include "nnls/interface/eigen_nnls.h"
 #include "nnls/interface/fnnls.h"
 #include "nnls/interface/inplace_fnnls.h"
+#include "nnls/interface/inplace_fnnls_test_cholesky.h"
 #include "nnls/interface/nnls.h"
 
 #ifdef PROFILE
@@ -263,6 +264,7 @@ bool PulseChiSqSNNLS::NNLS() {
   // FlushCache();
   // x.setZero();
   inplace_fnnls(A, b, x, epsilon, max_iter);
+//  inplace_fnnls_test_cholesky(A, b, x, epsilon, max_iter);
   // }
 #ifdef PROFILE
   // __itt_pause();
