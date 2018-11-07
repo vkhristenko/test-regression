@@ -50,6 +50,9 @@ void solve_backward_substitution(T *pM, T *pb, T *psolution,
 }
 
 template<typename T, typename V>
+#ifdef __CUDA_ARCH__
+__device__ __host__
+#endif
 void eigen_solve_backward_substitution(T *pM, T *pb, V &psolution, 
                                  int full_size, int view_size) {
     // very last element is trivial

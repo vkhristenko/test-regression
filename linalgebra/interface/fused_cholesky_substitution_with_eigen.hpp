@@ -8,6 +8,9 @@
  *
  */
 template<typename T, typename M, typename V>
+#ifdef __CUDA_ARCH__
+__device__ __host__
+#endif
 void eigen_fused_cholesky_forward_substitution_solver_rcaddition(
         M const& pM, T *pL, V const& pb, T *py, int full_size, int view_size) {
     using data_type = T;
@@ -53,6 +56,9 @@ void eigen_fused_cholesky_forward_substitution_solver_rcaddition(
  * Assume position at which a row/column was removed is neither last nor first
  */
 template<typename T, typename M, typename V>
+#ifdef __CUDA_ARCH_
+__device__ __host__
+#endif
 void eigen_fused_cholesky_forward_substitution_solver_inbetween_removal(
         M const& pM, T *pL, V const& pb, T *py, 
         int position, int full_size, int view_size) {
