@@ -3,8 +3,8 @@
 
 #include <Eigen/Dense>
 
-const unsigned long MATRIX_SIZE = 10;
-const unsigned long VECTOR_SIZE = 10;
+constexpr unsigned long MATRIX_SIZE = 10;
+constexpr unsigned long VECTOR_SIZE = 10;
 
 typedef Eigen::Matrix<double, MATRIX_SIZE, MATRIX_SIZE, Eigen::ColMajor>
     FixedMatrix;
