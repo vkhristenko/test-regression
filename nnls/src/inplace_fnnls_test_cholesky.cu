@@ -2,6 +2,7 @@
 
 #include "../interface/inplace_fnnls_test_cholesky.h"
 #include "linalgebra/interface/fused_cholesky_substitution_with_eigen.hpp"
+#include "linalgebra/interface/substitution.hpp"
 
 using namespace Eigen;
 
