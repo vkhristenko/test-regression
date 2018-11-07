@@ -59,7 +59,9 @@ int main() {
             pM[i * size + j] = AtA(i, j);
     }
 
+    std::cout << std::endl;
     std::cout << "*** my cholesky ***" << std::endl;
+    std::cout << std::endl;
 
     // perform initial cholesky and solving for 9x9
     int view_size = size-1;
@@ -73,6 +75,7 @@ int main() {
     print_vector(ptmp, size);
     print_vector(psolution, size);
 
+    // run just a fused version (takes previuos results and uses less computations)
     fused_cholesky_forward_substitution_solver_rcaddition(
         pM, pL, pb, ptmp, size, view_size+1);
     solve_backward_substitution(pL, ptmp, psolution, size, view_size+1);
@@ -83,6 +86,37 @@ int main() {
     print_vectors_side_by_side(psolution, solution, size);
     std::cout << "*** print temporary results ***" << std::endl;
     print_vector(ptmp, size);
+
+    int position = 6;
+
+    std::cout << "******************************" << std::endl;
+
+    // 
+    // for eigen, remove a column/row at position
+    //
+    AtA.col(position).swap(AtA.col(size-1));
+    AtA.row(position).swap(AtA.row(size-1));
+    LLT<MatrixXf> lltOfA_view(AtA.topLeftCorner(size-1, size-1));
+    MatrixXf LL = lltOfA_view.matrixL();
+    VectorXf sub_solution = AtA.topLeftCorner(size-1, size-1).llt().solve(b.head(size-1));
+    std::cout << "*** using eigen to compute cholesky after in-between row/column removal *** " << std::endl;
+    std::cout << LL << std::endl;
+
+    //
+    // for my impl swap the last and position column/row
+    //
+    std::cout << "*** print matrix before swap *** " << std::endl;
+    print_matrix(pM, size);
+    swap_row_column(pM, position, size-1, size, size);
+    std::cout << "*** print mattrix after swap ***" << std::endl;
+    print_matrix(pM, size);
+    fused_cholesky_forward_substitution_solver_inbetween_removal(pM, pL, pb,
+        ptmp, position, size, size-1);
+    std::cout << "*** cholesky using my impl ***" << std::endl;
+    print_matrix(pL, size);
+    solve_backward_substitution(pL, ptmp, psolution, size, size-1);
+
+    print_vectors_side_by_side(psolution, sub_solution, size);
 
     return 0;
 }

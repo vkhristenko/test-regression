@@ -58,4 +58,47 @@ void fused_cholesky_forward_substitution_solver_rcaddition(
     py[row] = y_last;
 }
 
+/*
+ * Assume position at which a row/column was removed is neither last nor first
+ */
+template<typename T>
+void fused_cholesky_forward_substitution_solver_inbetween_removal(
+        T *pM, T *pL, T *pb, T *py, int position, int full_size, int view_size) {
+    using data_type = T;
+
+    // only for elements with >= position
+    for (int i=position; i<view_size; ++i) {
+
+        // first compute elements to the left of the diagoanl
+        data_type sumsq = 0;
+        data_type total = pb[i];
+        for (int j=0; j<i; ++j) {
+
+            data_type sumsq2 = 0;
+            for (int k=0; k<j; ++k) {
+                sumsq2 += M_LINEAR_ACCESS(pL, i, k, full_size) *
+                    M_LINEAR_ACCESS(pL, j, k, full_size);
+            }
+
+            // compute the i,j : i>j. elements to the left of the diagonal
+            data_type value_i_j =
+                (M_LINEAR_ACCESS(pM, i, j, full_size) - sumsq2)
+                / M_LINEAR_ACCESS(pL, j, j, full_size);
+            M_LINEAR_ACCESS(pL, i, j, full_size) = value_i_j;
+            total -= value_i_j * py[j];
+
+            // needed to compute diagonal element
+            sumsq += value_i_j * value_i_j;
+        }
+
+        // second, compute the diagonal element
+        data_type value_i_i =
+            SIMPLE_SQRT(M_LINEAR_ACCESS(pM, i, i, full_size) - sumsq);
+        M_LINEAR_ACCESS(pL, i, i, full_size) = value_i_i;
+
+        // compute the i-th solution value for forward sub
+        py[i] = total / value_i_i;
+    }
+}
+
 #endif // fused_cholesky_substitution_hpp
