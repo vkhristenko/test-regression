@@ -49,4 +49,22 @@ void solve_backward_substitution(T *pM, T *pb, T *psolution,
     }
 }
 
+template<typename T, typename V>
+void eigen_solve_backward_substitution(T *pM, T *pb, V &psolution, 
+                                 int full_size, int view_size) {
+    // very last element is trivial
+    psolution(view_size-1) = pb[view_size-1] /
+        M_LINEAR_ACCESS(pM, view_size-1, view_size-1, full_size);
+
+    // for the rest
+    for (int i=view_size-2; i>=0; --i) {
+        T total = pb[i];
+        for (int j=i+1; j<view_size; ++j) {
+            total -= M_LINEAR_ACCESS(pM, j, i, full_size) * psolution(j);
+        }
+
+        psolution(i) = total / M_LINEAR_ACCESS(pM, i, i, full_size);
+    }
+}
+
 #endif
