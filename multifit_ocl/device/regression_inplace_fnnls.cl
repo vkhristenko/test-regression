@@ -11,6 +11,7 @@
 // to easily switch between row major and column major matrix representations
 #define M_LINEAR_ACCESS(M, row, col) M[row * NUM_TIME_SAMPLES + col]
 typedef float data_type;
+#define SIMPLE_SQRT(x) sqrt(x)
 
 
 //
@@ -67,10 +68,7 @@ void swap_permm(__local data_type *permutation, int idx1, int idx2);
 void swap_row_column(__local data_type *pM, 
                      int i, int j, int full_size, int view_size);
 void swap_element(__local data_type *pv, int i, int j);
-
-void swap_permm(__local data_type *permutation, int idx1, int idx2) {
-    
-}
+void swap_perm_element(__local int *pv, int i, int j);
 
 void swap_element(__local data_type *pv,
                   int i, int j) {
@@ -79,37 +77,44 @@ void swap_element(__local data_type *pv,
     pv[j] = tmp;
 }
 
+void swap_perm_element(__local int *pv,
+                       int i, int j) {
+    int tmp = pv[i];
+    pv[i] = pv[j];
+    pv[j] = tmp;
+}
+
 void swap_row_column(__local data_type *pM, 
                      int i, int j, int full_size, int view_size) {
     // diagnoal
-    data_type tmptmp = M_LINEAR_ACCESS(pM, i, i, full_size);
-    M_LINEAR_ACCESS(pM, i, i, full_size) = M_LINEAR_ACCESS(pM, j, j, full_size);
-    M_LINEAR_ACCESS(pM, j, j, full_size) = tmptmp;
+    data_type tmptmp = M_LINEAR_ACCESS(pM, i, i);
+    M_LINEAR_ACCESS(pM, i, i) = M_LINEAR_ACCESS(pM, j, j);
+    M_LINEAR_ACCESS(pM, j, j) = tmptmp;
 
     // the rest 
     for (int elem=0; elem<i; ++elem) {
-        data_type tmp = M_LINEAR_ACCESS(pM, i, elem, full_size);
+        data_type tmp = M_LINEAR_ACCESS(pM, i, elem);
 
-        M_LINEAR_ACCESS(pM, i, elem, full_size) =
-            M_LINEAR_ACCESS(pM, j, elem, full_size);
-        M_LINEAR_ACCESS(pM, j, elem, full_size) = tmp;
+        M_LINEAR_ACCESS(pM, i, elem) =
+            M_LINEAR_ACCESS(pM, j, elem);
+        M_LINEAR_ACCESS(pM, j, elem) = tmp;
 
         // for the column
-        M_LINEAR_ACCESS(pM, elem, i, full_size) =
-            M_LINEAR_ACCESS(pM, elem, j, full_size);
-        M_LINEAR_ACCESS(pM, elem, j, full_size) = tmp;
+        M_LINEAR_ACCESS(pM, elem, i) =
+            M_LINEAR_ACCESS(pM, elem, j);
+        M_LINEAR_ACCESS(pM, elem, j) = tmp;
     }
     for (int elem=i+1; elem<view_size; ++elem) {
-        data_type tmp = M_LINEAR_ACCESS(pM, i, elem, full_size);
+        data_type tmp = M_LINEAR_ACCESS(pM, i, elem);
 
-        M_LINEAR_ACCESS(pM, i, elem, full_size) =
-            M_LINEAR_ACCESS(pM, j, elem, full_size);
-        M_LINEAR_ACCESS(pM, j, elem, full_size) = tmp;
+        M_LINEAR_ACCESS(pM, i, elem) =
+            M_LINEAR_ACCESS(pM, j, elem);
+        M_LINEAR_ACCESS(pM, j, elem) = tmp;
 
         // for the column
-        M_LINEAR_ACCESS(pM, elem, i, full_size) =
-            M_LINEAR_ACCESS(pM, elem, j, full_size);
-        M_LINEAR_ACCESS(pM, elem, j, full_size) = tmp;
+        M_LINEAR_ACCESS(pM, elem, i) =
+            M_LINEAR_ACCESS(pM, elem, j);
+        M_LINEAR_ACCESS(pM, elem, j) = tmp;
     }
 }
 
@@ -251,13 +256,17 @@ void fused_cholesky_forward_substitution_solver_inbetween_removal(
 void solve_forward_substitution(__local data_type const *pM, 
                                 __local data_type const* pb, 
                                 __local data_type *restrict psolution,
+                                int full_size, int view_size);
+void solve_forward_substitution(__local data_type const *pM, 
+                                __local data_type const* pb, 
+                                __local data_type *restrict psolution,
                                 int full_size, int view_size) {
     // very first element is trivial
     psolution[0] = pb[0] / pM[0];
 
     // for the rest
     for (int i=1; i<view_size; ++i) {
-        T total = pb[i];
+        data_type total = pb[i];
         for (int j=0; j<i; j++) {
             total -= M_LINEAR_ACCESS(pM, i, j) * psolution[j];
         }
@@ -276,6 +285,10 @@ void solve_forward_substitution(__local data_type const *pM,
 void solve_backward_substitution(__local data_type const *pM, 
                                  __local data_type const *pb, 
                                  __local data_type *restrict psolution,
+                                 int full_size, int view_size);
+void solve_backward_substitution(__local data_type const *pM, 
+                                 __local data_type const *pb, 
+                                 __local data_type *restrict psolution,
                                  int full_size, int view_size) {
     // very last element is trivial
     psolution[view_size-1] = pb[view_size-1] /
@@ -283,7 +296,7 @@ void solve_backward_substitution(__local data_type const *pM,
 
     // for the rest
     for (int i=view_size-2; i>=0; --i) {
-        T total = pb[i];
+        data_type total = pb[i];
         for (int j=i+1; j<view_size; ++j) {
             total -= M_LINEAR_ACCESS(pM, j, i) * psolution[j];
         }
@@ -292,19 +305,24 @@ void solve_backward_substitution(__local data_type const *pM,
     }
 }
 
+void permutation_identity(__local int *permutation);
+void permutation_identity(__local int *permutation) {
+    for (int i=0; i<NUM_TIME_SAMPLES; ++i)
+        permutation[i] = i;
+}
 
 //
 // fast nnls w/o copying (inplace updates)
 //
-void inplace_fnnls(__global data_type const *restrict A,
-                   __global data_type const *restrict b,
-                   __global data_type const *restrict x,
+void inplace_fnnls(__global data_type const *A,
+                   __global data_type const *b,
+                   __global data_type *restrict x,
                    float const epsilon,
                    unsigned int const max_iterations);
 
-void inplace_fnnls(__global data_type const *restrict A,
-                   __global data_type const *restrict b,
-                   __global data_type const *restrict x,
+void inplace_fnnls(__global data_type const *A,
+                   __global data_type const *b,
+                   __global data_type *restrict x,
                    float const epsilon,
                    unsigned int const max_iterations) {
     // initial setup
@@ -314,13 +332,16 @@ void inplace_fnnls(__global data_type const *restrict A,
     __local data_type s[NUM_TIME_SAMPLES];
     __local data_type w[NUM_TIME_SAMPLES];
     __local data_type final_s[NUM_TIME_SAMPLES];
-    __local data_type permutation[2 * NUM_TIME_SAMPLES];
+    __local int permutation[NUM_TIME_SAMPLES];
     __local data_type AtAx[NUM_TIME_SAMPLES];
+    __local data_type pL[NUM_TIME_SAMPLES_SQ];
+    __local data_type py[NUM_TIME_SAMPLES];
     transpose_multiply_gm_lm(A, AtA);
     transpose_multiply_gm_gv_lv(A, b, Atb);
+    permutation_identity(permutation);
 
     // loop over all iterations. 
-    for (int iter = 0; iter < max_iterations; ++iter) {
+    for (unsigned int iter = 0; iter < max_iterations; ++iter) {
         int nactive = NUM_TIME_SAMPLES - npassive;
 
         // exit condition
@@ -347,28 +368,38 @@ void inplace_fnnls(__global data_type const *restrict A,
             break;
 
         // note, max_w_idx already points to the right location in the vector
-
         // run swaps
-        swap_m_row(AtA, npassive, max_w_idx);
-        swap_m_col(AtA, npassive, max_w_idx);
-        swap_v(Atb, npassive, max_w_idx);
-        swap_v(final_s, npassive, max_w_idx);
-        swap_permm(permutation, npassive, max_w_idx);
+        swap_row_column(AtA, npassive, max_w_idx, 
+            NUM_TIME_SAMPLES, NUM_TIME_SAMPLES);
+        swap_element(Atb, npassive, max_w_idx);
+        swap_element(final_s, npassive, max_w_idx);
+        swap_perm_element(permutation, npassive, max_w_idx);
 
         ++npassive;
 
         // inner loop
+        int inner_iteration = 0;
+        int position_removed = -1;
         while (npassive > 0) {
-            // update the elements from the passive set
-            //AtA.topLeftCorner(nPassive, nPassive).llt().solve(Atb.head(nPassive));
-            data_type result_cholesky[NUM_TIME_SAMPLES];
-            data_type solution[NUM_TIME_SAMPLES];
-            cholesky_decomposition(AtA, result_cholesky, npassive, npassive);
-            solve(result_cholesky, Atb, solution, npassive);
-            data_type min_s_value = solution [ 0 ];
-            for (int i=0; i<npassive; ++i) {
-                s [ i ] = solution [ i ];
+            if (npassive == 1) {
+                // scalar case
+                data_type l_0_0 = sqrt(AtA[0]);
+                data_type y_0_0 = Atb[0] / l_0_0;
+                pL[0] = l_0_0;
+                py[0] = y_0_0;
+                position_removed = -1;
+            } else if (inner_iteration == 0) {
+                fused_cholesky_forward_substitution_solver_rcadd(
+                    AtA, pL, Atb, py, NUM_TIME_SAMPLES, npassive);
+            } else {
+                fused_cholesky_forward_substitution_solver_inbetween_removal(
+                    AtA, pL, Atb, py, position_removed, NUM_TIME_SAMPLES, npassive);
+            }
+            solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
 
+            // update the elements from the passive set
+            data_type min_s_value = s [ 0 ];
+            for (int i=1; i<npassive; ++i) {
                 if (s [ i ] < min_s_value)
                     min_s_value = s [ i ];
             }
@@ -408,15 +439,20 @@ void inplace_fnnls(__global data_type const *restrict A,
             --npassive;
 
             // run swaps
-            swap_m_col(AtA, npassive, alpha_idx);
-            swap_m_row(AtA, npassive, alpha_idx);
-            swap_v(Atb, npassive, alpha_idx);
-            swap_v(final_s, npassive, alpha_idx);
-            swap_permm(permutation, npassive, alpha_idx);
+            swap_row_column(AtA, npassive, alpha_idx,
+                NUM_TIME_SAMPLES, NUM_TIME_SAMPLES);
+            swap_element(Atb, npassive, alpha_idx);
+            swap_element(final_s, npassive, alpha_idx);
+            swap_perm_element(permutation, npassive, alpha_idx);
+            inner_iteration++;
+            position_removed = alpha_idx;
         }
     }
 
-    // permute the solution vector
+    // permute the solution vector back to have x[i] sit at the original position
+    for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
+        x [ permutation[i] ] = final_s [i];
+    }
 }
 
 //
