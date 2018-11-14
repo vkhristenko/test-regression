@@ -9,25 +9,26 @@
 #define NUM_TIME_SAMPLES 10
 #define NUM_TIME_SAMPLES_SQ 100 
 // to easily switch between row major and column major matrix representations
-#define M_LINEAR_ACCESS(M, row, col) M[row * 10 + col]
+#define M_LINEAR_ACCESS(M, row, col) M[row * NUM_TIME_SAMPLES + col]
 typedef float data_type;
 
 
 //
+// Various Matrix and Vector Multiplications 
 // C = A * A_T -> the result is symmetric matrix.
 // the restult matrix C will be stored in column major
 //
-void transpose_multiply_mm_same_matrix(__global data_type const* A, data_type *result);
-void transpose_multiply_mv(__global data_type const *M, __global data_type const *v, data_type *result);
-void multiply_m_globalv(data_type const *M, data_type const *v, data_type *result);
-void swap_m_row(data_type *matrix, int row1, int row2);
-void swap_m_col(data_type *matrix, int col1, int col2);
-void swap_v(data_type *vector, int idx1, int idx2);
-void swap_permm(data_type *permutation, int idx1, int idx2);
-void cholesky_decomposition(data_type *AtA, data_type *result_cholesky, int nrows, int ncols);
-void solve(data_type *result_cholesky, data_type *Atb, data_type *solution , int npassive);
+void transpose_multiply_gm_lm(__global data_type const* A, 
+                              __local data_type *restrict result);
+void transpose_multiply_gm_gv_lv(__global data_type const *M, 
+                                 __global data_type const *v, 
+                                 __local data_type * restrict result);
+void multiply_lm_lv_lv(__local data_type const * M, 
+                       __local data_type const *v, 
+                       __local data_type *restrict result);
 
-void transpose_multiply_mm_same_matrix(__global data_type const* A, data_type *result) {
+void transpose_multiply_gm_lm(__global data_type const* A, 
+                              __local data_type *restrict result) {
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         for (int j=i; j<NUM_TIME_SAMPLES; ++j) {
             M_LINEAR_ACCESS(result, i, j) = 0;
@@ -38,110 +39,285 @@ void transpose_multiply_mm_same_matrix(__global data_type const* A, data_type *r
     }
 }
 
-void transpose_multiply_mv(__global data_type const *M, __global data_type const *v, data_type *result) {
+void transpose_multiply_gm_gv_lv(__global data_type const *M, 
+                                 __global data_type const *v, 
+                                 __local data_type *restrict result) {
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         result[i] = 0;
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) {
-            result[i] += M_LINEAR_ACCESS(M, k, i);
+            result[i] += M_LINEAR_ACCESS(M, k, i) * v[k];
         }
     }
 }
 
-void multiply_m_globalv(data_type const *M, data_type const *v, data_type *result) {}
-void swap_m_row(data_type *matrix, int row1, int row2) {}
-void swap_m_col(data_type *matrix, int col1, int col2) {}
-void swap_v(data_type *vector, int idx1, int idx2) {}
-void swap_permm(data_type *permutation, int idx1, int idx2) {}
-
-void cholesky_decomposition(data_type *AtA, data_type *result_cholesky, int nrows, int ncols) {}
-void solve(data_type *result_cholesky, data_type *Atb, data_type *solution , int npassive) {}
+void multiply_lm_lv_lv(__local data_type const *M, 
+                       __local data_type const *v, 
+                       __local data_type *restrict result) {
+    for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
+        result[i] = 0;
+        for (int k=0; k<NUM_TIME_SAMPLES; ++k) 
+            result[i] += M_LINEAR_ACCESS(M, i, k) * v[k];
+    }
+}
 
 //
-// fast nnls
+// Swap Functions
 //
+void swap_permm(__local data_type *permutation, int idx1, int idx2);
+void swap_row_column(__local data_type *pM, 
+                     int i, int j, int full_size, int view_size);
+void swap_element(__local data_type *pv, int i, int j);
+
+void swap_permm(__local data_type *permutation, int idx1, int idx2) {
+    
+}
+
+void swap_element(__local data_type *pv,
+                  int i, int j) {
+    data_type tmp = pv[i];
+    pv[i] = pv[j];
+    pv[j] = tmp;
+}
+
+void swap_row_column(__local data_type *pM, 
+                     int i, int j, int full_size, int view_size) {
+    // diagnoal
+    data_type tmptmp = M_LINEAR_ACCESS(pM, i, i, full_size);
+    M_LINEAR_ACCESS(pM, i, i, full_size) = M_LINEAR_ACCESS(pM, j, j, full_size);
+    M_LINEAR_ACCESS(pM, j, j, full_size) = tmptmp;
+
+    // the rest 
+    for (int elem=0; elem<i; ++elem) {
+        data_type tmp = M_LINEAR_ACCESS(pM, i, elem, full_size);
+
+        M_LINEAR_ACCESS(pM, i, elem, full_size) =
+            M_LINEAR_ACCESS(pM, j, elem, full_size);
+        M_LINEAR_ACCESS(pM, j, elem, full_size) = tmp;
+
+        // for the column
+        M_LINEAR_ACCESS(pM, elem, i, full_size) =
+            M_LINEAR_ACCESS(pM, elem, j, full_size);
+        M_LINEAR_ACCESS(pM, elem, j, full_size) = tmp;
+    }
+    for (int elem=i+1; elem<view_size; ++elem) {
+        data_type tmp = M_LINEAR_ACCESS(pM, i, elem, full_size);
+
+        M_LINEAR_ACCESS(pM, i, elem, full_size) =
+            M_LINEAR_ACCESS(pM, j, elem, full_size);
+        M_LINEAR_ACCESS(pM, j, elem, full_size) = tmp;
+
+        // for the column
+        M_LINEAR_ACCESS(pM, elem, i, full_size) =
+            M_LINEAR_ACCESS(pM, elem, j, full_size);
+        M_LINEAR_ACCESS(pM, elem, j, full_size) = tmp;
+    }
+}
+
+//
+// Cholesky Decomposition + Forward/Backward Substituion Solvers
+//
+void cholesky_decomp(__local data_type const* pM,
+                     __local data_type * restrict pL,
+                     int full_size, int view_size);
+void fused_cholesky_forward_substitution_solver_rcadd(
+        __local data_type const *pM, 
+        __local data_type *restrict pL, 
+        __local data_type const *pb,
+        __local data_type *restrict py, 
+        int full_size, int view_size);
+void fused_cholesky_forward_substitution_solver_inbetween_removal(
+        __local data_type const *pM, 
+        __local data_type *restrict pL, 
+        __local data_type const *pb, 
+        __local data_type *restrict py, 
+        int position, int full_size, int view_size);
+
+void cholesky_decomp(__local data_type const* pM,  
+                     __local data_type *restrict pL, 
+                     int full_size, int view_size) {
+    for (int i=0; i<view_size; ++i) {
+
+        // first compute elements to the left of the diagoanl
+        data_type sumsq = 0;
+        for (int j=0; j<i; ++j) {
+
+            data_type sumsq2 = 0;
+            for (int k=0; k<j; ++k) {
+                sumsq2 += M_LINEAR_ACCESS(pL, i, k) *
+                    M_LINEAR_ACCESS(pL, j, k);
+            }
+
+            // compute the i,j : i>j. elements to the left of the diagonal
+            M_LINEAR_ACCESS(pL, i, j) =
+                (M_LINEAR_ACCESS(pM, i, j) - sumsq2)
+                / M_LINEAR_ACCESS(pL, j, j);
+
+            // needed to compute diagonal element
+            sumsq += M_LINEAR_ACCESS(pL, i, j) *
+                M_LINEAR_ACCESS(pL, i, j);
+        }
+
+        // second, compute the diagonal element
+        M_LINEAR_ACCESS(pL, i, i) =
+            SIMPLE_SQRT(M_LINEAR_ACCESS(pM, i, i) - sumsq);
+    }
+}
+
+void fused_cholesky_forward_substitution_solver_rcadd(
+        __local data_type const *pM, 
+        __local data_type *restrict pL, 
+        __local data_type const *pb,
+        __local data_type *restrict py, 
+        int full_size, int view_size) {
+    /*
+     * cholesky decomposition using partial computation
+     * only compute values in the row that was just added
+     */
+    data_type sum = 0;
+    int row = view_size - 1;
+    data_type total = pb[row];
+    for (int col=0; col<row; ++col) {
+        data_type sum2 = 0;
+        for (int j=0; j<col; ++j) {
+            sum2 += M_LINEAR_ACCESS(pL, row, j) *
+                M_LINEAR_ACCESS(pL, col, j);
+        }
+
+        // compute the row,col : row > col. elements to the left of the diagonal
+        data_type value_row_col = (M_LINEAR_ACCESS(pM, row, col) - sum2)
+            / M_LINEAR_ACCESS(pL, col, col);
+
+        // update the sum needed for forward substitution
+        total -= value_row_col * py[col];
+
+        // needed to compute the diagonal element
+        sum += value_row_col * value_row_col;
+
+        // set the value
+        M_LINEAR_ACCESS(pL, row, col) = value_row_col;
+    }
+
+    // compute the diagonal value
+    data_type diag_value = SIMPLE_SQRT(M_LINEAR_ACCESS(pM, row, row)
+        - sum);
+    M_LINEAR_ACCESS(pL, row, row) = diag_value;
+
+    // compute the new value (view_size - 1 ) of the result of forward substitution
+    data_type y_last = total / diag_value;
+    py[row] = y_last;
+}
+
+void fused_cholesky_forward_substitution_solver_inbetween_removal(
+        __local data_type const *pM, 
+        __local data_type *restrict pL, 
+        __local data_type const *pb, 
+        __local data_type *restrict py, 
+        int position, int full_size, int view_size) {
+    // only for elements with >= position
+    for (int i=position; i<view_size; ++i) {
+
+        // first compute elements to the left of the diagoanl
+        data_type sumsq = 0;
+        data_type total = pb[i];
+        for (int j=0; j<i; ++j) {
+
+            data_type sumsq2 = 0;
+            for (int k=0; k<j; ++k) {
+                sumsq2 += M_LINEAR_ACCESS(pL, i, k) *
+                    M_LINEAR_ACCESS(pL, j, k);
+            }
+
+            // compute the i,j : i>j. elements to the left of the diagonal
+            data_type value_i_j =
+                (M_LINEAR_ACCESS(pM, i, j) - sumsq2)
+                / M_LINEAR_ACCESS(pL, j, j);
+            M_LINEAR_ACCESS(pL, i, j) = value_i_j;
+            total -= value_i_j * py[j];
+
+            // needed to compute diagonal element
+            sumsq += value_i_j * value_i_j;
+        }
+
+        // second, compute the diagonal element
+        data_type value_i_i =
+            SIMPLE_SQRT(M_LINEAR_ACCESS(pM, i, i) - sumsq);
+        M_LINEAR_ACCESS(pL, i, i) = value_i_i;
+
+        // compute the i-th solution value for forward sub
+        py[i] = total / value_i_i;
+    }
+}
+
+void solve_forward_substitution(__local data_type const *pM, 
+                                __local data_type const* pb, 
+                                __local data_type *restrict psolution,
+                                int full_size, int view_size) {
+    // very first element is trivial
+    psolution[0] = pb[0] / pM[0];
+
+    // for the rest
+    for (int i=1; i<view_size; ++i) {
+        T total = pb[i];
+        for (int j=0; j<i; j++) {
+            total -= M_LINEAR_ACCESS(pM, i, j) * psolution[j];
+        }
+
+        // set the value of the i-solution
+        psolution[i] = total / M_LINEAR_ACCESS(pM, i, i);
+    }
+}
+
 /*
-void fnnls(__global data_type const *A,
-           __global data_type const *b,
-           __global data_type const *x,
-           float const epsilon,
-           unsigned int const max_iterations);
-*/
+ * Solving Ax=b using backward substitution
+ * pM - Lower triangular matrix.
+ * Note: we take lower triangular (not upper triangular) to remove the transposition
+ * step required otherwise.
+ */
+void solve_backward_substitution(__local data_type const *pM, 
+                                 __local data_type const *pb, 
+                                 __local data_type *restrict psolution,
+                                 int full_size, int view_size) {
+    // very last element is trivial
+    psolution[view_size-1] = pb[view_size-1] /
+        M_LINEAR_ACCESS(pM, view_size-1, view_size-1);
+
+    // for the rest
+    for (int i=view_size-2; i>=0; --i) {
+        T total = pb[i];
+        for (int j=i+1; j<view_size; ++j) {
+            total -= M_LINEAR_ACCESS(pM, j, i) * psolution[j];
+        }
+
+        psolution[i] = total / M_LINEAR_ACCESS(pM, i, i);
+    }
+}
+
 
 //
 // fast nnls w/o copying (inplace updates)
 //
-void inplace_fnnls(__global data_type const *A,
-                   __global data_type const *b,
-                   __global data_type const * x,
+void inplace_fnnls(__global data_type const *restrict A,
+                   __global data_type const *restrict b,
+                   __global data_type const *restrict x,
                    float const epsilon,
                    unsigned int const max_iterations);
 
-/*
-void fnnls(__global data_type const *A,
-           __global data_type const *b,
-           __global data_type const *x,
-           float const epsilon,
-           unsigned int const max_iterations) {
-
-    // initial setup
-    int npassive = 0;
-    data_type AtA[NUM_TIME_SAMPLES_SQ];
-    data_type Atb[NUM_TIME_SAMPLES];
-//    data_type s[NUM_TIME_SAMPLES];
-    data_type w[NUM_TIME_SAMPLES];
-    data_type final_s[NUM_TIME_SAMPLES];
-    transpose_multiply_mm_same_matrix(A, AtA);
-    transpose_multiply_mv(A, b, Atb);
-
-    // loop over all iterations. 
-    for (unsigned int iter = 0; iter < max_iterations; ++iter) {
-        int nactive = NUM_TIME_SAMPLES - npassive;
-
-        // exit condition
-        if (!nactive)
-            break;
-
-        // update the gradient vector but only for the active constraints
-        data_type AtAx[NUM_TIME_SAMPLES];
-        multiply_m_globalv(AtA, final_s, AtAx);
-        float max_w_value; int max_w_idx; 
-        int iii = 0;
-        for (int i=npassive; i<NUM_TIME_SAMPLES; ++i) {
-            w [ i ] = Atb [ i ] - AtAx [ i ];
-
-            if (iii == 0) {
-                max_w_value = w [ i ];
-                max_w_idx = i;
-            } else if (w [ i ] > max_w_value) {
-                max_w_value = w [ i ];
-                max_w_idx = i;
-            }
-
-            ++iii;
-        }
-
-        // convergence check
-        if (max_w_value < epsilon)
-            break;
-    }
-}
-*/
-
-void inplace_fnnls(__global data_type const *A,
-                   __global data_type const *b,
-                   __global data_type const * x,
+void inplace_fnnls(__global data_type const *restrict A,
+                   __global data_type const *restrict b,
+                   __global data_type const *restrict x,
                    float const epsilon,
                    unsigned int const max_iterations) {
     // initial setup
     int npassive = 0;
-    data_type AtA[NUM_TIME_SAMPLES_SQ];
-    data_type Atb[NUM_TIME_SAMPLES];
-    data_type s[NUM_TIME_SAMPLES];
-    data_type w[NUM_TIME_SAMPLES];
-    data_type final_s[NUM_TIME_SAMPLES];
-    data_type permutation[2 * NUM_TIME_SAMPLES];
-    transpose_multiply_mm_same_matrix(A, AtA);
-    transpose_multiply_mv(A, b, Atb);
+    __local data_type AtA[NUM_TIME_SAMPLES_SQ];
+    __local data_type Atb[NUM_TIME_SAMPLES];
+    __local data_type s[NUM_TIME_SAMPLES];
+    __local data_type w[NUM_TIME_SAMPLES];
+    __local data_type final_s[NUM_TIME_SAMPLES];
+    __local data_type permutation[2 * NUM_TIME_SAMPLES];
+    __local data_type AtAx[NUM_TIME_SAMPLES];
+    transpose_multiply_gm_lm(A, AtA);
+    transpose_multiply_gm_gv_lv(A, b, Atb);
 
     // loop over all iterations. 
     for (int iter = 0; iter < max_iterations; ++iter) {
@@ -152,8 +328,7 @@ void inplace_fnnls(__global data_type const *A,
             break;
 
         // update the gradient vector but only for the active constraints
-        data_type AtAx[NUM_TIME_SAMPLES];
-        multiply_m_globalv(AtA, final_s, AtAx);
+        multiply_lm_lv_lv(AtA, final_s, AtAx);
         data_type max_w_value; int max_w_idx; 
         int iii = 0;
         for (int i=npassive; i<NUM_TIME_SAMPLES; ++i) {
@@ -247,7 +422,7 @@ void inplace_fnnls(__global data_type const *A,
 //
 // a wrapper around inplace_fnnls to arrange the data per work item
 //
-__kernel void inplace_fnlls_facade(__global data_type const *vA,
+__kernel void inplace_fnnls_facade(__global data_type const *vA,
                                    __global data_type const *vb,
                                    __global data_type const *vx,
                                    float const epsilon,

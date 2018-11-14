@@ -200,7 +200,7 @@ int main(int argc, char **argv ) {
     std::cout << "create a kernel wrapper" << std::endl;
     auto status_kernel = 0;
     auto k_fnnls = cl::compatibility::make_kernel<cl::Buffer, cl::Buffer, cl::Buffer, float, unsigned int>(
-        program, "inplace_fnlls_facade", &status_kernel);
+        program, "inplace_fnnls_facade", &status_kernel);
     if (status_kernel != CL_SUCCESS) {
         std::cout << "failed creating a 'make_kernel' wrapper " << std::endl;
         exit(1);
