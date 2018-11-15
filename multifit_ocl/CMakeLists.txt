@@ -40,11 +40,10 @@ endif()
 message(INTEL_LINK_OPTIONS = ${INTEL_LINK_OPTIONS})
 
 # build tests from tests/ 
-foreach(TESTSOURCE ${TESTSOURCES})
-    string(REPLACE "*.cpp" "" EXEC ${TESTSOURCE})
-    get_filename_component(EXEC ${EXEC} NAME)
-    message("adding executable ${EXEC}")
-    add_executable(multifit_ocl_${EXEC} ${TESTSOURCE})
-    target_link_libraries(multifit_ocl_${EXEC} PRIVATE ${INTEL_LINK_OPTIONS}
+foreach(TEST ${TESTSOURCES})
+    get_filename_component(EXE ${TEST} NAME_WE)
+    message("adding executable ${EXE}")
+    add_executable(multifit_ocl_${EXE} ${TEST})
+    target_link_libraries(multifit_ocl_${EXE} PRIVATE ${INTEL_LINK_OPTIONS}
         ${OpenCL_LIBRARIES} multifit_ocl_lib ${Boost_LIBRARIES})
-endforeach(TESTSOURCE)
+endforeach(TEST)
