@@ -9,40 +9,45 @@
 #define NUM_TIME_SAMPLES 10
 #define NUM_TIME_SAMPLES_SQ 100 
 // to easily switch between row major and column major matrix representations
-#define M_LINEAR_ACCESS(M, row, col) M[row * NUM_TIME_SAMPLES + col]
+#define M_LINEAR_ACCESS(M, row, col) M[(row) * (NUM_TIME_SAMPLES) + (col)]
 typedef float data_type;
 #define SIMPLE_SQRT(x) sqrt(x)
 
+#define NNLS_LOCAL 
+#define NNLS_GLOBAL __global
+#define NNLS_DEBUG
+#undef NNLS_DEBUG
 
 //
 // Various Matrix and Vector Multiplications 
 // C = A * A_T -> the result is symmetric matrix.
 // the restult matrix C will be stored in column major
 //
-void transpose_multiply_gm_lm(__global data_type const* A, 
-                              __local data_type *restrict result);
-void transpose_multiply_gm_gv_lv(__global data_type const *M, 
-                                 __global data_type const *v, 
-                                 __local data_type * restrict result);
-void multiply_lm_lv_lv(__local data_type const * M, 
-                       __local data_type const *v, 
-                       __local data_type *restrict result);
+void transpose_multiply_m_m(__global data_type const* A, 
+                            NNLS_LOCAL data_type *restrict result);
+void transpose_multiply_m_v_v(__global data_type const *M, 
+                              __global data_type const *v, 
+                              NNLS_LOCAL data_type * restrict result);
+void multiply_m_v_v(NNLS_LOCAL data_type const * M, 
+                    NNLS_LOCAL data_type const *v, 
+                    NNLS_LOCAL data_type *restrict result);
 
-void transpose_multiply_gm_lm(__global data_type const* A, 
-                              __local data_type *restrict result) {
+void transpose_multiply_m_m(__global data_type const* A, 
+                            NNLS_LOCAL data_type *restrict result) {
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         for (int j=i; j<NUM_TIME_SAMPLES; ++j) {
             M_LINEAR_ACCESS(result, i, j) = 0;
             for (int k=0; k<NUM_TIME_SAMPLES; ++k)
-                M_LINEAR_ACCESS(result, i, j) += M_LINEAR_ACCESS(A, i, k) * M_LINEAR_ACCESS(A, j, k);
+                M_LINEAR_ACCESS(result, i, j) += M_LINEAR_ACCESS(A, k, i) * 
+                    M_LINEAR_ACCESS(A, k, j);
             M_LINEAR_ACCESS(result, j, i) = M_LINEAR_ACCESS(result, i, j);
        }
     }
 }
 
-void transpose_multiply_gm_gv_lv(__global data_type const *M, 
-                                 __global data_type const *v, 
-                                 __local data_type *restrict result) {
+void transpose_multiply_m_v_v(__global data_type const *M, 
+                              __global data_type const *v, 
+                              NNLS_LOCAL data_type *restrict result) {
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         result[i] = 0;
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) {
@@ -51,9 +56,9 @@ void transpose_multiply_gm_gv_lv(__global data_type const *M,
     }
 }
 
-void multiply_lm_lv_lv(__local data_type const *M, 
-                       __local data_type const *v, 
-                       __local data_type *restrict result) {
+void multiply_m_v_v(NNLS_LOCAL data_type const *M, 
+                    NNLS_LOCAL data_type const *v, 
+                    NNLS_LOCAL data_type *restrict result) {
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         result[i] = 0;
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) 
@@ -64,81 +69,72 @@ void multiply_lm_lv_lv(__local data_type const *M,
 //
 // Swap Functions
 //
-void swap_permm(__local data_type *permutation, int idx1, int idx2);
-void swap_row_column(__local data_type *pM, 
+void swap_permm(NNLS_LOCAL data_type *permutation, int idx1, int idx2);
+void swap_row_column(NNLS_LOCAL data_type *pM, 
                      int i, int j, int full_size, int view_size);
-void swap_element(__local data_type *pv, int i, int j);
-void swap_perm_element(__local int *pv, int i, int j);
+void swap_element(NNLS_LOCAL data_type *pv, int i, int j);
+void swap_perm_element(NNLS_LOCAL int *pv, int i, int j);
 
-void swap_element(__local data_type *pv,
+void swap_element(NNLS_LOCAL data_type *pv,
                   int i, int j) {
     data_type tmp = pv[i];
     pv[i] = pv[j];
     pv[j] = tmp;
 }
 
-void swap_perm_element(__local int *pv,
+void swap_perm_element(NNLS_LOCAL int *pv,
                        int i, int j) {
     int tmp = pv[i];
     pv[i] = pv[j];
     pv[j] = tmp;
 }
 
-void swap_row_column(__local data_type *pM, 
+// same precondition: index_j > index_i
+#define SWAP_LOOP(start, finish, matrix, index_i, index_j) \
+    for (int elem=start; elem<finish; ++elem) { \
+        data_type tmp = M_LINEAR_ACCESS(matrix, index_i, elem); \
+        M_LINEAR_ACCESS(matrix, index_i, elem) = \
+            M_LINEAR_ACCESS(matrix, index_j, elem); \
+        M_LINEAR_ACCESS(matrix, index_j, elem) = tmp; \
+        M_LINEAR_ACCESS(matrix, elem, index_i) = \
+            M_LINEAR_ACCESS(matrix, elem, index_j); \
+        M_LINEAR_ACCESS(matrix, elem, index_j) = tmp; \
+    }
+
+// precondition: j > i
+void swap_row_column(NNLS_LOCAL data_type *pM, 
                      int i, int j, int full_size, int view_size) {
     // diagnoal
     data_type tmptmp = M_LINEAR_ACCESS(pM, i, i);
     M_LINEAR_ACCESS(pM, i, i) = M_LINEAR_ACCESS(pM, j, j);
     M_LINEAR_ACCESS(pM, j, j) = tmptmp;
 
-    // the rest 
-    for (int elem=0; elem<i; ++elem) {
-        data_type tmp = M_LINEAR_ACCESS(pM, i, elem);
-
-        M_LINEAR_ACCESS(pM, i, elem) =
-            M_LINEAR_ACCESS(pM, j, elem);
-        M_LINEAR_ACCESS(pM, j, elem) = tmp;
-
-        // for the column
-        M_LINEAR_ACCESS(pM, elem, i) =
-            M_LINEAR_ACCESS(pM, elem, j);
-        M_LINEAR_ACCESS(pM, elem, j) = tmp;
-    }
-    for (int elem=i+1; elem<view_size; ++elem) {
-        data_type tmp = M_LINEAR_ACCESS(pM, i, elem);
-
-        M_LINEAR_ACCESS(pM, i, elem) =
-            M_LINEAR_ACCESS(pM, j, elem);
-        M_LINEAR_ACCESS(pM, j, elem) = tmp;
-
-        // for the column
-        M_LINEAR_ACCESS(pM, elem, i) =
-            M_LINEAR_ACCESS(pM, elem, j);
-        M_LINEAR_ACCESS(pM, elem, j) = tmp;
-    }
+    SWAP_LOOP(0, i, pM, i, j)
+    SWAP_LOOP(i+1, j, pM, i, j)
+    SWAP_LOOP(j+1, NUM_TIME_SAMPLES, pM, i, j)
 }
 
 //
 // Cholesky Decomposition + Forward/Backward Substituion Solvers
 //
-void cholesky_decomp(__local data_type const* pM,
-                     __local data_type * restrict pL,
+void cholesky_decomp(NNLS_LOCAL data_type const* pM,
+                     NNLS_LOCAL data_type * restrict pL,
                      int full_size, int view_size);
 void fused_cholesky_forward_substitution_solver_rcadd(
-        __local data_type const *pM, 
-        __local data_type *restrict pL, 
-        __local data_type const *pb,
-        __local data_type *restrict py, 
+        NNLS_LOCAL data_type const *pM, 
+        NNLS_LOCAL data_type *restrict pL, 
+        NNLS_LOCAL data_type const *pb,
+        NNLS_LOCAL data_type *restrict py, 
         int full_size, int view_size);
 void fused_cholesky_forward_substitution_solver_inbetween_removal(
-        __local data_type const *pM, 
-        __local data_type *restrict pL, 
-        __local data_type const *pb, 
-        __local data_type *restrict py, 
+        NNLS_LOCAL data_type const *pM, 
+        NNLS_LOCAL data_type *restrict pL, 
+        NNLS_LOCAL data_type const *pb, 
+        NNLS_LOCAL data_type *restrict py, 
         int position, int full_size, int view_size);
 
-void cholesky_decomp(__local data_type const* pM,  
-                     __local data_type *restrict pL, 
+void cholesky_decomp(NNLS_LOCAL data_type const* pM,  
+                     NNLS_LOCAL data_type *restrict pL, 
                      int full_size, int view_size) {
     for (int i=0; i<view_size; ++i) {
 
@@ -169,10 +165,10 @@ void cholesky_decomp(__local data_type const* pM,
 }
 
 void fused_cholesky_forward_substitution_solver_rcadd(
-        __local data_type const *pM, 
-        __local data_type *restrict pL, 
-        __local data_type const *pb,
-        __local data_type *restrict py, 
+        NNLS_LOCAL data_type const *pM, 
+        NNLS_LOCAL data_type *restrict pL, 
+        NNLS_LOCAL data_type const *pb,
+        NNLS_LOCAL data_type *restrict py, 
         int full_size, int view_size) {
     /*
      * cholesky decomposition using partial computation
@@ -213,10 +209,10 @@ void fused_cholesky_forward_substitution_solver_rcadd(
 }
 
 void fused_cholesky_forward_substitution_solver_inbetween_removal(
-        __local data_type const *pM, 
-        __local data_type *restrict pL, 
-        __local data_type const *pb, 
-        __local data_type *restrict py, 
+        NNLS_LOCAL data_type const *pM, 
+        NNLS_LOCAL data_type *restrict pL, 
+        NNLS_LOCAL data_type const *pb, 
+        NNLS_LOCAL data_type *restrict py, 
         int position, int full_size, int view_size) {
     // only for elements with >= position
     for (int i=position; i<view_size; ++i) {
@@ -253,13 +249,13 @@ void fused_cholesky_forward_substitution_solver_inbetween_removal(
     }
 }
 
-void solve_forward_substitution(__local data_type const *pM, 
-                                __local data_type const* pb, 
-                                __local data_type *restrict psolution,
+void solve_forward_substitution(NNLS_LOCAL data_type const *pM, 
+                                NNLS_LOCAL data_type const* pb, 
+                                NNLS_LOCAL data_type *restrict psolution,
                                 int full_size, int view_size);
-void solve_forward_substitution(__local data_type const *pM, 
-                                __local data_type const* pb, 
-                                __local data_type *restrict psolution,
+void solve_forward_substitution(NNLS_LOCAL data_type const *pM, 
+                                NNLS_LOCAL data_type const* pb, 
+                                NNLS_LOCAL data_type *restrict psolution,
                                 int full_size, int view_size) {
     // very first element is trivial
     psolution[0] = pb[0] / pM[0];
@@ -282,13 +278,13 @@ void solve_forward_substitution(__local data_type const *pM,
  * Note: we take lower triangular (not upper triangular) to remove the transposition
  * step required otherwise.
  */
-void solve_backward_substitution(__local data_type const *pM, 
-                                 __local data_type const *pb, 
-                                 __local data_type *restrict psolution,
+void solve_backward_substitution(NNLS_LOCAL data_type const *pM, 
+                                 NNLS_LOCAL data_type const *pb, 
+                                 NNLS_LOCAL data_type *restrict psolution,
                                  int full_size, int view_size);
-void solve_backward_substitution(__local data_type const *pM, 
-                                 __local data_type const *pb, 
-                                 __local data_type *restrict psolution,
+void solve_backward_substitution(NNLS_LOCAL data_type const *pM, 
+                                 NNLS_LOCAL data_type const *pb, 
+                                 NNLS_LOCAL data_type *restrict psolution,
                                  int full_size, int view_size) {
     // very last element is trivial
     psolution[view_size-1] = pb[view_size-1] /
@@ -305,11 +301,52 @@ void solve_backward_substitution(__local data_type const *pM,
     }
 }
 
-void permutation_identity(__local int *permutation);
-void permutation_identity(__local int *permutation) {
+void permutation_identity(NNLS_LOCAL int *permutation);
+void permutation_identity(NNLS_LOCAL int *permutation) {
     for (int i=0; i<NUM_TIME_SAMPLES; ++i)
         permutation[i] = i;
 }
+
+//
+// debug functions
+//
+#ifdef NNLS_DEBUG
+
+#define PRINT_FLOAT(value) printf("%f\n", value)
+#define PRINT_DOUBLE(value) printf("%e\n", value)
+
+void print_vector(data_type const* pv, int size);
+void print_matrix(data_type const *pm, int size);
+void print_permutation(int const *pv, int size);
+void print_gmatrix(__global data_type const *pm, int size);
+void print_vector(data_type const* pv, int size) {
+    for (int i=0; i<size; ++i)
+        PRINT_FLOAT(pv[i]);
+}
+
+void print_matrix(data_type const *pm, int size) {
+    for (int i=0; i<size; ++i) {
+        for (int j=0; j<size; ++j) {
+            printf("%f  ", pm[i*NUM_TIME_SAMPLES + j]);
+        }
+        printf("\n");
+    }
+}
+
+void print_gmatrix(__global data_type const *pm, int size) {
+    for (int i=0; i<size; ++i) {
+        for (int j=0; j<size; ++j) {
+            printf("%f  ", pm[i*NUM_TIME_SAMPLES + j]);
+        }
+        printf("\n");
+    }
+}
+
+void print_permutation(int const *pv, int size) {
+    for (int i=0; i<size; ++i)
+        printf("%d\n", pv[i]);
+}
+#endif
 
 //
 // fast nnls w/o copying (inplace updates)
@@ -317,40 +354,68 @@ void permutation_identity(__local int *permutation) {
 void inplace_fnnls(__global data_type const *A,
                    __global data_type const *b,
                    __global data_type *restrict x,
-                   float const epsilon,
+                   double const epsilon,
                    unsigned int const max_iterations);
 
 void inplace_fnnls(__global data_type const *A,
                    __global data_type const *b,
                    __global data_type *restrict x,
-                   float const epsilon,
+                   double const epsilon,
                    unsigned int const max_iterations) {
+#ifdef NNLS_DEBUG
+    printf("A = \n");
+    print_gmatrix(A, NUM_TIME_SAMPLES);
+#endif
+
     // initial setup
     int npassive = 0;
-    __local data_type AtA[NUM_TIME_SAMPLES_SQ];
-    __local data_type Atb[NUM_TIME_SAMPLES];
-    __local data_type s[NUM_TIME_SAMPLES];
-    __local data_type w[NUM_TIME_SAMPLES];
-    __local data_type final_s[NUM_TIME_SAMPLES];
-    __local int permutation[NUM_TIME_SAMPLES];
-    __local data_type AtAx[NUM_TIME_SAMPLES];
-    __local data_type pL[NUM_TIME_SAMPLES_SQ];
-    __local data_type py[NUM_TIME_SAMPLES];
-    transpose_multiply_gm_lm(A, AtA);
-    transpose_multiply_gm_gv_lv(A, b, Atb);
+    NNLS_LOCAL data_type AtA[NUM_TIME_SAMPLES_SQ];
+    NNLS_LOCAL data_type Atb[NUM_TIME_SAMPLES];
+    NNLS_LOCAL data_type s[NUM_TIME_SAMPLES];
+    NNLS_LOCAL data_type w[NUM_TIME_SAMPLES];
+    NNLS_LOCAL data_type final_s[NUM_TIME_SAMPLES];
+    NNLS_LOCAL int permutation[NUM_TIME_SAMPLES];
+    NNLS_LOCAL data_type AtAx[NUM_TIME_SAMPLES];
+    NNLS_LOCAL data_type pL[NUM_TIME_SAMPLES_SQ];
+    NNLS_LOCAL data_type py[NUM_TIME_SAMPLES];
+    transpose_multiply_m_m(A, AtA);
+    transpose_multiply_m_v_v(A, b, Atb);
     permutation_identity(permutation);
+
+    for (int i=0; i<NUM_TIME_SAMPLES; ++i)
+        final_s[i] = x[i];
+
+#ifdef NNLS_DEBUG
+    printf("permutaion = \n");
+    print_permutation(permutation, NUM_TIME_SAMPLES);
+    printf("AtA = \n");
+    print_matrix(AtA, NUM_TIME_SAMPLES);
+    printf("Atb = \n");
+    print_vector(Atb, NUM_TIME_SAMPLES);
+#endif
 
     // loop over all iterations. 
     for (unsigned int iter = 0; iter < max_iterations; ++iter) {
         int nactive = NUM_TIME_SAMPLES - npassive;
+#ifdef NNLS_DEBUG
+        printf("*************\n");
+        printf("iteration = %d\n", iter);
+        printf("nactive = %d\n", nactive);
+            printf("final_s = \n");
+            print_vector(final_s, NUM_TIME_SAMPLES);
+#endif
 
         // exit condition
         if (!nactive)
             break;
 
         // update the gradient vector but only for the active constraints
-        multiply_lm_lv_lv(AtA, final_s, AtAx);
-        data_type max_w_value; int max_w_idx; 
+        multiply_m_v_v(AtA, final_s, AtAx);
+#ifdef NNLS_DEBUG
+            printf("AtAx = \n");
+            print_vector(AtAx, NUM_TIME_SAMPLES);
+#endif
+        data_type max_w_value = FLT_MIN; int max_w_idx; 
         int iii = 0;
         for (int i=npassive; i<NUM_TIME_SAMPLES; ++i) {
             w [ i ] = Atb [ i ] - AtAx [ i ];
@@ -359,9 +424,15 @@ void inplace_fnnls(__global data_type const *A,
                 max_w_value = w [ i ];
                 max_w_idx = i;
             }
-
             ++iii;
         }
+
+#ifdef NNLS_DEBUG
+            printf("w = \n");
+            print_vector(w, NUM_TIME_SAMPLES);
+            printf("max_w_value = %f\n", max_w_value);
+            printf("max_w_idx = %d\n", max_w_idx);
+#endif
 
         // convergence check
         if (max_w_value < epsilon)
@@ -375,6 +446,17 @@ void inplace_fnnls(__global data_type const *A,
         swap_element(final_s, npassive, max_w_idx);
         swap_perm_element(permutation, npassive, max_w_idx);
 
+#ifdef NNLS_DEBUG
+            printf("after swap AtA = \n");
+            print_matrix(AtA, NUM_TIME_SAMPLES);
+            printf("after swap Atb = \n");
+            print_vector(Atb, NUM_TIME_SAMPLES);
+            printf("after swap final_s = \n");
+            print_vector(final_s, NUM_TIME_SAMPLES);
+            printf("after swap permutation = \n");
+            print_permutation(permutation, NUM_TIME_SAMPLES);
+#endif
+
         ++npassive;
 
         // inner loop
@@ -387,15 +469,36 @@ void inplace_fnnls(__global data_type const *A,
                 data_type y_0_0 = Atb[0] / l_0_0;
                 pL[0] = l_0_0;
                 py[0] = y_0_0;
+                s[0] = y_0_0 / l_0_0;
                 position_removed = -1;
+#ifdef NNLS_DEBUG
+                    printf("npassive == 1 branch\n");
+#endif
             } else if (inner_iteration == 0) {
                 fused_cholesky_forward_substitution_solver_rcadd(
                     AtA, pL, Atb, py, NUM_TIME_SAMPLES, npassive);
+                solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
+#ifdef NNLS_DEBUG
+                    printf("npassive != 1 else inner_iteration == 0 branch\n");
+#endif
             } else {
                 fused_cholesky_forward_substitution_solver_inbetween_removal(
                     AtA, pL, Atb, py, position_removed, NUM_TIME_SAMPLES, npassive);
+                solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
+#ifdef NNLS_DEBUG
+                    printf("npassive != 1 else inner_iteration!=0 else branch\n");
+#endif
             }
-            solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
+
+#ifdef NNLS_DEBUG
+                printf("***** inner iteration %d *****\n", inner_iteration);
+                printf("L = \n");
+                print_matrix(pL, NUM_TIME_SAMPLES);
+                printf("s = \n");
+                print_vector(s, NUM_TIME_SAMPLES);
+                printf("py = \n");
+                print_vector(py, NUM_TIME_SAMPLES);
+#endif
 
             // update the elements from the passive set
             data_type min_s_value = s [ 0 ];
@@ -404,20 +507,36 @@ void inplace_fnnls(__global data_type const *A,
                     min_s_value = s [ i ];
             }
 
+#ifdef NNLS_DEBUG
+                printf("min_s_value = %f\n", min_s_value);
+                printf("npassive = %d\n", npassive);
+#endif
+
             // if elements of the passive set are all positive
             // set the solution vector and break from the inner loop
             if (min_s_value > 0.0f) {
+#ifdef NNLS_DEBUG
+                printf("min_s_value = %f and branching here\n", min_s_value);
+#endif
                 for (int i=0; i<npassive; ++i)
                     final_s [ i ] = s [ i ];
                 break;
             }
+
+#ifdef NNLS_DEBUG
+            if (iter%100 == 0) {
+                printf("final_s = \n");
+                print_vector(final_s, NUM_TIME_SAMPLES);
+            }
+#endif
 
             // 
             data_type alpha = FLT_MAX;
             int alpha_idx = 0;
             for (int i=0; i<npassive; ++i) {
                 if (s [ i ] <= 0.0f) {
-                    data_type const ratio = final_s [ i ] / ( final_s [ i ] - s [ i ] );
+                    data_type const ratio = final_s [ i ] / 
+                        ( final_s [ i ] - s [ i ] );
                     if (ratio < alpha) {
                         alpha = ratio;
                         alpha_idx = i;
@@ -439,15 +558,27 @@ void inplace_fnnls(__global data_type const *A,
             --npassive;
 
             // run swaps
-            swap_row_column(AtA, npassive, alpha_idx,
+            swap_row_column(AtA, alpha_idx, npassive,
                 NUM_TIME_SAMPLES, NUM_TIME_SAMPLES);
             swap_element(Atb, npassive, alpha_idx);
             swap_element(final_s, npassive, alpha_idx);
             swap_perm_element(permutation, npassive, alpha_idx);
             inner_iteration++;
             position_removed = alpha_idx;
+
+#ifdef NNLS_DEBUG
+            printf("final_s = \n");
+            print_vector(final_s, NUM_TIME_SAMPLES);
+#endif
         }
     }
+
+#ifdef NNLS_DEBUG
+    printf("final_s = \n");
+    print_vector(final_s, NUM_TIME_SAMPLES);
+    printf("permutation = \n");
+    print_permutation(permutation, NUM_TIME_SAMPLES);
+#endif
 
     // permute the solution vector back to have x[i] sit at the original position
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
@@ -460,8 +591,8 @@ void inplace_fnnls(__global data_type const *A,
 //
 __kernel void inplace_fnnls_facade(__global data_type const *vA,
                                    __global data_type const *vb,
-                                   __global data_type const *vx,
-                                   float const epsilon,
+                                   __global data_type *vx,
+                                   double const epsilon,
                                    unsigned int const max_iterations) {
     // get the global index - identifies the detector channel 
     int idx = get_global_id(0);
@@ -469,7 +600,10 @@ __kernel void inplace_fnnls_facade(__global data_type const *vA,
     // get the pointer to the right location for the idx
     __global data_type const *ptrA = vA + idx * NUM_TIME_SAMPLES_SQ;
     __global data_type const *ptrb = vb + idx * NUM_TIME_SAMPLES;
-    __global data_type const *ptrx = vx + idx * NUM_TIME_SAMPLES;
+    __global data_type *ptrx = vx + idx * NUM_TIME_SAMPLES;
+
+    for (int i=0; i<NUM_TIME_SAMPLES; ++i)
+        ptrx[i] = 0;
 
     // launch the fnnls itself for the right worker item
     inplace_fnnls(ptrA, ptrb, ptrx, epsilon, max_iterations);

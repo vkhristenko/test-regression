@@ -3,6 +3,9 @@
 
 #include "data_types.h"
 
+#define NNLS_DEBUG
+#undef NNLS_DEBUG
+
 template<typename T>
 void
 cpu_inplace_fnnls(matrix_t<T> const& A,
@@ -73,7 +76,12 @@ void cpu_inplace_fnnls(matrix_t<T> const& A,
   #endif
   assert(AtA == A.transpose() * A);
   */
+//  matrix_t<data_type> AtA = transpose_multiply(A);
+#ifdef NNLS_DEBUG
+  std::cout << "A = \n" << A << std::endl;
+#endif
   matrix_t<data_type> AtA = transpose_multiply(A);
+//  matrix_t<data_type> AtA = A.transpose() * A;
   // FixedMatrix AtA = A.transpose() * A;
   vector_t<data_type> Atb = A.transpose() *b;
 
@@ -83,9 +91,21 @@ void cpu_inplace_fnnls(matrix_t<T> const& A,
   Eigen::PermutationMatrix<VECTOR_SIZE> permutation;
   permutation.setIdentity();
 
+#ifdef NNLS_DEBUG
+  std::cout << "AtA = \n" << AtA << std::endl;
+  std::cout << "Atb = \n" << Atb << std::endl;
+#endif
+
 // main loop
   for (auto iter = 0; iter < max_iterations; ++iter) {
     const auto nActive = VECTOR_SIZE - nPassive;
+
+#ifdef NNLS_DEBUG
+    std::cout << "***************\n"
+        << "iteration = " << iter << std::endl
+        << "nactive = " << nActive << std::endl;
+    std::cout << "x = \n" << x << std::endl;
+#endif
 
 #ifdef DEBUG_FNNLS_CPU
     cout << "iter " << iter << endl;
@@ -93,6 +113,10 @@ void cpu_inplace_fnnls(matrix_t<T> const& A,
     
     if(!nActive)
       break;
+
+#ifdef NNLS_DEBUG
+    std::cout << "AtA * x = \n" << AtA*x << std::endl;
+#endif
 
     w.tail(nActive) = Atb.tail(nActive) - (AtA * x).tail(nActive);
 
@@ -102,6 +126,12 @@ void cpu_inplace_fnnls(matrix_t<T> const& A,
     // get the index of w that gives the maximum gain
     Index w_max_idx;
     const auto max_w = w.tail(nActive).maxCoeff(&w_max_idx);
+
+#ifdef NNLS_DEBUG
+    std::cout << "w = \n" << w << std::endl;
+    std::cout << "max_w = " << max_w << std::endl;
+    std::cout << "w_max_idx = " << w_max_idx << std::endl;
+#endif
 
     // check for convergence
     if (max_w < eps)
@@ -123,6 +153,10 @@ void cpu_inplace_fnnls(matrix_t<T> const& A,
     Eigen::numext::swap(permutation.indices()[nPassive],
                         permutation.indices()[w_max_idx]);
 
+#ifdef NNLS_DEBUG
+    std::cout << "permutation = \n" << permutation.indices() << std::endl;
+#endif
+
     ++nPassive;
 
 #ifdef DEBUG_FNNLS_CPU
@@ -134,6 +168,10 @@ void cpu_inplace_fnnls(matrix_t<T> const& A,
     while (nPassive > 0) {
       s.head(nPassive) =
           AtA.topLeftCorner(nPassive, nPassive).llt().solve(Atb.head(nPassive));
+
+#ifdef NNLS_DEBUG
+      std::cout << "s = \n" << s << std::endl;
+#endif
 
       if (s.head(nPassive).minCoeff() > 0.) {
         x.head(nPassive) = s.head(nPassive);
@@ -186,6 +224,7 @@ void cpu_inplace_fnnls(matrix_t<T> const& A,
       // swap the permutation matrix to reorder the solution in the end
       Eigen::numext::swap(permutation.indices()[nPassive],
                           permutation.indices()[alpha_idx]);
+
     }
   }
   x = x.transpose() * permutation.transpose();  

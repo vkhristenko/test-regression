@@ -8,9 +8,54 @@
 
 #include "multifit_ocl/include/cl_pretty_print.hpp"
 #include "multifit_ocl/include/utils.hpp"
+#include "multifit_ocl/include/inplace_fnnls.h"
 
-#define NUM_CHANNELS 1000
+using data_type = float;
+using my_matrix = matrix_t<data_type>;
+using my_vector = vector_t<data_type>;
+
+std::vector<my_matrix> generate_As(unsigned int n) {
+    std::vector<my_matrix> result(n);
+    for (int i=0; i<n; ++i)
+        result[i] = my_matrix::Random();
+
+    return result;
+}
+
+std::vector<my_vector> generate_bs(unsigned int n) {
+    std::vector<my_vector> result(n);
+    for (int i=0; i<n; i++) {
+        result[i] = my_vector::Random();
+    }
+
+    return result;
+}
+
 #define NUM_SAMPLES 10
+
+template<typename T>
+void print_matrix(T *pM, int n) {
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            std::cout << pM[i*n + j] << "   ";
+        }   
+        std::cout << "\n";
+    }   
+}
+
+template<typename T>
+void print_vector(T *pv, int n) {
+    for (int i=0; i<n; ++i)
+        std::cout << pv[i] << "   ";
+    std::cout << std::endl;
+}
+
+template<typename T, typename Vector>
+void print_vectors_side_by_side(T *pv, Vector &evec, int size) {
+    for (int i=0; i<size; ++i)
+        std::cout << pv[i] << "  " << evec(i) << std::endl;
+
+}
 
 std::vector<unsigned char> get_binary(std::string const& binary_file_name) {
     auto *fp = fopen(binary_file_name.c_str(), "rb");
@@ -42,13 +87,13 @@ int main(int argc, char **argv ) {
     namespace po = boost::program_options;
     po::options_description desc{"allowed program options"};
     std::string intel {"Intel"};
-    bool dump_source = false;
     desc.add_options()
         ("help", "produce help msgs")
         ("device-type", po::value<std::string>(), "a device type: ['cpu' | 'gpu' | 'fpga']")
         ("manufacturer", po::value<std::string>(&intel)->default_value("Intel"), "manufacturer of the device: ['Intel', 'Nvidia']")
         ("compile-only", po::value<bool>()->default_value(true), "if true (default) should just compile and print the compilation log")
-        ("dump-source", po::value<bool>(&dump_source)->default_value(false), "if should dump the opencl source code to standard output")
+        ("dump-source", po::value<bool>()->default_value(false), "if should dump the opencl source code to standard output")
+        ("num-channels", po::value<int>()->default_value(10), "number of channels to test")
     ;
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -60,6 +105,8 @@ int main(int argc, char **argv ) {
     auto device_type_name = vm["device-type"].as<std::string>();
     auto manufac_name = vm["manufacturer"].as<std::string>();
     auto compile_only = vm["compile-only"].as<bool>();
+    auto dump_source = vm["dump-source"].as<bool>();
+    auto num_channels = vm["num-channels"].as<int>();
 
 
     /*
@@ -116,12 +163,42 @@ int main(int argc, char **argv ) {
     cl::Context ctx {devices};
 
     // prepare the input data
-    // TODO: need to properly initialize matrices and vectors
-    // for now just resize -> default init
-    std::vector<float> h_vA; h_vA.resize(NUM_SAMPLES * NUM_SAMPLES * NUM_CHANNELS);
-    std::vector<float> h_vb; h_vb.resize(NUM_SAMPLES * NUM_CHANNELS);
-    std::vector<float> h_vx; h_vx.resize(NUM_SAMPLES * NUM_CHANNELS);
-    float const epsilon = 1e-11;
+    auto As = generate_As(num_channels);
+    auto bs = generate_bs(num_channels);
+    std::vector<data_type> h_vA; 
+    h_vA.resize(NUM_SAMPLES * NUM_SAMPLES * num_channels);
+    std::vector<data_type> h_vb; 
+    h_vb.resize(NUM_SAMPLES * num_channels);
+    std::vector<data_type> h_vx; 
+    h_vx.resize(NUM_SAMPLES * num_channels);
+    for (unsigned int i=0; i<num_channels; i++) {
+        auto const& A = As[i];
+        auto const& b = bs[i];
+
+        unsigned int matrix_offset = i*NUM_SAMPLES*NUM_SAMPLES;
+        unsigned int vector_offset = i*NUM_SAMPLES;
+        for (int row=0; row<NUM_SAMPLES; ++row) {
+            auto row_offset = row * NUM_SAMPLES;
+            for (int col=0; col<NUM_SAMPLES; ++col) {
+                h_vA[matrix_offset + row_offset + col] = A(row, col);
+            }
+            h_vb[vector_offset + row] = b(row);
+        }
+
+        // validate input
+        if (i%100 == 0) {
+            std::cout << "********************" << std::endl;
+            std::cout << "cl input: matrix A = \n";
+            print_matrix(&h_vA[matrix_offset], NUM_SAMPLES);
+            std::cout << "eigen input: matrix A = \n" << A << std::endl;
+
+            std::cout << "********************" << std::endl;
+            std::cout << "cl input: vector b = \n";
+            print_vector(&h_vb[vector_offset], NUM_SAMPLES);
+            std::cout << "eigen input: vector b = \n" << b << std::endl;
+        }
+    }
+    double const epsilon = 1e-11;
     unsigned int const max_iterations = 1000;
     /*
     for (std::size_t i=0; i<NUM_CHANNELS; ++i) {
@@ -199,7 +276,7 @@ int main(int argc, char **argv ) {
 //    auto k_vector_add = cl::Kernel{program, "vector_add"};
     std::cout << "create a kernel wrapper" << std::endl;
     auto status_kernel = 0;
-    auto k_fnnls = cl::compatibility::make_kernel<cl::Buffer, cl::Buffer, cl::Buffer, float, unsigned int>(
+    auto k_fnnls = cl::compatibility::make_kernel<cl::Buffer, cl::Buffer, cl::Buffer, double, unsigned int>(
         program, "inplace_fnnls_facade", &status_kernel);
     if (status_kernel != CL_SUCCESS) {
         std::cout << "failed creating a 'make_kernel' wrapper " << std::endl;
@@ -209,16 +286,18 @@ int main(int argc, char **argv ) {
     // link host's memory to device buffers
     std::cout << "create buffers" << std::endl;
     cl::Buffer d_vA, d_vb, d_vx;
-    d_vA = cl::Buffer{ctx, CL_MEM_READ_ONLY, h_vA.size() * sizeof(float)};
-    d_vb = cl::Buffer{ctx, CL_MEM_READ_ONLY, h_vb.size() * sizeof(float)};
-    d_vx = cl::Buffer{ctx, CL_MEM_WRITE_ONLY, sizeof(float) * h_vb.size()};
+    d_vA = cl::Buffer{ctx, CL_MEM_READ_ONLY, h_vA.size() * sizeof(data_type)};
+    d_vb = cl::Buffer{ctx, CL_MEM_READ_ONLY, h_vb.size() * sizeof(data_type)};
+    d_vx = cl::Buffer{ctx, CL_MEM_WRITE_ONLY, sizeof(data_type) * h_vb.size()};
 
     // explicit transfer
-    queue.enqueueWriteBuffer(d_vA, CL_TRUE, 0, h_vA.size() * sizeof(float), h_vA.data());
-    queue.enqueueWriteBuffer(d_vb, CL_TRUE, 0, h_vb.size() * sizeof(float), h_vb.data());
+    queue.enqueueWriteBuffer(d_vA, CL_TRUE, 0, h_vA.size() * sizeof(data_type), 
+        h_vA.data());
+    queue.enqueueWriteBuffer(d_vb, CL_TRUE, 0, h_vb.size() * sizeof(data_type),
+        h_vb.data());
 
     std::cout << "launch the kernel" << std::endl;
-    int const count = NUM_CHANNELS;
+    int const count = num_channels;
     auto event = k_fnnls(cl::EnqueueArgs{queue, cl::NDRange(count)},
          d_vA, d_vb, d_vx, epsilon, max_iterations);
     if (status_kernel != CL_SUCCESS) {
@@ -233,7 +312,23 @@ int main(int argc, char **argv ) {
     queue.finish();
 
     std::cout << "validate against the reference" << std::endl;
+    float precision = 1e-4; // 1e-5 starts having issues
     bool all_good = true;
+    for (unsigned int i=0; i<num_channels; i++) {
+        auto const& A = As[i];
+        auto const& b = bs[i];
+        my_vector x = my_vector::Zero();
+        cpu_inplace_fnnls(A, b, x);
+
+        for (int ts=0; ts<NUM_SAMPLES; ++ts) {
+            all_good &= std::abs(x(ts) - h_vx[i*NUM_SAMPLES + ts]) < precision;
+        }
+        
+        if (i%100 == 0) {
+            std::cout << "****************" << std::endl;
+            print_vectors_side_by_side(&h_vx[i*NUM_SAMPLES], x, NUM_SAMPLES);
+        }
+    }
     /*
     for (int i=0; i<SIZE; ++i) {
         all_good &= (h_c[i] == i+i+i);
