@@ -1,0 +1,14 @@
+{"rows":[
+{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhri..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl:584"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhri..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl:64"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhri..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl:385"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhri..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl:306"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhri..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl:53"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhri..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/interm_compilation//data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl:605"]}
+]}

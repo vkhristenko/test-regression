@@ -1,0 +1,166 @@
+{
+  "performanceSummary":
+  {
+    "name":"Kernel Summary"
+    , "columns":
+    ["Kernel Name", "Kernel Type", "Autorun", "Workgroup Size", "# Compute Units"]
+    , "children":
+    [
+      {
+        "name":"inplace_fnnls_facade"
+        , "data":
+        [
+          "NDRange"
+          , "No"
+          , "n/a"
+          , 1
+        ]
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Kernel type: NDRange"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+              , "line":596
+            }
+          ]
+        ]
+      }
+    ]
+  }
+  , "estimatedResources":
+  {
+    "name":"Estimated Resource Usage"
+    , "columns":
+    ["Kernel Name", "ALUTs ", "FFs  ", "RAMs ", "DSPs "]
+    , "children":
+    [
+      {
+        "name":"inplace_fnnls_facade"
+        , "data":
+        [996734, 599733, 2364, 83]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+              , "line":596
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Global Interconnect"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [7336, 13776, 61, 0]
+      }
+      , {
+        "name":"Board Interface"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [113900, 227800, 377, 0]
+      }
+      , {
+        "name":"Total"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [1117970, 841376, 2804, 83]
+        , "data_percent":
+        [150.975, 56.8113, 120.034, 5.46772]
+      }
+      , {
+        "name":"Available"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [740500, 1481000, 2336, 1518]
+      }
+    ]
+  }
+  , "compileWarnings":
+  {
+    "name":"Compile Warnings"
+    , "children":
+    [
+      {
+        "name":"Store uses a Burst-coalesced write-ack non-aligned LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Use Dynamic Profiler to determine performance impact of this LSU."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+              , "line":606
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Load uses a Burst-coalesced non-aligned LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Use Dynamic Profiler to determine performance impact of this LSU."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+              , "line":609
+            }
+            , {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+              , "line":382
+            }
+            , {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+              , "line":54
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Load uses a Burst-coalesced non-aligned LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Use Dynamic Profiler to determine performance impact of this LSU."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+              , "line":609
+            }
+            , {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+              , "line":386
+            }
+          ]
+        ]
+      }
+    ]
+  }
+}
