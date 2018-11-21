@@ -23,20 +23,23 @@ typedef float data_type;
 // C = A * A_T -> the result is symmetric matrix.
 // the restult matrix C will be stored in column major
 //
-void transpose_multiply_m_m(__global data_type const* A, 
+void transpose_multiply_m_m(__global data_type const* restrict A, 
                             NNLS_LOCAL data_type *restrict result);
-void transpose_multiply_m_v_v(__global data_type const *M, 
-                              __global data_type const *v, 
+void transpose_multiply_m_v_v(__global data_type const * restrict M, 
+                              __global data_type const * restrict v, 
                               NNLS_LOCAL data_type * restrict result);
-void multiply_m_v_v(NNLS_LOCAL data_type const * M, 
-                    NNLS_LOCAL data_type const *v, 
+void multiply_m_v_v(NNLS_LOCAL data_type const * restrict M, 
+                    NNLS_LOCAL data_type const * restrict v, 
                     NNLS_LOCAL data_type *restrict result);
 
-void transpose_multiply_m_m(__global data_type const* A, 
+void transpose_multiply_m_m(__global data_type const* restrict A, 
                             NNLS_LOCAL data_type *restrict result) {
+#pragma loop_coalesce 2
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         for (int j=i; j<NUM_TIME_SAMPLES; ++j) {
             M_LINEAR_ACCESS(result, i, j) = 0;
+
+#pragma unroll 1
             for (int k=0; k<NUM_TIME_SAMPLES; ++k)
                 M_LINEAR_ACCESS(result, i, j) += M_LINEAR_ACCESS(A, k, i) * 
                     M_LINEAR_ACCESS(A, k, j);
@@ -48,6 +51,7 @@ void transpose_multiply_m_m(__global data_type const* A,
 void transpose_multiply_m_v_v(__global data_type const *M, 
                               __global data_type const *v, 
                               NNLS_LOCAL data_type *restrict result) {
+#pragma loop_coalesce 2
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         result[i] = 0;
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) {
@@ -59,6 +63,7 @@ void transpose_multiply_m_v_v(__global data_type const *M,
 void multiply_m_v_v(NNLS_LOCAL data_type const *M, 
                     NNLS_LOCAL data_type const *v, 
                     NNLS_LOCAL data_type *restrict result) {
+#pragma loop_coalesce 2
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         result[i] = 0;
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) 
@@ -109,31 +114,34 @@ void swap_row_column(NNLS_LOCAL data_type *pM,
     M_LINEAR_ACCESS(pM, i, i) = M_LINEAR_ACCESS(pM, j, j);
     M_LINEAR_ACCESS(pM, j, j) = tmptmp;
 
+#pragma unroll 1
     SWAP_LOOP(0, i, pM, i, j)
+#pragma unroll 1
     SWAP_LOOP(i+1, j, pM, i, j)
+#pragma unroll 1
     SWAP_LOOP(j+1, NUM_TIME_SAMPLES, pM, i, j)
 }
 
 //
 // Cholesky Decomposition + Forward/Backward Substituion Solvers
 //
-void cholesky_decomp(NNLS_LOCAL data_type const* pM,
+void cholesky_decomp(NNLS_LOCAL data_type const* restrict pM,
                      NNLS_LOCAL data_type * restrict pL,
                      int full_size, int view_size);
 void fused_cholesky_forward_substitution_solver_rcadd(
-        NNLS_LOCAL data_type const *pM, 
+        NNLS_LOCAL data_type const * restrict pM, 
         NNLS_LOCAL data_type *restrict pL, 
-        NNLS_LOCAL data_type const *pb,
+        NNLS_LOCAL data_type const * restrict pb,
         NNLS_LOCAL data_type *restrict py, 
         int full_size, int view_size);
 void fused_cholesky_forward_substitution_solver_inbetween_removal(
-        NNLS_LOCAL data_type const *pM, 
+        NNLS_LOCAL data_type const * restrict pM, 
         NNLS_LOCAL data_type *restrict pL, 
-        NNLS_LOCAL data_type const *pb, 
+        NNLS_LOCAL data_type const * restrict pb, 
         NNLS_LOCAL data_type *restrict py, 
         int position, int full_size, int view_size);
 
-void cholesky_decomp(NNLS_LOCAL data_type const* pM,  
+void cholesky_decomp(NNLS_LOCAL data_type const* restrict pM,  
                      NNLS_LOCAL data_type *restrict pL, 
                      int full_size, int view_size) {
     for (int i=0; i<view_size; ++i) {
@@ -384,6 +392,7 @@ void inplace_fnnls(__global data_type const * restrict A,
     transpose_multiply_m_v_v(A, b, Atb);
     permutation_identity(permutation);
 
+#pragma unroll 1
     for (int i=0; i<NUM_TIME_SAMPLES; ++i)
         final_s[i] = x[i];
 
@@ -397,6 +406,7 @@ void inplace_fnnls(__global data_type const * restrict A,
 #endif
 
     // loop over all iterations. 
+#pragma unroll 1
     for (unsigned int iter = 0; iter < max_iterations; ++iter) {
         int nactive = NUM_TIME_SAMPLES - npassive;
 #ifdef NNLS_DEBUG
@@ -419,6 +429,7 @@ void inplace_fnnls(__global data_type const * restrict A,
 #endif
         data_type max_w_value = FLT_MIN; int max_w_idx; 
         int iii = 0;
+#pragma unroll 1
         for (int i=npassive; i<NUM_TIME_SAMPLES; ++i) {
             w [ i ] = Atb [ i ] - AtAx [ i ];
 
@@ -504,6 +515,7 @@ void inplace_fnnls(__global data_type const * restrict A,
 
             // update the elements from the passive set
             data_type min_s_value = s [ 0 ];
+#pragma unroll 1
             for (int i=1; i<npassive; ++i) {
                 if (s [ i ] < min_s_value)
                     min_s_value = s [ i ];
@@ -520,6 +532,7 @@ void inplace_fnnls(__global data_type const * restrict A,
 #ifdef NNLS_DEBUG
                 printf("min_s_value = %f and branching here\n", min_s_value);
 #endif
+#pragma unroll 1
                 for (int i=0; i<npassive; ++i)
                     final_s [ i ] = s [ i ];
                 break;
@@ -535,6 +548,7 @@ void inplace_fnnls(__global data_type const * restrict A,
             // 
             data_type alpha = FLT_MAX;
             int alpha_idx = 0;
+#pragma unroll 1
             for (int i=0; i<npassive; ++i) {
                 if (s [ i ] <= 0.0f) {
                     data_type const ratio = final_s [ i ] / 
@@ -547,12 +561,14 @@ void inplace_fnnls(__global data_type const * restrict A,
             }
 
             if (alpha == FLT_MAX) {
+#pragma unroll 1
                 for (int i=0; i<npassive; ++i) 
                     final_s [ i ] = s [ i ];
                 break;
             }
 
             // update solution using alpha
+#pragma unroll 1
             for (int i=0; i<npassive; ++i) {
                 final_s [ i ] += alpha * (s [ i ] - final_s [ i ]);
             }
@@ -583,6 +599,7 @@ void inplace_fnnls(__global data_type const * restrict A,
 #endif
 
     // permute the solution vector back to have x[i] sit at the original position
+#pragma unroll 1
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         x [ permutation[i] ] = final_s [i];
     }
