@@ -116,12 +116,27 @@ inline void swap_row_column(NNLS_LOCAL data_type *pM,
     M_LINEAR_ACCESS(pM, i, i) = M_LINEAR_ACCESS(pM, j, j);
     M_LINEAR_ACCESS(pM, j, j) = tmptmp;
 
+    for (int elem=0; elem<NUM_TIME_SAMPLES; ++elem) {
+        if (elem==i || elem==j)
+            continue;
+
+        data_type tmp = M_LINEAR_ACCESS(pM, i, elem);
+        M_LINEAR_ACCESS(pM, i, elem) =
+            M_LINEAR_ACCESS(pM, j, elem);
+        M_LINEAR_ACCESS(pM, j, elem) = tmp;
+        M_LINEAR_ACCESS(pM, elem, i) =
+            M_LINEAR_ACCESS(pM, elem, j);
+        M_LINEAR_ACCESS(pM, elem, j) = tmp;
+    }
+
+/*
 #pragma unroll 1
     SWAP_LOOP(0, i, pM, i, j)
 #pragma unroll 1
     SWAP_LOOP(i+1, j, pM, i, j)
 #pragma unroll 1
     SWAP_LOOP(j+1, NUM_TIME_SAMPLES, pM, i, j)
+*/
 }
 
 //
