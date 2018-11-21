@@ -427,7 +427,7 @@ void inplace_fnnls(__global data_type const * restrict A,
     // loop over all iterations. 
 #pragma unroll 1
     for (unsigned int iter = 0; iter < max_iterations; ++iter) {
-        __local int nactive = NUM_TIME_SAMPLES - npassive;
+        int nactive = NUM_TIME_SAMPLES - npassive;
 #ifdef NNLS_DEBUG
         printf("*************\n");
         printf("iteration = %d\n", iter);
@@ -446,7 +446,7 @@ void inplace_fnnls(__global data_type const * restrict A,
             printf("AtAx = \n");
             print_vector(AtAx, NUM_TIME_SAMPLES);
 #endif
-        __local data_type max_w_value = FLT_MIN; int max_w_idx; 
+        data_type max_w_value = FLT_MIN; int max_w_idx; 
         int iii = 0;
 #pragma unroll 1
         for (int i=npassive; i<NUM_TIME_SAMPLES; ++i) {
@@ -492,13 +492,13 @@ void inplace_fnnls(__global data_type const * restrict A,
         ++npassive;
 
         // inner loop
-        __local int inner_iteration = 0;
-        __local int position_removed = -1;
+        int inner_iteration = 0;
+        int position_removed = -1;
         while (npassive > 0) {
             if (npassive == 1) {
                 // scalar case
-                __local data_type l_0_0 = sqrt(AtA[0]);
-                __local data_type y_0_0 = Atb[0] / l_0_0;
+                data_type l_0_0 = sqrt(AtA[0]);
+                data_type y_0_0 = Atb[0] / l_0_0;
                 pL[0] = l_0_0;
                 py[0] = y_0_0;
                 s[0] = y_0_0 / l_0_0;
@@ -536,7 +536,7 @@ void inplace_fnnls(__global data_type const * restrict A,
 #endif
 
             // update the elements from the passive set
-            __local data_type min_s_value = s [ 0 ];
+            data_type min_s_value = s [ 0 ];
 #pragma unroll 1
             for (int i=1; i<npassive; ++i) {
                 if (s [ i ] < min_s_value)
@@ -568,8 +568,8 @@ void inplace_fnnls(__global data_type const * restrict A,
 #endif
 
             // 
-            __local data_type alpha = FLT_MAX;
-            __local int alpha_idx = 0;
+            data_type alpha = FLT_MAX;
+            int alpha_idx = 0;
 #pragma unroll 1
             for (int i=0; i<npassive; ++i) {
                 if (s [ i ] <= 0.0f) {
