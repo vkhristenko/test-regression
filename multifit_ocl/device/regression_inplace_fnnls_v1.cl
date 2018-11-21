@@ -142,23 +142,23 @@ inline void swap_row_column(NNLS_LOCAL data_type *pM,
 //
 // Cholesky Decomposition + Forward/Backward Substituion Solvers
 //
-void cholesky_decomp(NNLS_LOCAL data_type const* restrict pM,
+inline void cholesky_decomp(NNLS_LOCAL data_type const* restrict pM,
                      NNLS_LOCAL data_type * restrict pL,
                      int full_size, int view_size);
-void fused_cholesky_forward_substitution_solver_rcadd(
+inline void fused_cholesky_forward_substitution_solver_rcadd(
         NNLS_LOCAL data_type const * restrict pM, 
         NNLS_LOCAL data_type *restrict pL, 
         NNLS_LOCAL data_type const * restrict pb,
         NNLS_LOCAL data_type *restrict py, 
         int full_size, int view_size);
-void fused_cholesky_forward_substitution_solver_inbetween_removal(
+inline void fused_cholesky_forward_substitution_solver_inbetween_removal(
         NNLS_LOCAL data_type const * restrict pM, 
         NNLS_LOCAL data_type *restrict pL, 
         NNLS_LOCAL data_type const * restrict pb, 
         NNLS_LOCAL data_type *restrict py, 
         int position, int full_size, int view_size);
 
-void cholesky_decomp(NNLS_LOCAL data_type const* restrict pM,  
+inline void cholesky_decomp(NNLS_LOCAL data_type const* restrict pM,  
                      NNLS_LOCAL data_type *restrict pL, 
                      int full_size, int view_size) {
     for (int i=0; i<view_size; ++i) {
@@ -189,7 +189,7 @@ void cholesky_decomp(NNLS_LOCAL data_type const* restrict pM,
     }
 }
 
-void fused_cholesky_forward_substitution_solver_rcadd(
+inline void fused_cholesky_forward_substitution_solver_rcadd(
         NNLS_LOCAL data_type const *pM, 
         NNLS_LOCAL data_type *restrict pL, 
         NNLS_LOCAL data_type const *pb,
@@ -233,7 +233,7 @@ void fused_cholesky_forward_substitution_solver_rcadd(
     py[row] = y_last;
 }
 
-void fused_cholesky_forward_substitution_solver_inbetween_removal(
+inline void fused_cholesky_forward_substitution_solver_inbetween_removal(
         NNLS_LOCAL data_type const *pM, 
         NNLS_LOCAL data_type *restrict pL, 
         NNLS_LOCAL data_type const *pb, 
@@ -274,11 +274,11 @@ void fused_cholesky_forward_substitution_solver_inbetween_removal(
     }
 }
 
-void solve_forward_substitution(NNLS_LOCAL data_type const *pM, 
+inline void solve_forward_substitution(NNLS_LOCAL data_type const *pM, 
                                 NNLS_LOCAL data_type const* pb, 
                                 NNLS_LOCAL data_type *restrict psolution,
                                 int full_size, int view_size);
-void solve_forward_substitution(NNLS_LOCAL data_type const *pM, 
+inline void solve_forward_substitution(NNLS_LOCAL data_type const *pM, 
                                 NNLS_LOCAL data_type const* pb, 
                                 NNLS_LOCAL data_type *restrict psolution,
                                 int full_size, int view_size) {
