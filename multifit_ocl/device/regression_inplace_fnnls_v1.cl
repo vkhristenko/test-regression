@@ -116,6 +116,7 @@ inline void swap_row_column(NNLS_LOCAL data_type *pM,
     M_LINEAR_ACCESS(pM, i, i) = M_LINEAR_ACCESS(pM, j, j);
     M_LINEAR_ACCESS(pM, j, j) = tmptmp;
 
+#pragma ivdep
     for (int elem=0; elem<NUM_TIME_SAMPLES; ++elem) {
         if (elem==i || elem==j)
             continue;
