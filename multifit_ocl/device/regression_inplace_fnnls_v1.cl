@@ -352,15 +352,15 @@ void print_permutation(int const *pv, int size) {
 // fast nnls w/o copying (inplace updates)
 //
 __kernel
-void inplace_fnnls(__global data_type const *A,
-                   __global data_type const *b,
+void inplace_fnnls(__global data_type const * restrict A,
+                   __global data_type const * restrict b,
                    __global data_type *restrict x,
                    double const epsilon,
                    unsigned int const max_iterations);
 
 __kernel
-void inplace_fnnls(__global data_type const *A,
-                   __global data_type const *b,
+void inplace_fnnls(__global data_type const * restrict A,
+                   __global data_type const * restrict b,
                    __global data_type *restrict x,
                    double const epsilon,
                    unsigned int const max_iterations) {
