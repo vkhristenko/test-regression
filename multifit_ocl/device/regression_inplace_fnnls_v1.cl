@@ -84,14 +84,14 @@ inline void swap_perm_element(NNLS_LOCAL int *pv, int i, int j);
 
 inline void swap_element(NNLS_LOCAL data_type *pv,
                   int i, int j) {
-    __local data_type tmp = pv[i];
+    data_type tmp = pv[i];
     pv[i] = pv[j];
     pv[j] = tmp;
 }
 
 inline void swap_perm_element(NNLS_LOCAL int *pv,
                        int i, int j) {
-    __local int tmp = pv[i];
+    int tmp = pv[i];
     pv[i] = pv[j];
     pv[j] = tmp;
 }
@@ -112,7 +112,7 @@ inline void swap_perm_element(NNLS_LOCAL int *pv,
 inline void swap_row_column(NNLS_LOCAL data_type *pM, 
                      int i, int j, int full_size, int view_size) {
     // diagnoal
-    __local data_type tmptmp = M_LINEAR_ACCESS(pM, i, i);
+    data_type tmptmp = M_LINEAR_ACCESS(pM, i, i);
     M_LINEAR_ACCESS(pM, i, i) = M_LINEAR_ACCESS(pM, j, j);
     M_LINEAR_ACCESS(pM, j, j) = tmptmp;
 
@@ -120,7 +120,7 @@ inline void swap_row_column(NNLS_LOCAL data_type *pM,
         if (elem==i || elem==j)
             continue;
 
-        __local data_type tmp = M_LINEAR_ACCESS(pM, i, elem);
+        data_type tmp = M_LINEAR_ACCESS(pM, i, elem);
         M_LINEAR_ACCESS(pM, i, elem) =
             M_LINEAR_ACCESS(pM, j, elem);
         M_LINEAR_ACCESS(pM, j, elem) = tmp;
@@ -164,10 +164,10 @@ inline void cholesky_decomp(NNLS_LOCAL data_type const* restrict pM,
     for (int i=0; i<view_size; ++i) {
 
         // first compute elements to the left of the diagoanl
-        __local data_type sumsq = 0.0f;
+        data_type sumsq = 0.0f;
         for (int j=0; j<i; ++j) {
 
-            __local data_type sumsq2 = 0.0f;
+            data_type sumsq2 = 0.0f;
             for (int k=0; k<j; ++k) {
                 sumsq2 += M_LINEAR_ACCESS(pL, i, k) *
                     M_LINEAR_ACCESS(pL, j, k);
@@ -199,18 +199,18 @@ inline void fused_cholesky_forward_substitution_solver_rcadd(
      * cholesky decomposition using partial computation
      * only compute values in the row that was just added
      */
-    __local data_type sum = 0.0f;
-    __local int row = view_size - 1;
-    __local data_type total = pb[row];
+    data_type sum = 0.0f;
+    int row = view_size - 1;
+    data_type total = pb[row];
     for (int col=0; col<row; ++col) {
-        __local data_type sum2 = 0;
+        data_type sum2 = 0;
         for (int j=0; j<col; ++j) {
             sum2 += M_LINEAR_ACCESS(pL, row, j) *
                 M_LINEAR_ACCESS(pL, col, j);
         }
 
         // compute the row,col : row > col. elements to the left of the diagonal
-        __local data_type value_row_col = (M_LINEAR_ACCESS(pM, row, col) - sum2)
+        data_type value_row_col = (M_LINEAR_ACCESS(pM, row, col) - sum2)
             / M_LINEAR_ACCESS(pL, col, col);
 
         // update the sum needed for forward substitution
@@ -224,7 +224,7 @@ inline void fused_cholesky_forward_substitution_solver_rcadd(
     }
 
     // compute the diagonal value
-    __local data_type diag_value = SIMPLE_SQRT(M_LINEAR_ACCESS(pM, row, row)
+    data_type diag_value = SIMPLE_SQRT(M_LINEAR_ACCESS(pM, row, row)
         - sum);
     M_LINEAR_ACCESS(pL, row, row) = diag_value;
 
@@ -243,18 +243,18 @@ inline void fused_cholesky_forward_substitution_solver_inbetween_removal(
     for (int i=position; i<view_size; ++i) {
 
         // first compute elements to the left of the diagoanl
-        __local data_type sumsq = 0.0f;
-        __local data_type total = pb[i];
+        data_type sumsq = 0.0f;
+        data_type total = pb[i];
         for (int j=0; j<i; ++j) {
 
-            __local data_type sumsq2 = 0.0f;
+            data_type sumsq2 = 0.0f;
             for (int k=0; k<j; ++k) {
                 sumsq2 += M_LINEAR_ACCESS(pL, i, k) *
                     M_LINEAR_ACCESS(pL, j, k);
             }
 
             // compute the i,j : i>j. elements to the left of the diagonal
-            __local data_type value_i_j =
+            data_type value_i_j =
                 (M_LINEAR_ACCESS(pM, i, j) - sumsq2)
                 / M_LINEAR_ACCESS(pL, j, j);
             M_LINEAR_ACCESS(pL, i, j) = value_i_j;
@@ -265,7 +265,7 @@ inline void fused_cholesky_forward_substitution_solver_inbetween_removal(
         }
 
         // second, compute the diagonal element
-        __local data_type value_i_i =
+        data_type value_i_i =
             SIMPLE_SQRT(M_LINEAR_ACCESS(pM, i, i) - sumsq);
         M_LINEAR_ACCESS(pL, i, i) = value_i_i;
 
@@ -318,7 +318,7 @@ inline void solve_backward_substitution(NNLS_LOCAL data_type const * restrict pM
     // for the rest
     for (int i=view_size-2; i>=0; --i) {
 //        data_type total = pb[i];
-        __local data_type total = 0.0f;
+        data_type total = 0.0f;
         for (int j=i+1; j<view_size; ++j) {
             total += M_LINEAR_ACCESS(pM, j, i) * psolution[j];
         }
