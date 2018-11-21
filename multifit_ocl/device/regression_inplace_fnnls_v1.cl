@@ -84,14 +84,14 @@ inline void swap_perm_element(NNLS_LOCAL int *pv, int i, int j);
 
 inline void swap_element(NNLS_LOCAL data_type *pv,
                   int i, int j) {
-    data_type tmp = pv[i];
+    __local data_type tmp = pv[i];
     pv[i] = pv[j];
     pv[j] = tmp;
 }
 
 inline void swap_perm_element(NNLS_LOCAL int *pv,
                        int i, int j) {
-    int tmp = pv[i];
+    __local int tmp = pv[i];
     pv[i] = pv[j];
     pv[j] = tmp;
 }
@@ -112,7 +112,7 @@ inline void swap_perm_element(NNLS_LOCAL int *pv,
 inline void swap_row_column(NNLS_LOCAL data_type *pM, 
                      int i, int j, int full_size, int view_size) {
     // diagnoal
-    data_type tmptmp = M_LINEAR_ACCESS(pM, i, i);
+    __local data_type tmptmp = M_LINEAR_ACCESS(pM, i, i);
     M_LINEAR_ACCESS(pM, i, i) = M_LINEAR_ACCESS(pM, j, j);
     M_LINEAR_ACCESS(pM, j, j) = tmptmp;
 
@@ -120,7 +120,7 @@ inline void swap_row_column(NNLS_LOCAL data_type *pM,
         if (elem==i || elem==j)
             continue;
 
-        data_type tmp = M_LINEAR_ACCESS(pM, i, elem);
+        __local data_type tmp = M_LINEAR_ACCESS(pM, i, elem);
         M_LINEAR_ACCESS(pM, i, elem) =
             M_LINEAR_ACCESS(pM, j, elem);
         M_LINEAR_ACCESS(pM, j, elem) = tmp;
@@ -164,10 +164,10 @@ inline void cholesky_decomp(NNLS_LOCAL data_type const* restrict pM,
     for (int i=0; i<view_size; ++i) {
 
         // first compute elements to the left of the diagoanl
-        data_type sumsq = 0;
+        __local data_type sumsq = 0.0f;
         for (int j=0; j<i; ++j) {
 
-            data_type sumsq2 = 0;
+            __local data_type sumsq2 = 0.0f;
             for (int k=0; k<j; ++k) {
                 sumsq2 += M_LINEAR_ACCESS(pL, i, k) *
                     M_LINEAR_ACCESS(pL, j, k);
@@ -199,18 +199,18 @@ inline void fused_cholesky_forward_substitution_solver_rcadd(
      * cholesky decomposition using partial computation
      * only compute values in the row that was just added
      */
-    data_type sum = 0;
-    int row = view_size - 1;
-    data_type total = pb[row];
+    __local data_type sum = 0.0f;
+    __local int row = view_size - 1;
+    __local data_type total = pb[row];
     for (int col=0; col<row; ++col) {
-        data_type sum2 = 0;
+        __local data_type sum2 = 0;
         for (int j=0; j<col; ++j) {
             sum2 += M_LINEAR_ACCESS(pL, row, j) *
                 M_LINEAR_ACCESS(pL, col, j);
         }
 
         // compute the row,col : row > col. elements to the left of the diagonal
-        data_type value_row_col = (M_LINEAR_ACCESS(pM, row, col) - sum2)
+        __local data_type value_row_col = (M_LINEAR_ACCESS(pM, row, col) - sum2)
             / M_LINEAR_ACCESS(pL, col, col);
 
         // update the sum needed for forward substitution
@@ -224,13 +224,13 @@ inline void fused_cholesky_forward_substitution_solver_rcadd(
     }
 
     // compute the diagonal value
-    data_type diag_value = SIMPLE_SQRT(M_LINEAR_ACCESS(pM, row, row)
+    __local data_type diag_value = SIMPLE_SQRT(M_LINEAR_ACCESS(pM, row, row)
         - sum);
     M_LINEAR_ACCESS(pL, row, row) = diag_value;
 
     // compute the new value (view_size - 1 ) of the result of forward substitution
-    data_type y_last = total / diag_value;
-    py[row] = y_last;
+//    __local data_type y_last = total / diag_value;
+    py[row] = total / diag_value;
 }
 
 inline void fused_cholesky_forward_substitution_solver_inbetween_removal(
@@ -243,18 +243,18 @@ inline void fused_cholesky_forward_substitution_solver_inbetween_removal(
     for (int i=position; i<view_size; ++i) {
 
         // first compute elements to the left of the diagoanl
-        data_type sumsq = 0;
-        data_type total = pb[i];
+        __local data_type sumsq = 0.0f;
+        __local data_type total = pb[i];
         for (int j=0; j<i; ++j) {
 
-            data_type sumsq2 = 0;
+            __local data_type sumsq2 = 0.0f;
             for (int k=0; k<j; ++k) {
                 sumsq2 += M_LINEAR_ACCESS(pL, i, k) *
                     M_LINEAR_ACCESS(pL, j, k);
             }
 
             // compute the i,j : i>j. elements to the left of the diagonal
-            data_type value_i_j =
+            __local data_type value_i_j =
                 (M_LINEAR_ACCESS(pM, i, j) - sumsq2)
                 / M_LINEAR_ACCESS(pL, j, j);
             M_LINEAR_ACCESS(pL, i, j) = value_i_j;
@@ -265,7 +265,7 @@ inline void fused_cholesky_forward_substitution_solver_inbetween_removal(
         }
 
         // second, compute the diagonal element
-        data_type value_i_i =
+        __local data_type value_i_i =
             SIMPLE_SQRT(M_LINEAR_ACCESS(pM, i, i) - sumsq);
         M_LINEAR_ACCESS(pL, i, i) = value_i_i;
 
@@ -318,7 +318,7 @@ inline void solve_backward_substitution(NNLS_LOCAL data_type const * restrict pM
     // for the rest
     for (int i=view_size-2; i>=0; --i) {
 //        data_type total = pb[i];
-        data_type total = 0.0f;
+        __local data_type total = 0.0f;
         for (int j=i+1; j<view_size; ++j) {
             total += M_LINEAR_ACCESS(pM, j, i) * psolution[j];
         }
@@ -427,7 +427,7 @@ void inplace_fnnls(__global data_type const * restrict A,
     // loop over all iterations. 
 #pragma unroll 1
     for (unsigned int iter = 0; iter < max_iterations; ++iter) {
-        int nactive = NUM_TIME_SAMPLES - npassive;
+        __local int nactive = NUM_TIME_SAMPLES - npassive;
 #ifdef NNLS_DEBUG
         printf("*************\n");
         printf("iteration = %d\n", iter);
@@ -446,7 +446,7 @@ void inplace_fnnls(__global data_type const * restrict A,
             printf("AtAx = \n");
             print_vector(AtAx, NUM_TIME_SAMPLES);
 #endif
-        data_type max_w_value = FLT_MIN; int max_w_idx; 
+        __local data_type max_w_value = FLT_MIN; int max_w_idx; 
         int iii = 0;
 #pragma unroll 1
         for (int i=npassive; i<NUM_TIME_SAMPLES; ++i) {
@@ -492,13 +492,13 @@ void inplace_fnnls(__global data_type const * restrict A,
         ++npassive;
 
         // inner loop
-        int inner_iteration = 0;
-        int position_removed = -1;
+        __local int inner_iteration = 0;
+        __local int position_removed = -1;
         while (npassive > 0) {
             if (npassive == 1) {
                 // scalar case
-                data_type l_0_0 = sqrt(AtA[0]);
-                data_type y_0_0 = Atb[0] / l_0_0;
+                __local data_type l_0_0 = sqrt(AtA[0]);
+                __local data_type y_0_0 = Atb[0] / l_0_0;
                 pL[0] = l_0_0;
                 py[0] = y_0_0;
                 s[0] = y_0_0 / l_0_0;
@@ -536,7 +536,7 @@ void inplace_fnnls(__global data_type const * restrict A,
 #endif
 
             // update the elements from the passive set
-            data_type min_s_value = s [ 0 ];
+            __local data_type min_s_value = s [ 0 ];
 #pragma unroll 1
             for (int i=1; i<npassive; ++i) {
                 if (s [ i ] < min_s_value)
@@ -568,8 +568,8 @@ void inplace_fnnls(__global data_type const * restrict A,
 #endif
 
             // 
-            data_type alpha = FLT_MAX;
-            int alpha_idx = 0;
+            __local data_type alpha = FLT_MAX;
+            __local int alpha_idx = 0;
 #pragma unroll 1
             for (int i=0; i<npassive; ++i) {
                 if (s [ i ] <= 0.0f) {
