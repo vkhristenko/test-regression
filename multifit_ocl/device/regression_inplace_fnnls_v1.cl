@@ -318,7 +318,7 @@ inline void solve_backward_substitution(NNLS_LOCAL data_type const * restrict pM
     // for the rest
     for (int i=view_size-2; i>=0; --i) {
 //        data_type total = pb[i];
-        data_type total = 0f;
+        data_type total = 0.0f;
         for (int j=i+1; j<view_size; ++j) {
             total += M_LINEAR_ACCESS(pM, j, i) * psolution[j];
         }
