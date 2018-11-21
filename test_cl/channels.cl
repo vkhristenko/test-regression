@@ -30,9 +30,12 @@ __kernel void ffdm_consumer(__global uint* dst, uint const iterations) {
     }
 }
 
+/*
+
 // with buffer management
 channel int bm_c;
-__kernel void bm_producer(__global uint const* restrictd src,
+channel uint req;
+__kernel void bm_producer(__global uint const* restrict src,
                           __global volatile uint* restrict shared_mem,
                           uint const iterations) {
     int base_offset;
@@ -61,7 +64,7 @@ __kernel void bm_producer(__global uint const* restrictd src,
 channel int d_c __attribute__((depth(10)));
 #define N 10
 
-__kernel void d_producer(__global int* int_data) {
+__kernel void d_producer(__global int* in_data) {
     for (int i=0; i<N; i++) {
         if (in_data[i])
             write_channel_intel(d_c, in_data[i]);
@@ -74,14 +77,15 @@ __kernel void d_consumer(__global int* restrict check_data,
 
     for (int i=0; i<N; ++i) {
         if (check_data[i])
-            last_val = read_channel_intel(c);
+            last_val = read_channel_intel(d_c);
 
         out_data[i] = last_val;
     }
 }
+*/
 
 // order channel read/write operations
-channel uint o_c0 __attribute__((dpeth(0)));
+channel uint o_c0 __attribute__((depth(0)));
 channel uint o_c1 __attribute__((depth(0)));
 
 __kernel void o_producer(__global uint const* src, 
@@ -97,7 +101,7 @@ __kernel void o_consumer(__global uint* dst,
                          uint const iterations) {
     for (int i=0; i<iterations; ++i) {
         dst[2 * i + 1] = read_channel_intel(o_c0);
-        mem_fence(CLK_CHANNEL_MEM_FENCH);
+        mem_fence(CLK_CHANNEL_MEM_FENCE);
         dst[2*i] = read_channel_intel(o_c1);
     }
 }
