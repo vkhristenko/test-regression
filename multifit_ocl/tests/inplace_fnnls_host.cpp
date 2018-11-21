@@ -214,7 +214,8 @@ int main(int argc, char **argv ) {
     int error = 0;
     cl::Program program;
     if (dtype_to_use == CL_DEVICE_TYPE_ACCELERATOR) {
-        std::string binary_file {"vector_add.aocx"};
+        std::string binary_file {"regression_inplace_fnnls.aocx"};
+        std::cout << "trying to get binary " << binary_file << std::endl;
         auto bin = get_binary(binary_file);
         std::cout << "got a binary image of size " << bin.size() << std::endl;
 #if !defined(CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY)

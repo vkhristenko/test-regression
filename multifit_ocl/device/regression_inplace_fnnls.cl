@@ -589,9 +589,9 @@ void inplace_fnnls(__global data_type const *A,
 //
 // a wrapper around inplace_fnnls to arrange the data per work item
 //
-__kernel void inplace_fnnls_facade(__global data_type const *vA,
-                                   __global data_type const *vb,
-                                   __global data_type *vx,
+__kernel void inplace_fnnls_facade(__global data_type const *restrict vA,
+                                   __global data_type const *restrict vb,
+                                   __global data_type * restrict vx,
                                    double const epsilon,
                                    unsigned int const max_iterations) {
     // get the global index - identifies the detector channel 

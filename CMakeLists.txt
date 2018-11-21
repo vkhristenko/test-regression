@@ -32,6 +32,7 @@ endif()
 
 # boost
 find_package(Boost COMPONENTS program_options system REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
 if (DEBUG)
     message("DEBUG MODE")
