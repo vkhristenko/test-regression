@@ -23,16 +23,16 @@ typedef float data_type;
 // C = A * A_T -> the result is symmetric matrix.
 // the restult matrix C will be stored in column major
 //
-void transpose_multiply_m_m(__global data_type const* restrict A, 
+inline void transpose_multiply_m_m(__global data_type const* restrict A, 
                             NNLS_LOCAL data_type *restrict result);
-void transpose_multiply_m_v_v(__global data_type const * restrict M, 
+inline void transpose_multiply_m_v_v(__global data_type const * restrict M, 
                               __global data_type const * restrict v, 
                               NNLS_LOCAL data_type * restrict result);
-void multiply_m_v_v(NNLS_LOCAL data_type const * restrict M, 
+inline void multiply_m_v_v(NNLS_LOCAL data_type const * restrict M, 
                     NNLS_LOCAL data_type const * restrict v, 
                     NNLS_LOCAL data_type *restrict result);
 
-void transpose_multiply_m_m(__global data_type const* restrict A, 
+inline void transpose_multiply_m_m(__global data_type const* restrict A, 
                             NNLS_LOCAL data_type *restrict result) {
 #pragma loop_coalesce 2
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
@@ -48,24 +48,26 @@ void transpose_multiply_m_m(__global data_type const* restrict A,
     }
 }
 
-void transpose_multiply_m_v_v(__global data_type const *M, 
+inline void transpose_multiply_m_v_v(__global data_type const *M, 
                               __global data_type const *v, 
                               NNLS_LOCAL data_type *restrict result) {
 #pragma loop_coalesce 2
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         result[i] = 0;
+#pragma unroll 1
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) {
             result[i] += M_LINEAR_ACCESS(M, k, i) * v[k];
         }
     }
 }
 
-void multiply_m_v_v(NNLS_LOCAL data_type const *M, 
+inline void multiply_m_v_v(NNLS_LOCAL data_type const *M, 
                     NNLS_LOCAL data_type const *v, 
                     NNLS_LOCAL data_type *restrict result) {
 #pragma loop_coalesce 2
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         result[i] = 0;
+#pragma unroll 1
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) 
             result[i] += M_LINEAR_ACCESS(M, i, k) * v[k];
     }
@@ -74,20 +76,20 @@ void multiply_m_v_v(NNLS_LOCAL data_type const *M,
 //
 // Swap Functions
 //
-void swap_permm(NNLS_LOCAL data_type *permutation, int idx1, int idx2);
-void swap_row_column(NNLS_LOCAL data_type *pM, 
+inline void swap_permm(NNLS_LOCAL data_type *permutation, int idx1, int idx2);
+inline void swap_row_column(NNLS_LOCAL data_type *pM, 
                      int i, int j, int full_size, int view_size);
-void swap_element(NNLS_LOCAL data_type *pv, int i, int j);
-void swap_perm_element(NNLS_LOCAL int *pv, int i, int j);
+inline void swap_element(NNLS_LOCAL data_type *pv, int i, int j);
+inline void swap_perm_element(NNLS_LOCAL int *pv, int i, int j);
 
-void swap_element(NNLS_LOCAL data_type *pv,
+inline void swap_element(NNLS_LOCAL data_type *pv,
                   int i, int j) {
     data_type tmp = pv[i];
     pv[i] = pv[j];
     pv[j] = tmp;
 }
 
-void swap_perm_element(NNLS_LOCAL int *pv,
+inline void swap_perm_element(NNLS_LOCAL int *pv,
                        int i, int j) {
     int tmp = pv[i];
     pv[i] = pv[j];
@@ -107,7 +109,7 @@ void swap_perm_element(NNLS_LOCAL int *pv,
     }
 
 // precondition: j > i
-void swap_row_column(NNLS_LOCAL data_type *pM, 
+inline void swap_row_column(NNLS_LOCAL data_type *pM, 
                      int i, int j, int full_size, int view_size) {
     // diagnoal
     data_type tmptmp = M_LINEAR_ACCESS(pM, i, i);
@@ -309,8 +311,9 @@ void solve_backward_substitution(NNLS_LOCAL data_type const *pM,
     }
 }
 
-void permutation_identity(NNLS_LOCAL int *permutation);
-void permutation_identity(NNLS_LOCAL int *permutation) {
+inline void permutation_identity(NNLS_LOCAL int *permutation);
+inline void permutation_identity(NNLS_LOCAL int *permutation) {
+#pragma unroll 1
     for (int i=0; i<NUM_TIME_SAMPLES; ++i)
         permutation[i] = i;
 }
