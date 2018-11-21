@@ -13,7 +13,7 @@
 typedef float data_type;
 #define SIMPLE_SQRT(x) sqrt(x)
 
-#define NNLS_LOCAL 
+#define NNLS_LOCAL __local
 #define NNLS_GLOBAL __global
 #define NNLS_DEBUG
 #undef NNLS_DEBUG
