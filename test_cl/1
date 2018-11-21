@@ -97,7 +97,6 @@ __kernel void o_consumer(__global uint* dst,
                          uint const iterations) {
     for (int i=0; i<iterations; ++i) {
         dst[2 * i + 1] = read_channel_intel(o_c0);
-        mem_fence(CLK_CHANNEL_MEM_FENCH);
-        dst[2*i] = read_channel_intel(o_c1);
+        mem_fence[CLK_CHANNEL_MEM_FENCH];
     }
 }
