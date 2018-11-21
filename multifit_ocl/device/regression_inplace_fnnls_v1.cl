@@ -506,20 +506,23 @@ void inplace_fnnls(__global data_type const * restrict A,
 #ifdef NNLS_DEBUG
                     printf("npassive == 1 branch\n");
 #endif
-            } else if (inner_iteration == 0) {
+            } else {
+                if (inner_iteration == 0) {
                 fused_cholesky_forward_substitution_solver_rcadd(
                     AtA, pL, Atb, py, NUM_TIME_SAMPLES, npassive);
-                solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
+                //solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
 #ifdef NNLS_DEBUG
                     printf("npassive != 1 else inner_iteration == 0 branch\n");
 #endif
-            } else {
+                } else {
                 fused_cholesky_forward_substitution_solver_inbetween_removal(
                     AtA, pL, Atb, py, position_removed, NUM_TIME_SAMPLES, npassive);
-                solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
+                //solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
 #ifdef NNLS_DEBUG
                     printf("npassive != 1 else inner_iteration!=0 else branch\n");
 #endif
+                }
+                solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
             }
 
 #ifdef NNLS_DEBUG
