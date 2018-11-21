@@ -303,12 +303,12 @@ void solve_forward_substitution(NNLS_LOCAL data_type const *pM,
  * Note: we take lower triangular (not upper triangular) to remove the transposition
  * step required otherwise.
  */
-void solve_backward_substitution(NNLS_LOCAL data_type const *pM, 
-                                 NNLS_LOCAL data_type const *pb, 
+inline void solve_backward_substitution(NNLS_LOCAL data_type const * restrict pM, 
+                                 NNLS_LOCAL data_type const * restrict pb, 
                                  NNLS_LOCAL data_type *restrict psolution,
                                  int full_size, int view_size);
-void solve_backward_substitution(NNLS_LOCAL data_type const *pM, 
-                                 NNLS_LOCAL data_type const *pb, 
+inline void solve_backward_substitution(NNLS_LOCAL data_type const * restrict pM, 
+                                 NNLS_LOCAL data_type const * restrict pb, 
                                  NNLS_LOCAL data_type *restrict psolution,
                                  int full_size, int view_size) {
     // very last element is trivial
@@ -317,12 +317,13 @@ void solve_backward_substitution(NNLS_LOCAL data_type const *pM,
 
     // for the rest
     for (int i=view_size-2; i>=0; --i) {
-        data_type total = pb[i];
+//        data_type total = pb[i];
+        data_type total = 0f;
         for (int j=i+1; j<view_size; ++j) {
-            total -= M_LINEAR_ACCESS(pM, j, i) * psolution[j];
+            total += M_LINEAR_ACCESS(pM, j, i) * psolution[j];
         }
 
-        psolution[i] = total / M_LINEAR_ACCESS(pM, i, i);
+        psolution[i] = (pb[i] - total) / M_LINEAR_ACCESS(pM, i, i);
     }
 }
 
