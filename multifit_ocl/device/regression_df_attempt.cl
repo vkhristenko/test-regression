@@ -35,7 +35,10 @@ inline void multiply_m_v_v(NNLS_LOCAL data_type const * restrict M,
 inline void transpose_multiply_m_m(__global data_type const* restrict A, 
                             NNLS_LOCAL data_type *restrict result) {
 #pragma loop_coalesce 2
+#pragma ivdep
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
+#pragma ivdep
+#pragma unroll 1
         for (int j=i; j<NUM_TIME_SAMPLES; ++j) {
             data_type tmp = 0.0f;
 #pragma unroll 1
@@ -59,9 +62,11 @@ inline void transpose_multiply_m_v_v(__global data_type const *M,
                               __global data_type const *v, 
                               NNLS_LOCAL data_type *restrict result) {
 #pragma loop_coalesce 2
+#pragma ivdep
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         data_type tmp = 0.0f;
 #pragma unroll 1
+#pragma ivdep
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) {
             tmp += M_LINEAR_ACCESS(M, k, i) * v[k];
         }
@@ -74,9 +79,11 @@ inline void multiply_m_v_v(NNLS_LOCAL data_type const *M,
                     NNLS_LOCAL data_type const *v, 
                     NNLS_LOCAL data_type *restrict result) {
 #pragma loop_coalesce 2
+#pragma ivdep
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         data_type tmp = 0.0f;
 #pragma unroll 1
+#pragma ivdep
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) 
             tmp += M_LINEAR_ACCESS(M, i, k) * v[k];
 
