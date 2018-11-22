@@ -379,14 +379,16 @@ void print_permutation(int const *pv, int size) {
 //
 // fast nnls w/o copying (inplace updates)
 //
-__kernel
+//__kernel
+inline
 void inplace_fnnls(__global data_type const * restrict A,
                    __global data_type const * restrict b,
                    __global data_type *restrict x,
                    double const epsilon,
                    unsigned int const max_iterations);
 
-__kernel
+//__kernel
+inline
 void inplace_fnnls(__global data_type const * restrict A,
                    __global data_type const * restrict b,
                    __global data_type *restrict x,
@@ -631,24 +633,22 @@ void inplace_fnnls(__global data_type const * restrict A,
 //
 // a wrapper around inplace_fnnls to arrange the data per work item
 //
-/*
 __kernel void inplace_fnnls_facade(__global data_type const *restrict vA,
                                    __global data_type const *restrict vb,
                                    __global data_type * restrict vx,
+                                   unsigned int const size,
                                    double const epsilon,
                                    unsigned int const max_iterations) {
-    // get the global index - identifies the detector channel 
-    int idx = get_global_id(0);
-        
-    // get the pointer to the right location for the idx
-    __global data_type const *ptrA = vA + idx * NUM_TIME_SAMPLES_SQ;
-    __global data_type const *ptrb = vb + idx * NUM_TIME_SAMPLES;
-    __global data_type *ptrx = vx + idx * NUM_TIME_SAMPLES;
+#pragma ivdep
+    for (unsigned int idx=0; idx<size; ++idx) {
+        __global data_type const *ptrA = vA + idx * NUM_TIME_SAMPLES_SQ;
+        __global data_type const *ptrb = vb + idx * NUM_TIME_SAMPLES;
+        __global data_type *ptrx = vx + idx * NUM_TIME_SAMPLES;
 
-    for (int i=0; i<NUM_TIME_SAMPLES; ++i)
-        ptrx[i] = 0;
+        for (int i=0; i<NUM_TIME_SAMPLES; ++i)
+            ptrx[i] = 0;
 
-    // launch the fnnls itself for the right worker item
-    inplace_fnnls(ptrA, ptrb, ptrx, epsilon, max_iterations);
+        // launch the fnnls itself for the right worker item
+        inplace_fnnls(ptrA, ptrb, ptrx, epsilon, max_iterations);
+    }
 }
-*/
