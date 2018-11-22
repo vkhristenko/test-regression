@@ -12,11 +12,21 @@ void entry_point_reader_A(__global data_type const* restrict As, unsigned int si
     for (unsigned int ich=0; ich<size; ++ich) {
         __global data_type const* ptrA = As + ich*SIZE_2;
         matrix m; 
+
         for (unsigned int i=0; i<SIZE_2; i++) {
             m[i] = ptrA[i];
         }
-        
+
         write_channel_intel(, m);
+
+        /*
+        for (unsigned int k=0; k<SIZE; ++k)
+            for (unsigned int i=0; i<SIZE; i++)
+                for (unsigned int j=i; j<SIZE; j++) {
+                    write_channel_intel(, m[k*SIZE + i]);
+                    write_channel_intel(, m[k*SIZE + j]);
+                }
+                */
     }
 }
 
@@ -36,29 +46,12 @@ void entry_point_reader_b(__global data_type const* restrict bs, unsigned int si
 __kernel
 void transpose_multiply_mm() {
     while (true) {
-        read_channel_intel(, m);
-        for (unsigned int i=0; i<SIZE; i++)
-            for (unsigned int j=i; j<SIZE; j++) {
-                data_type tmp = 0.0f;
-                for (unsigned int k=0; k<SIZE; ++k) 
-                    tmp += m[k*SIZE + i] * m[k*SIZE+j];
+        matrix m = read_channel_intel();
+        for (unsigned int k=0; k<SIZE; ++k)
+            for (unsigned int i=0; i<SIZE; i++)
+                for (unsigned int j=i; j<SIZE; j++) {
+                    m[i*SIZE+j] += m[k*SIZE + i] * m[k*SIZE + j];
+                    m[j*SIZE+i] += m[k*SIZE + i] * m[k*SIZE + j];
             }
-    }
-}
-
-__kernel 
-void entry_point_transpose_multiply_mm(__global data_type const* restrict As,
-                                       unsigned int size) {
-    for (unsigned int ich=0; ich<size; ++ich) {
-        
-    }
-}
-
-__kernel
-void entry_point_transpose_multiply_mvv(__global data_type const* restrict As,
-                                        __global data_type const* restrict bs,
-                                        unsigned int size) {
-    for (unsigned int ich=0; ich<size; ++ich) {
-
     }
 }
