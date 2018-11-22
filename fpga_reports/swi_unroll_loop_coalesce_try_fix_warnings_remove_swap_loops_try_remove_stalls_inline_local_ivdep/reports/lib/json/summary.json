@@ -1,0 +1,197 @@
+{
+  "performanceSummary":
+  {
+    "name":"Kernel Summary"
+    , "columns":
+    ["Kernel Name", "Kernel Type", "Autorun", "Workgroup Size", "# Compute Units"]
+    , "children":
+    [
+      {
+        "name":"inplace_fnnls"
+        , "data":
+        [
+          "Single work-item"
+          , "No"
+          , [1, 1, 1]
+          , 1
+        ]
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Kernel type: Single work-item"
+          }
+          , {
+            "type":"text"
+            , "text":"Required workgroup size: (1, 1, 1)"
+          }
+          , {
+            "type":"text"
+            , "text":"Maximum workgroup size: 1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl"
+              , "line":394
+            }
+          ]
+        ]
+      }
+    ]
+  }
+  , "estimatedResources":
+  {
+    "name":"Estimated Resource Usage"
+    , "columns":
+    ["Kernel Name", "ALUTs ", "FFs  ", "RAMs ", "DSPs "]
+    , "children":
+    [
+      {
+        "name":"inplace_fnnls"
+        , "data":
+        [48810, 54275, 184, 58]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl"
+              , "line":394
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Global Interconnect"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [1380, 4060, 61, 0]
+      }
+      , {
+        "name":"Board Interface"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [113900, 227800, 377, 0]
+      }
+      , {
+        "name":"Total"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [164090, 286202, 624, 58]
+        , "data_percent":
+        [22.1594, 19.3249, 26.7123, 3.82082]
+      }
+      , {
+        "name":"Available"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [740500, 1481000, 2336, 1518]
+      }
+    ]
+  }
+  , "compileWarnings":
+  {
+    "name":"Compile Warnings"
+    , "children":
+    [
+      {
+        "name":"Load uses a Semi-streaming LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Load with a private 256 kilobit cache. Cache is not shared with any other load. It is flushed on kernel start. Use Dynamic Profiler to verify cache effectiveness. Other kernels should not be updating the data in global memory while this kernel is using it. Cache is created when memory access pattern is data-dependent or appears to be repetitive. Simplify access pattern or mark pointer as 'volatile' to disable generation of this cache."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl"
+              , "line":411
+            }
+            , {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl"
+              , "line":44
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Load uses a Burst-coalesced cached LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Load with a private 512 kilobit cache. Cache is not shared with any other load. It is flushed on kernel start. Use Dynamic Profiler to verify cache effectiveness. Other kernels should not be updating the data in global memory while this kernel is using it. Cache is created when memory access pattern is data-dependent or appears to be repetitive. Simplify access pattern or mark pointer as 'volatile' to disable generation of this cache."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl"
+              , "line":411
+            }
+            , {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl"
+              , "line":44
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Load uses a Semi-streaming LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Load with a private 256 kilobit cache. Cache is not shared with any other load. It is flushed on kernel start. Use Dynamic Profiler to verify cache effectiveness. Other kernels should not be updating the data in global memory while this kernel is using it. Cache is created when memory access pattern is data-dependent or appears to be repetitive. Simplify access pattern or mark pointer as 'volatile' to disable generation of this cache."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl"
+              , "line":412
+            }
+            , {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl"
+              , "line":59
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Load uses a Semi-streaming LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Load with a private 64 kilobit cache. Cache is not shared with any other load. It is flushed on kernel start. Use Dynamic Profiler to verify cache effectiveness. Other kernels should not be updating the data in global memory while this kernel is using it. Cache is created when memory access pattern is data-dependent or appears to be repetitive. Simplify access pattern or mark pointer as 'volatile' to disable generation of this cache."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl"
+              , "line":412
+            }
+            , {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl"
+              , "line":59
+            }
+          ]
+        ]
+      }
+    ]
+  }
+}

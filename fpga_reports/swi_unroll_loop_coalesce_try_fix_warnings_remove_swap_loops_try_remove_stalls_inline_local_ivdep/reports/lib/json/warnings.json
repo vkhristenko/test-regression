@@ -1,0 +1,16 @@
+{"rows":[
+{"name":"Aggressive compiler optimization: removing unnecessary storage to local memory..."
+,"details":["/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl:454: Compiler Warning: Aggressive compiler optimization: removing unnecessary storage to local memory"]}
+,{"name":"Loop Coalescing requested but cannot be done in kernel 'inplace_fnnls':..."
+,"details":["/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl:38: Compiler Warning: Loop Coalescing requested but cannot be done in kernel 'inplace_fnnls':"]}
+,{"name":"Inner loop failed to coalesce to parent because of loop structure..."
+,"details":["/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl:39: Compiler Warning: Inner loop failed to coalesce to parent because of loop structure"]}
+,{"name":"Loop Coalescing requested but cannot be done in kernel 'inplace_fnnls':..."
+,"details":["/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl:55: Compiler Warning: Loop Coalescing requested but cannot be done in kernel 'inplace_fnnls':"]}
+,{"name":"Inner loop failed to coalesce to parent because of outer loop side-effecting instructions..."
+,"details":["/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl:58: Compiler Warning: Inner loop failed to coalesce to parent because of outer loop side-effecting instructions"]}
+,{"name":"Loop Coalescing requested but cannot be done in kernel 'inplace_fnnls':..."
+,"details":["/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl:68: Compiler Warning: Loop Coalescing requested but cannot be done in kernel 'inplace_fnnls':"]}
+,{"name":"Inner loop failed to coalesce to parent because of outer loop side-effecting instructions..."
+,"details":["/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls_v1.cl:71: Compiler Warning: Inner loop failed to coalesce to parent because of outer loop side-effecting instructions"]}
+]}
