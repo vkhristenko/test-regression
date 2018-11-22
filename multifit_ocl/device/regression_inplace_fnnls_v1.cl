@@ -379,16 +379,14 @@ void print_permutation(int const *pv, int size) {
 //
 // fast nnls w/o copying (inplace updates)
 //
-//__kernel
-inline
+__kernel
 void inplace_fnnls(__global data_type const * restrict A,
                    __global data_type const * restrict b,
                    __global data_type *restrict x,
                    double const epsilon,
                    unsigned int const max_iterations);
 
-//__kernel
-inline
+__kernel
 void inplace_fnnls(__global data_type const * restrict A,
                    __global data_type const * restrict b,
                    __global data_type *restrict x,
@@ -633,6 +631,7 @@ void inplace_fnnls(__global data_type const * restrict A,
 //
 // a wrapper around inplace_fnnls to arrange the data per work item
 //
+/*
 __kernel void inplace_fnnls_facade(__global data_type const *restrict vA,
                                    __global data_type const *restrict vb,
                                    __global data_type * restrict vx,
@@ -652,3 +651,4 @@ __kernel void inplace_fnnls_facade(__global data_type const *restrict vA,
         inplace_fnnls(ptrA, ptrb, ptrx, epsilon, max_iterations);
     }
 }
+*/
