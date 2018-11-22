@@ -37,13 +37,20 @@ inline void transpose_multiply_m_m(__global data_type const* restrict A,
 #pragma loop_coalesce 2
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
         for (int j=i; j<NUM_TIME_SAMPLES; ++j) {
-            M_LINEAR_ACCESS(result, i, j) = 0;
+            data_type tmp = 0.0f;
+#pragma unroll 1
+            for (int k=0; k<NUM_TIME_SAMPLES; ++k)
+                tmp += M_LINEAR_ACCESS(A, k, i) * M_LINEAR_ACCESS(A, k, j);
+            M_LINEAR_ACCESS(result, i, j) = tmp;
+            M_LINEAR_ACCESS(result, j, i) = tmp;
 
+/*
 #pragma unroll 1
             for (int k=0; k<NUM_TIME_SAMPLES; ++k)
                 M_LINEAR_ACCESS(result, i, j) += M_LINEAR_ACCESS(A, k, i) * 
                     M_LINEAR_ACCESS(A, k, j);
             M_LINEAR_ACCESS(result, j, i) = M_LINEAR_ACCESS(result, i, j);
+            */
        }
     }
 }
@@ -53,11 +60,13 @@ inline void transpose_multiply_m_v_v(__global data_type const *M,
                               NNLS_LOCAL data_type *restrict result) {
 #pragma loop_coalesce 2
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
-        result[i] = 0;
+        data_type tmp = 0.0f;
 #pragma unroll 1
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) {
-            result[i] += M_LINEAR_ACCESS(M, k, i) * v[k];
+            tmp += M_LINEAR_ACCESS(M, k, i) * v[k];
         }
+
+        result[i] = tmp;
     }
 }
 
@@ -66,10 +75,12 @@ inline void multiply_m_v_v(NNLS_LOCAL data_type const *M,
                     NNLS_LOCAL data_type *restrict result) {
 #pragma loop_coalesce 2
     for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
-        result[i] = 0;
+        data_type tmp = 0.0f;
 #pragma unroll 1
         for (int k=0; k<NUM_TIME_SAMPLES; ++k) 
-            result[i] += M_LINEAR_ACCESS(M, i, k) * v[k];
+            tmp += M_LINEAR_ACCESS(M, i, k) * v[k];
+
+        result[i] = tmp;
     }
 }
 
