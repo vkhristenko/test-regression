@@ -3,8 +3,8 @@
 #define SIZE 10
 #define SIZE_2 100
 #define SIZE_HALFM 55
-#define MATRIX_UNITS 2
-#define PIPELINE_START_UNITS 2
+#define MATRIX_UNITS 1
+#define PIPELINE_START_UNITS 1
 
 typedef float data_type;
 typedef data_type matrix[SIZE_2];
@@ -38,13 +38,16 @@ void entry_point(unsigned int size) {
 }
 */
 
-__attribute__((num_compute_units(MATRIX_UNITS)))
+//__attribute__((num_compute_units(MATRIX_UNITS)))
+__attribute__((num_compute_units(1)))
 __attribute__((max_global_work_dim(0)))
+//__attribute__((reqd_work_group_size(MATRIX_UNITS, 1, 1)))
 __kernel
 void producer_matrix_units(__global data_type* restrict As,
                            __global data_type* restrict bs,
                            unsigned int size) {
-    unsigned int cu = get_compute_id(0);
+//    unsigned int cu = get_global_id(0);
+    unsigned int cu = 0;
     for (unsigned int ich=cu; ich < size; ich+=MATRIX_UNITS) {
         // load from global memory into local variables
         matrix m; 
@@ -88,35 +91,48 @@ void producer_matrix_units(__global data_type* restrict As,
             case 0:
                 write_channel_intel(ch_fnnls_start[0], token);
                 break;
-            case 1:
+            /*case 1:
                 write_channel_intel(ch_fnnls_start[1], token);
                 break;
+                */
         }
     }
 }
 
-__attribute__((num_compute_units(PIPELINE_START_UNITS)))
+__attribute__((num_compute_units(1)))
+//__attribute__((num_compute_units(PIPELINE_START_UNITS)))
+//__attribute__((reqd_work_group_size(PIPELINE_START_UNITS, 1, 1)))
 __attribute__((max_global_work_dim(0)))
 __kernel
 void fnnls_start(__global data_type* restrict vAtA,
                  __global data_type* restrict vAtb) {
-    unsigned int cu = get_compute_id(0);
+//    unsigned int cu = get_global_id(0);
+    unsigned int cu = 0;
     while (true) {
         struct fit_state_t token;
         bool request;
         switch (cu) {
             case 0:
-                bool ctl = read_channel_nb_intel(ch_ctl_to_fnnls_start[0]);
-                if (ctl)
+            {
+                bool was_ctl_request;
+                bool ctl = read_channel_nb_intel(ch_ctl_to_fnnls_start[0], 
+                    &was_ctl_request);
+                if (was_ctl_request && ctl)
                     return;
                 token = read_channel_nb_intel(ch_fnnls_start[0], &request);
                 break;
+            }
+            /*
             case 1:
-                bool ctl = read_channel_nb_intel(ch_ctl_to_fnnls_start[1]);
-                if (ctl)
+            {
+                bool was_ctl_request;
+                bool ctl = read_channel_nb_intel(ch_ctl_to_fnnls_start[1],
+                    &was_ctl_request);
+                if (was_ctl_request && ctl)
                     return;
                 token = read_channel_nb_intel(ch_fnnls_start[1], &request);
                 break;
+            }*/
         }
 
         // if there was a request to process
@@ -136,11 +152,11 @@ void end_pipeline() {
     write_channel_intel(ch_end_pipeline_to_control_manager, true);
 }
 
-//__attribute__((autorun))
-__attribute__(max_global_work_dim(0))
+__attribute__((autorun))
+__attribute__((max_global_work_dim(0)))
 __attribute__((num_compute_units(1)))
 __kernel
-void control_manager(__global unsigned int const size) {
+void control_manager() {
     while (true) {
         // when processing of a single channel is finished, control manager
         // receives a simple bool token from the end of pipeline
@@ -152,14 +168,16 @@ void control_manager(__global unsigned int const size) {
             // send out finished signals 
             bool success_fnnls_start_0 = false;
             do {
-                success = write_channel_nb_intel(
+                success_fnnls_start_0 = write_channel_nb_intel(
                     ch_ctl_to_fnnls_start[0], true);
             } while(!success_fnnls_start_0);
+            /*
             bool success_fnnls_start_1 = false; 
             do {
-                success = write_channel_nb_intel(
+                success_fnnls_start_1 = write_channel_nb_intel(
                     ch_ctl_to_fnnls_start[1], true);
             } while (!success_fnnls_start_1);
+            */
         }
     }
 }
