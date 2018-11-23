@@ -18,6 +18,9 @@ struct fit_state_t {
     data_type    result_vector[SIZE];
 };
 
+channel struct fit_state_t ch_fnnls_start[PIPELINE_START_UNITS];
+channel s
+
 /*
 __kernel 
 void entry_point(unsigned int size) {
@@ -57,7 +60,7 @@ void producer_matrix_units(__global data_type* restrict As,
             for (unsigned int j=0; j<i+1; j++) {
                 data_type temp = 0.0f;
                 for (unsigned int k=0; k<SIZE; ++k) 
-                    tmp += m[k*SIZE + i] * m[k*SIZE + j];
+                    temp += m[k*SIZE + i] * m[k*SIZE + j];
                 out_m[i*SIZE + j] = temp;
             }
 
@@ -79,7 +82,7 @@ void producer_matrix_units(__global data_type* restrict As,
         mem_fence(CLK_GLOBAL_MEM_FENCE | CLK_CHANNEL_MEM_FENCE);
 
         // send the token down the pipeline
-        struct fit_state_t token { .ch = ich, .iteration = 0, .npassive = SIZE };
+        struct fit_state_t token = { .ch = ich, .iteration = 0, .npassive = SIZE };
         switch (ich & 0x1) {
             case 0:
                 write_channel_intel(ch_fnnls_start[0], token);
