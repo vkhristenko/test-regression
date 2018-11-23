@@ -8,10 +8,11 @@ typedef data_type matrix[SIZE_2];
 typedef data_type vector[SIZE];
 
 __kernel 
-void entry_point_reader_A(__global data_type const* restrict As, unsigned int size) {
+void entry_point_input_reader(unsigned int size) {
     for (unsigned int ich=0; ich<size; ++ich) {
         __global data_type const* ptrA = As + ich*SIZE_2;
         matrix m; 
+        vector v;
 
         for (unsigned int i=0; i<SIZE_2; i++) {
             m[i] = ptrA[i];
@@ -27,6 +28,13 @@ void entry_point_reader_A(__global data_type const* restrict As, unsigned int si
                     write_channel_intel(, m[k*SIZE + j]);
                 }
                 */
+    }
+}
+
+__kernel
+void producer_AtA(__global data_type const* restrict As) {
+    while (1) {
+
     }
 }
 
