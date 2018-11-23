@@ -19,7 +19,8 @@ struct fit_state_t {
 };
 
 channel struct fit_state_t ch_fnnls_start[PIPELINE_START_UNITS];
-channel s
+channel bool ch_ctl_to_fnnls_start[PIPELINE_START_UNITS];
+channel bool ch_end_pipeline_to_control_manager;
 
 /*
 __kernel 
@@ -127,6 +128,14 @@ void fnnls_start(__global data_type* restrict vAtA,
     }
 }
 
+__attribute__((autorun))
+__attribute__((num_compute_units(1)))
+__attribute__((max_global_work_dim(0)))
+__kernel 
+void end_pipeline() {
+    write_channel_intel(ch_end_pipeline_to_control_manager, true);
+}
+
 //__attribute__((autorun))
 __attribute__(max_global_work_dim(0))
 __attribute__((num_compute_units(1)))
@@ -135,14 +144,11 @@ void control_manager(__global unsigned int const size) {
     while (true) {
         // when processing of a single channel is finished, control manager
         // receives a simple bool token from the end of pipeline
-        // to indicate that a processing of a single channel finished
-        // blocking!
-        struct control_state_t ctl = 
-            read_channel_intel(ch_end_pipeline_to_control_manager);
-        ctl.nfinished += 1;
+        // to indicate that a processing of all channels has finished
+        bool ctl = read_channel_intel(ch_end_pipeline_to_control_manager);
 
-        //
-        if (ctl.nfinished == size) {
+        // pipeline has stopped
+        if (ctl) {
             // send out finished signals 
             bool success_fnnls_start_0 = false;
             do {
