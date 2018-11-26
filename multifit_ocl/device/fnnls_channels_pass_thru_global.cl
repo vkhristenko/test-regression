@@ -3,8 +3,8 @@
 #define SIZE 10
 #define SIZE_2 100
 #define SIZE_HALFM 55
-#define MATRIX_UNITS 1
-#define PIPELINE_START_UNITS 1
+#define MATRIX_UNITS 2
+#define PIPELINE_START_UNITS 2
 
 typedef float data_type;
 typedef data_type matrix[SIZE_2];
@@ -38,16 +38,72 @@ void entry_point(unsigned int size) {
 }
 */
 
-//__attribute__((num_compute_units(MATRIX_UNITS)))
 __attribute__((num_compute_units(1)))
 __attribute__((max_global_work_dim(0)))
-//__attribute__((reqd_work_group_size(MATRIX_UNITS, 1, 1)))
 __kernel
-void producer_matrix_units(__global data_type* restrict As,
+void producer_matrix_units_0(__global data_type* restrict As,
                            __global data_type* restrict bs,
                            unsigned int size) {
 //    unsigned int cu = get_global_id(0);
     unsigned int cu = 0;
+    for (unsigned int ich=cu; ich < size; ich+=MATRIX_UNITS) {
+        // load from global memory into local variables
+        matrix m; 
+        vector v;
+        unsigned int offset_m = SIZE_2 * ich;
+        for (unsigned int i=0; i<SIZE_2; i++) 
+            m[i] = As[offset_m + i];
+        unsigned int offset_v = SIZE * ich;
+        for (unsigned int j=0; j<SIZE; ++j)
+            v[j] = bs[offset_v + j];
+
+        matrix_triang out_m;
+        for (unsigned int i=0; i<SIZE; i++) 
+            for (unsigned int j=0; j<i+1; j++) {
+                data_type temp = 0.0f;
+                for (unsigned int k=0; k<SIZE; ++k) 
+                    temp += m[k*SIZE + i] * m[k*SIZE + j];
+                out_m[i*SIZE + j] = temp;
+            }
+
+        vector out_v;
+        for (unsigned int i=0; i<SIZE; i++) {
+            data_type temp = 0.0f;
+            for (unsigned int k=0; k<SIZE; ++k) {
+                temp += m[k*SIZE + i] * v[k];
+            }
+            out_v[i] = temp;
+        }
+
+        for (unsigned int i=0; i<SIZE_HALFM; i++) 
+            As[i] = out_m[i];
+        for (unsigned int i=0; i<SIZE; i++)
+            bs[i] = out_v[i];
+
+        // make sure commit to memory before sending the token
+        mem_fence(CLK_GLOBAL_MEM_FENCE | CLK_CHANNEL_MEM_FENCE);
+
+        // send the token down the pipeline
+        struct fit_state_t token = { .ch = ich, .iteration = 0, .npassive = SIZE };
+        switch (ich & 0x1) {
+            case 0:
+                write_channel_intel(ch_fnnls_start[0], token);
+                break;
+            case 1:
+                write_channel_intel(ch_fnnls_start[1], token);
+                break;
+        }
+    }
+}
+
+__attribute__((num_compute_units(1)))
+__attribute__((max_global_work_dim(0)))
+__kernel
+void producer_matrix_units_1(__global data_type* restrict As,
+                             __global data_type* restrict bs,
+                             unsigned int size) {
+//    unsigned int cu = get_global_id(0);
+    unsigned int cu = 1;
     for (unsigned int ich=cu; ich < size; ich+=MATRIX_UNITS) {
         // load from global memory into local variables
         matrix m; 
