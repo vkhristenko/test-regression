@@ -1,0 +1,1210 @@
+{
+  "columns":
+  ["", "Pipelined", "II", "Bottleneck", "Details"]
+  , "children":
+  [
+    {
+      "name":"Kernel: inplace_fnnls_facade"
+      , "data":
+      ["", "", ""]
+      , "debug":
+      [
+        [
+          {
+            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+            , "line":596
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"brief"
+          , "text":"ND-Range"
+        }
+        , {
+          "type":"text"
+          , "text":"ND-Range"
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Kernels"
+              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#ipp1476408832230"
+            }
+          ]
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"inplace_fnnls_facade.B1"
+          , "data":
+          ["No", "n/a", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":37
+              }
+            ]
+            , [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":37
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":"Thread capacity = 160"
+            }
+            , {
+              "type":"text"
+              , "text":"Thread capacity = 160"
+            }
+          ]
+          , "children":
+          [
+            {
+              "name":"Coalesced loop"
+              , "data":
+              ["n/a", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":38
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"Auto-coalesced"
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"Coalesced loop"
+                  , "data":
+                  ["n/a", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":40
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Auto-coalesced"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"inplace_fnnls_facade.B3"
+          , "data":
+          ["No", "n/a", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":51
+              }
+            ]
+            , [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":51
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":"Thread capacity = 190"
+            }
+            , {
+              "type":"text"
+              , "text":"Thread capacity = 190"
+            }
+          ]
+          , "children":
+          [
+            {
+              "name":"Fully unrolled loop"
+              , "data":
+              ["n/a", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":53
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Auto-unrolled"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Auto-unrolled"
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"Fully unrolled loop"
+          , "data":
+          ["n/a", "n/a", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":306
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":"Auto-unrolled"
+            }
+            , {
+              "type":"text"
+              , "text":"Auto-unrolled"
+            }
+          ]
+          , "children":
+          [
+          ]
+        }
+        , {
+          "name":"Fully unrolled loop"
+          , "data":
+          ["n/a", "n/a", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":385
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":"Auto-unrolled"
+            }
+            , {
+              "type":"text"
+              , "text":"Auto-unrolled"
+            }
+          ]
+          , "children":
+          [
+          ]
+        }
+        , {
+          "name":"inplace_fnnls_facade.B5"
+          , "data":
+          ["No", "n/a", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":398
+              }
+            ]
+            , [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":398
+              }
+            ]
+            , [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":409
+              }
+            ]
+            , [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":438
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":"Thread capacity = 400"
+            }
+            , {
+              "type":"text"
+              , "text":"Thread capacity = 400"
+            }
+          ]
+          , "children":
+          [
+            {
+              "name":"inplace_fnnls_facade.B6"
+              , "data":
+              ["No", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":62
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":62
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":64
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Thread capacity = 42"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Thread capacity = 42"
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"Fully unrolled loop"
+                  , "data":
+                  ["n/a", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":64
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Auto-unrolled"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Auto-unrolled"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"inplace_fnnls_facade.B10"
+              , "data":
+              ["No", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":112
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Thread capacity = 9"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Thread capacity = 9"
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+            , {
+              "name":"inplace_fnnls_facade.B12"
+              , "data":
+              ["No", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":113
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Thread capacity = 9"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Thread capacity = 9"
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+            , {
+              "name":"inplace_fnnls_facade.B14"
+              , "data":
+              ["No", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":114
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Thread capacity = 9"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Thread capacity = 9"
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+            , {
+              "name":"inplace_fnnls_facade.B8"
+              , "data":
+              ["No", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":420
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":420
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":423
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Thread capacity = 11"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Thread capacity = 11"
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+            , {
+              "name":"inplace_fnnls_facade.B16"
+              , "data":
+              ["No", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":465
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":517
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":547
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":573
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Thread capacity = 293"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Thread capacity = 293"
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"inplace_fnnls_facade.B33"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":112
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Thread capacity = 9"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Thread capacity = 9"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+                , {
+                  "name":"inplace_fnnls_facade.B35"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":113
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Thread capacity = 9"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Thread capacity = 9"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+                , {
+                  "name":"inplace_fnnls_facade.B37"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":114
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Thread capacity = 9"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Thread capacity = 9"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+                , {
+                  "name":"inplace_fnnls_facade.B20"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":180
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":180
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Thread capacity = 37"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Thread capacity = 37"
+                    }
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Coalesced loop"
+                      , "data":
+                      ["n/a", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                            , "line":182
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Auto-coalesced"
+                        }
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "name":"inplace_fnnls_facade.B23"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":218
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":218
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":244
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Thread capacity = 80"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Thread capacity = 80"
+                    }
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Coalesced loop"
+                      , "data":
+                      ["n/a", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                            , "line":223
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Auto-coalesced"
+                        }
+                      ]
+                      , "children":
+                      [
+                        {
+                          "name":"Coalesced loop"
+                          , "data":
+                          ["n/a", "n/a", "n/a"]
+                          , "debug":
+                          [
+                            [
+                              {
+                                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                                , "line":226
+                              }
+                            ]
+                          ]
+                          , "details":
+                          [
+                            {
+                              "type":"text"
+                              , "text":"Auto-coalesced"
+                            }
+                          ]
+                          , "children":
+                          [
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "name":"inplace_fnnls_facade.B25"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":294
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":294
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Thread capacity = 31"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Thread capacity = 31"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+                , {
+                  "name":"inplace_fnnls_facade.B22"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":294
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":294
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Thread capacity = 31"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Thread capacity = 31"
+                    }
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Coalesced loop"
+                      , "data":
+                      ["n/a", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                            , "line":296
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Auto-coalesced"
+                        }
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                    , {
+                      "name":"Coalesced loop"
+                      , "data":
+                      ["n/a", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                            , "line":296
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Auto-coalesced"
+                        }
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "name":"inplace_fnnls_facade.B26"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":505
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":505
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":506
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Thread capacity = 7"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Thread capacity = 7"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+                , {
+                  "name":"inplace_fnnls_facade.B29"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":536
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":536
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":537
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Thread capacity = 34"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Thread capacity = 34"
+                    }
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Coalesced loop"
+                      , "data":
+                      ["n/a", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                            , "line":536
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Auto-coalesced"
+                        }
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "name":"inplace_fnnls_facade.B31"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":554
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":554
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Thread capacity = 13"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Thread capacity = 13"
+                    }
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Coalesced loop"
+                      , "data":
+                      ["n/a", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                            , "line":554
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Auto-coalesced"
+                        }
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"inplace_fnnls_facade.B28"
+              , "data":
+              ["No", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":521
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":521
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Thread capacity = 7"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Thread capacity = 7"
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"Coalesced loop"
+                  , "data":
+                  ["n/a", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":521
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Auto-coalesced"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"inplace_fnnls_facade.B30"
+              , "data":
+              ["No", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":548
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                    , "line":548
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Thread capacity = 7"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Thread capacity = 7"
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"Coalesced loop"
+                  , "data":
+                  ["n/a", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                        , "line":548
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Auto-coalesced"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+        , {
+          "name":"Fully unrolled loop"
+          , "data":
+          ["n/a", "n/a", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":584
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":"Auto-unrolled"
+            }
+            , {
+              "type":"text"
+              , "text":"Auto-unrolled"
+            }
+          ]
+          , "children":
+          [
+          ]
+        }
+        , {
+          "name":"Fully unrolled loop"
+          , "data":
+          ["n/a", "n/a", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/regression_inplace_fnnls.cl"
+                , "line":605
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":"Auto-unrolled"
+            }
+            , {
+              "type":"text"
+              , "text":"Auto-unrolled"
+            }
+          ]
+          , "children":
+          [
+          ]
+        }
+      ]
+    }
+  ]
+}
