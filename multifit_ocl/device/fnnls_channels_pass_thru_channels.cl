@@ -28,7 +28,7 @@ struct output_data_t {
 channel struct control_data_t ch_control_data_d2w[NUM_WORKERS];
 channel struct control_data_t ch_control_data_w2c[NUM_WORKERS];
 channel struct input_data_t   ch_data_d2w[NUM_WORKERS];
-channel struct 
+//channel struct output_data_t  ch_data_w2c[NUM_WORKERS];
 
 __attribute__((max_global_work_dim(0)))
 __kernel
@@ -85,7 +85,7 @@ __attribute__((autorun))
 __kernel
 void fnnls_worker() {
     while (true) {
-        int cu = get_compute_id()
+        int cu = get_compute_id();
 
         // read the data
         struct control_data_t ctl_data = read_channel_intel(ch_control_data_d2w[cu]);
@@ -109,14 +109,13 @@ void collector(__global data_type* xs,
         // listen for incoming traffic on channels
         // TODO: assume here control data and output data are available at the same
         // number of cycles
-        unsigned int cu = 0;
-        for (; cu<NUM_WORKERS; cu++) {
+        for (unsigned int cu = 0; cu<NUM_WORKERS; cu++) {
             bool was_set_ctl;
             bool was_set_data;
             struct control_data_t ctl_data = read_channel_nb_intel(
                 ch_control_data_w2c[cu], &was_set_ctl);
             struct output_data_t data = read_channel_nb_intel(ch_data_w2c[cu], 
-                was_set&);
+                was_set&_data);
 
             // write out for the first channel that has data
             if (was_set_ctl && was_set_data) {
