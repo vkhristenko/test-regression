@@ -28,14 +28,14 @@ struct output_data_t {
 channel struct control_data_t ch_control_data_d2w[NUM_WORKERS];
 channel struct control_data_t ch_control_data_w2c[NUM_WORKERS];
 channel struct input_data_t   ch_data_d2w[NUM_WORKERS];
-//channel struct output_data_t  ch_data_w2c[NUM_WORKERS];
+channel struct output_data_t  ch_data_w2c[NUM_WORKERS];
 
 __attribute__((max_global_work_dim(0)))
 __kernel
 void dispatcher_matrix_units(__global data_type* restrict As,
                              __global data_type* restrict bs,
                              unsigned int size) {
-    for (unsigned int ich=cu; ich < size; ich+=1) {
+    for (unsigned int ich=0; ich < size; ich+=1) {
         // load from global memory into local variables
         matrix m; 
         vector v;
@@ -46,7 +46,7 @@ void dispatcher_matrix_units(__global data_type* restrict As,
         for (unsigned int j=0; j<SIZE; ++j)
             v[j] = bs[offset_v + j];
 
-        input_data_t data;
+        struct input_data_t data;
         for (unsigned int i=0; i<SIZE; i++) 
             for (unsigned int j=0; j<i+1; j++) {
                 data_type temp = 0.0f;
@@ -85,14 +85,16 @@ __attribute__((autorun))
 __kernel
 void fnnls_worker() {
     while (true) {
-        int cu = get_compute_id();
+        int cu = get_compute_id(0);
 
         // read the data
         struct control_data_t ctl_data = read_channel_intel(ch_control_data_d2w[cu]);
         struct input_data_t   data = read_channel_intel(ch_data_d2w[cu]);
 
         // compute
-        output_data_t result = { .x = data.Atb };
+        struct output_data_t result;
+        for (unsigned int i=0; i<SIZE; i++)
+            result.x[i] = data.Atb[i];
 
         //
         write_channel_intel(ch_data_w2c[cu], result);
@@ -115,7 +117,7 @@ void collector(__global data_type* xs,
             struct control_data_t ctl_data = read_channel_nb_intel(
                 ch_control_data_w2c[cu], &was_set_ctl);
             struct output_data_t data = read_channel_nb_intel(ch_data_w2c[cu], 
-                was_set&_data);
+                &was_set_data);
 
             // write out for the first channel that has data
             if (was_set_ctl && was_set_data) {
