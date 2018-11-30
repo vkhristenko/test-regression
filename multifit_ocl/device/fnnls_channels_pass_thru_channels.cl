@@ -40,23 +40,30 @@ void dispatcher_matrix_units(__global data_type* restrict As,
         matrix m; 
         vector v;
         unsigned int offset_m = SIZE_2 * ich;
+#pragma unroll 1
         for (unsigned int i=0; i<SIZE_2; i++) 
             m[i] = As[offset_m + i];
         unsigned int offset_v = SIZE * ich;
+#pragma unroll 1
         for (unsigned int j=0; j<SIZE; ++j)
             v[j] = bs[offset_v + j];
 
         struct input_data_t data;
+#pragma unroll 1
         for (unsigned int i=0; i<SIZE; i++) 
+#pragma unroll 1
             for (unsigned int j=0; j<i+1; j++) {
                 data_type temp = 0.0f;
+#pragma unroll 1
                 for (unsigned int k=0; k<SIZE; ++k) 
                     temp += m[k*SIZE + i] * m[k*SIZE + j];
                 data.AtA[i*SIZE + j] = temp;
             }
 
+#pragma unroll 1
         for (unsigned int i=0; i<SIZE; i++) {
             data_type temp = 0.0f;
+#pragma unroll 1
             for (unsigned int k=0; k<SIZE; ++k) {
                 temp += m[k*SIZE + i] * v[k];
             }
@@ -93,11 +100,13 @@ void fnnls_worker() {
 
         // compute
         struct output_data_t result;
+#pragma unroll 1
         for (unsigned int i=0; i<SIZE; i++)
             result.x[i] = data.Atb[i];
 
         //
         write_channel_intel(ch_data_w2c[cu], result);
+        write_channel_intel(ch_control_data_w2c[cu], ctl_data);
     }
 }
 
@@ -107,7 +116,7 @@ void fnnls_worker() {
         bool was_set_data;\
         struct control_data_t ctl_data = read_channel_nb_intel(\
             ch_control_data_w2c[cu], &was_set_ctl);\
-        struct otuput_data_t data = read_channel_nb_intel(\
+        struct output_data_t data = read_channel_nb_intel(\
             ch_data_w2c[cu], &was_set_data);\
         \
         if (was_set_ctl && was_set_data) {\
