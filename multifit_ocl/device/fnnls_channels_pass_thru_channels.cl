@@ -101,6 +101,23 @@ void fnnls_worker() {
     }
 }
 
+#define CHECK_CHANNEL(cu)\
+    {\
+        bool was_set_ctl;\
+        bool was_set_data;\
+        struct control_data_t ctl_data = read_channel_nb_intel(\
+            ch_control_data_w2c[cu], &was_set_ctl);\
+        struct otuput_data_t data = read_channel_nb_intel(\
+            ch_data_w2c[cu], &was_set_data);\
+        \
+        if (was_set_ctl && was_set_data) {\
+            unsigned int offset = SIZE * ctl_data.ich;\
+            for (unsigned int i=0; i<SIZE; ++i)\
+                xs[offset + i] = data.x[i];\
+            num_channels_completed++;\
+        }\
+    }
+
 __attribute__((max_global_work_dim(0)))
 __kernel
 void collector(__global data_type* xs, 
@@ -108,24 +125,10 @@ void collector(__global data_type* xs,
     unsigned int num_channels_completed = 0;
 
     while (true) {
-        // listen for incoming traffic on channels
-        // TODO: assume here control data and output data are available at the same
-        // number of cycles
-        for (unsigned int cu = 0; cu<NUM_WORKERS; cu++) {
-            bool was_set_ctl;
-            bool was_set_data;
-            struct control_data_t ctl_data = read_channel_nb_intel(
-                ch_control_data_w2c[cu], &was_set_ctl);
-            struct output_data_t data = read_channel_nb_intel(ch_data_w2c[cu], 
-                &was_set_data);
+        CHECK_CHANNEL(0)
+        CHECK_CHANNEL(1)
 
-            // write out for the first channel that has data
-            if (was_set_ctl && was_set_data) {
-                unsigned int offset = SIZE * ctl_data.ich;
-                for (unsigned int i=0; i<SIZE; i++)
-                    xs[offset + i] = data.x[i];
-                break;
-            }
-        }
+        if (num_channels_completed == size)
+            break;
     }
 }
