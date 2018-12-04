@@ -297,13 +297,13 @@ inline void solve_forward_substitution(NNLS_LOCAL data_type const *pM,
 
     // for the rest
     for (int i=1; i<view_size; ++i) {
-        data_type total = pb[i];
+        data_type total = 0;
         for (int j=0; j<i; j++) {
-            total -= M_LINEAR_ACCESS(pM, i, j) * psolution[j];
+            total += M_LINEAR_ACCESS(pM, i, j) * psolution[j];
         }
 
         // set the value of the i-solution
-        psolution[i] = total / M_LINEAR_ACCESS(pM, i, i);
+        psolution[i] = (pb[i] - total) / M_LINEAR_ACCESS(pM, i, i);
     }
 }
 
@@ -327,7 +327,6 @@ inline void solve_backward_substitution(NNLS_LOCAL data_type const * restrict pM
 
     // for the rest
     for (int i=view_size-2; i>=0; --i) {
-//        data_type total = pb[i];
         data_type total = 0.0f;
         for (int j=i+1; j<view_size; ++j) {
             total += M_LINEAR_ACCESS(pM, j, i) * psolution[j];
@@ -386,8 +385,12 @@ inline void fill_submatrix(data_type * restrict dest,
 inline void fill_submatrix(data_type * restrict dest, 
                            data_type const* restrict src, 
                            bool const* restrict active_set) {
+#pragma unroll 1
+#pragma ivdep
     for (unsigned int row=0, irow=0; row<NUM_TIME_SAMPLES; row++) {
         if (active_set[row]) continue;
+#pragma unroll 1
+#pragma ivdep
         for (unsigned int col=0, icol=0; col<=row; col++) {
             if (active_set[col]) continue;
 
@@ -619,9 +622,12 @@ void fnnls(__global data_type const * restrict As,
 
                 // update solution using alpha
 #pragma unroll 1
-                for (int i=0; i<npassive; ++i) {
-                    if (!active_set[i])
-                        final_s [ i ] += alpha * (s [ i ] - final_s [ i ]);
+#pragma ivdep
+                for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
+                    if (!active_set[i]) {
+                        data_type tmp = final_s[i];
+                        final_s [ i ] += alpha * (s [ i ] - tmp);
+                    }
                 }
                 final_s [ alpha_idx] = 0;
                 active_set[ alpha_idx ] = true;
