@@ -299,7 +299,7 @@ int main(int argc, char **argv ) {
 
     std::cout << "launch the kernel" << std::endl;
     int const count = num_channels;
-    auto event = k_fnnls(cl::EnqueueArgs{queue, cl::NDRange(count)},
+    auto event = k_fnnls(cl::EnqueueArgs{queue, 1},
          d_vA, d_vb, d_vx, static_cast<unsigned int>(num_channels), epsilon, max_iterations);
     if (status_kernel != CL_SUCCESS) {
         std::cout << "problem with launching a kernel" << std::endl;
@@ -325,10 +325,10 @@ int main(int argc, char **argv ) {
             all_good &= std::abs(x(ts) - h_vx[i*NUM_SAMPLES + ts]) < precision;
         }
         
-//        if (i%100 == 0) {
-            std::cout << "****************" << std::endl;
+        if (i%100 == 0) {
+            std::cout << "**************** " << i << " ****************" << std::endl;
             print_vectors_side_by_side(&h_vx[i*NUM_SAMPLES], x, NUM_SAMPLES);
-//        }
+        }
     }
     /*
     for (int i=0; i<SIZE; ++i) {

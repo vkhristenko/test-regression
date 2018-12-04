@@ -394,6 +394,7 @@ void print_permutation(int const *pv, int size) {
 }
 #endif
 
+__attribute__((max_global_work_dim(0)))
 __kernel
 void inplace_fnnls(__global data_type const * restrict As,
                    __global data_type const * restrict bs,
