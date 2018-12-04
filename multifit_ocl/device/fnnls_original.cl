@@ -380,6 +380,38 @@ inline void set_true(bool* set) {
         set[i] = true;
 }
 
+inline void fill_submatrix(data_type * restrict dest, 
+                           data_type const* restrict src, 
+                           bool const* restrict active_set);
+inline void fill_submatrix(data_type * restrict dest, 
+                           data_type const* restrict src, 
+                           bool const* restrict active_set) {
+    for (unsigned int row=0, irow=0; row<NUM_TIME_SAMPLES; row++) {
+        if (active_set[row]) continue;
+        for (unsigned int col=0, icol=0; col<=row; col++) {
+            if (active_set[col]) continue;
+
+            M_LINEAR_ACCESS(dest, irow, icol) = M_LINEAR_ACCESS(src, row, col);
+            M_LINEAR_ACCESS(dest, icol, irow) = M_LINEAR_ACCESS(src, col, row);
+            icol++;
+        }
+        irow++;
+    }
+}
+
+inline void fill_subvector(data_type* restrict dest,
+                           data_type const* restrict src, 
+                           bool const* restrict active_set);
+inline void fill_subvector(data_type* restrict dest,
+                           data_type const* restrict src, 
+                           bool const* restrict active_set) {
+    for (unsigned int i=0, j=0; i<NUM_TIME_SAMPLES; ++i) {
+        if (active_set[i]) continue;
+        dest[j] = src[i];
+        j++;
+    }
+}
+
 __attribute__((max_global_work_dim(0)))
 __kernel
 void inplace_fnnls(__global data_type const * restrict As,
@@ -529,11 +561,11 @@ void inplace_fnnls(__global data_type const * restrict As,
                     print_vector(py, NUM_TIME_SAMPLES);
 #endif
 
-                // update the elements from the passive set
+                // check if computed values are positive/negative
                 data_type min_s_value = FLT_MAX;
 #pragma unroll 1
-                for (int i=1; i<npassive; ++i) {
-                    if (s [ i ] < min_s_value)
+                for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
+                    if (!active_set[i] && s [ i ] < min_s_value)
                         min_s_value = s [ i ];
                 }
 
@@ -549,8 +581,9 @@ void inplace_fnnls(__global data_type const * restrict As,
                     printf("min_s_value = %f and branching here\n", min_s_value);
 #endif
 #pragma unroll 1
-                    for (int i=0; i<npassive; ++i)
-                        final_s [ i ] = s [ i ];
+                    for (int i=0; i<NUM_TIME_SAMPLES; ++i)
+                        if (!active_set[i])
+                            final_s [ i ] = s [ i ];
                     break;
                 }
 
@@ -565,8 +598,8 @@ void inplace_fnnls(__global data_type const * restrict As,
                 data_type alpha = FLT_MAX;
                 int alpha_idx = 0;
 #pragma unroll 1
-                for (int i=0; i<npassive; ++i) {
-                    if (s [ i ] <= 0.0f) {
+                for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
+                    if (!active_set[i] && s [ i ] <= 0.0f) {
                         data_type const ratio = final_s [ i ] / 
                             ( final_s [ i ] - s [ i ] );
                         if (ratio < alpha) {
@@ -578,24 +611,22 @@ void inplace_fnnls(__global data_type const * restrict As,
 
                 if (alpha == FLT_MAX) {
 #pragma unroll 1
-                    for (int i=0; i<npassive; ++i) 
-                        final_s [ i ] = s [ i ];
+                    for (int i=0; i<NUM_TIME_SAMPLES; ++i) 
+                        if (!active_set[i])
+                            final_s [ i ] = s [ i ];
                     break;
                 }
 
                 // update solution using alpha
 #pragma unroll 1
                 for (int i=0; i<npassive; ++i) {
-                    final_s [ i ] += alpha * (s [ i ] - final_s [ i ]);
+                    if (!active_set[i])
+                        final_s [ i ] += alpha * (s [ i ] - final_s [ i ]);
                 }
                 final_s [ alpha_idx] = 0;
+                active_set[ alpha_idx ] = true;
                 --npassive;
 
-                // run swaps
-                swap_row_column(AtA, alpha_idx, npassive,
-                    NUM_TIME_SAMPLES, NUM_TIME_SAMPLES);
-                swap_element(Atb, npassive, alpha_idx);
-                swap_element(final_s, npassive, alpha_idx);
                 inner_iteration++;
                 position_removed = alpha_idx;
 
