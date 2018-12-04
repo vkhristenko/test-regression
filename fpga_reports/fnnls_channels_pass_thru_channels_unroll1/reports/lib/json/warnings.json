@@ -1,0 +1,6 @@
+{"rows":[
+{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru_channels//data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl:138"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru_channels//data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl:137"]}
+]}

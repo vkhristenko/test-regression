@@ -1,0 +1,311 @@
+{
+  "performanceSummary":
+  {
+    "name":"Kernel Summary"
+    , "columns":
+    ["Kernel Name", "Kernel Type", "Autorun", "Workgroup Size", "# Compute Units"]
+    , "children":
+    [
+      {
+        "name":"collector"
+        , "data":
+        [
+          "Single work-item"
+          , "No"
+          , [1, 1, 1]
+          , 1
+        ]
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Kernel type: Single work-item"
+          }
+          , {
+            "type":"text"
+            , "text":"Max global work dimension: 0"
+          }
+          , {
+            "type":"text"
+            , "text":"Required workgroup size: (1, 1, 1)"
+          }
+          , {
+            "type":"text"
+            , "text":"Maximum workgroup size: 1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+              , "line":125
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"dispatcher_matrix_units"
+        , "data":
+        [
+          "Single work-item"
+          , "No"
+          , [1, 1, 1]
+          , 1
+        ]
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Kernel type: Single work-item"
+          }
+          , {
+            "type":"text"
+            , "text":"Max global work dimension: 0"
+          }
+          , {
+            "type":"text"
+            , "text":"Required workgroup size: (1, 1, 1)"
+          }
+          , {
+            "type":"text"
+            , "text":"Maximum workgroup size: 1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+              , "line":37
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"fnnls_worker"
+        , "data":
+        [
+          "Single work-item"
+          , "Yes"
+          , [1, 1, 1]
+          , 2
+        ]
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Kernel type: Single work-item"
+          }
+          , {
+            "type":"text"
+            , "text":"Autorun Kernel: This kernel will start running before any other kernel is explicitly launched by the host.  The kernel will be automatically restarted as soon as it finishes."
+          }
+          , {
+            "type":"text"
+            , "text":"The kernel was replicated 2 times due to num_compute_units attribute. Since the kernel is compiled for single work-item execution, all copies will perform identical computations. This may not be what you intended."
+          }
+          , {
+            "type":"text"
+            , "text":"Max global work dimension: 0"
+          }
+          , {
+            "type":"text"
+            , "text":"Required workgroup size: (1, 1, 1)"
+          }
+          , {
+            "type":"text"
+            , "text":"Maximum workgroup size: 1"
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+              , "line":86
+            }
+          ]
+        ]
+      }
+    ]
+  }
+  , "estimatedResources":
+  {
+    "name":"Estimated Resource Usage"
+    , "columns":
+    ["Kernel Name", "ALUTs ", "FFs  ", "RAMs ", "DSPs "]
+    , "children":
+    [
+      {
+        "name":"collector"
+        , "data":
+        [8074, 13620, 37, 0]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+              , "line":125
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"dispatcher_matrix_units"
+        , "data":
+        [23968, 32881, 200, 20]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+              , "line":37
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"fnnls_worker (x2)"
+        , "data":
+        [74, 70, 0, 0]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+              , "line":86
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Kernel Subtotal"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [32116, 46571, 237, 20]
+      }
+      , {
+        "name":"Channel Resources"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [104, 14136, 0, 0]
+      }
+      , {
+        "name":"Global Interconnect"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [1945, 3726, 61, 0]
+      }
+      , {
+        "name":"Board Interface"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [113900, 227800, 377, 0]
+      }
+      , {
+        "name":"Total"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [148065, 292300, 677, 20]
+        , "data_percent":
+        [19.9953, 19.7367, 28.9812, 1.31752]
+      }
+      , {
+        "name":"Available"
+        , "classes":
+        ["summary-highlight", "nohover"]
+        , "data":
+        [740500, 1481000, 2336, 1518]
+      }
+    ]
+  }
+  , "compileWarnings":
+  {
+    "name":"Compile Warnings"
+    , "children":
+    [
+      {
+        "name":"Load uses a Burst-coalesced cached LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Load with a private 512 kilobit cache. Cache is not shared with any other load. It is flushed on kernel start. Use Dynamic Profiler to verify cache effectiveness. Other kernels should not be updating the data in global memory while this kernel is using it. Cache is created when memory access pattern is data-dependent or appears to be repetitive. Simplify access pattern or mark pointer as 'volatile' to disable generation of this cache."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+              , "line":44
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Load uses a Burst-coalesced non-aligned LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Use Dynamic Profiler to determine performance impact of this LSU."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+              , "line":47
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Store uses a Burst-coalesced write-ack non-aligned LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Use Dynamic Profiler to determine performance impact of this LSU."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+              , "line":129
+            }
+          ]
+        ]
+      }
+      , {
+        "name":"Store uses a Burst-coalesced write-ack non-aligned LSU"
+        , "details":
+        [
+          {
+            "type":"text"
+            , "text":"Use Dynamic Profiler to determine performance impact of this LSU."
+          }
+        ]
+        , "debug":
+        [
+          [
+            {
+              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+              , "line":130
+            }
+          ]
+        ]
+      }
+    ]
+  }
+}

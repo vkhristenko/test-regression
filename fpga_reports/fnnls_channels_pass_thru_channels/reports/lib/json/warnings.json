@@ -1,0 +1,16 @@
+{"rows":[
+{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru_channels//data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl:46"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru_channels//data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl:53"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru_channels//data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl:60"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru_channels//data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl:130"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru_channels//data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl:129"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru_channels//data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl:96"]}
+,{"name":"Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru..."
+,"details":["Compiler Warning: Auto-unrolled loop at /data/vkhriste/opencl_kernels/fnnls/fnnls_channels_pass_thru_channels//data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl:96"]}
+]}

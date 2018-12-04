@@ -1,0 +1,2280 @@
+{
+  "columns":
+  ["", "Pipelined", "II", "Bottleneck", "Details"]
+  , "children":
+  [
+    {
+      "name":"Kernel: fnnls"
+      , "data":
+      ["", "", ""]
+      , "debug":
+      [
+        [
+          {
+            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+            , "line":425
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"brief"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Kernels"
+              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#ipp1476408832230"
+            }
+          ]
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"fnnls.B1"
+          , "data":
+          ["No", "n/a", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                , "line":428
+              }
+            ]
+            , [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                , "line":428
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":"Divergent inner loop and..."
+            }
+            , {
+              "type":"text"
+              , "text":"Loop not pipelined due to:"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"Loop contains divergent inner loops. Making all inner loops unconditional should fix this problem. Not pipelining this loop will most likely lead to poor performance."
+                }
+                , {
+                  "type":"text"
+                  , "text":"Loop iteration ordering: iterations of inner loop shown may get out of order with respect to the listed inner loop, as the number of iterations of the listed inner loop may be different for different iterations of this loop."
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"fnnls.B10 (%L, %L, %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"470"
+                        }
+                        , {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"481"
+                        }
+                        , {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"516"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B15 (%L, %L, %L, %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"536"
+                        }
+                        , {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"582"
+                        }
+                        , {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"615"
+                        }
+                        , {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"643"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B41 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"626"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B38 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"604"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B35 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"570"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B34 (%L, %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"554"
+                        }
+                        , {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"555"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B30 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"329"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B31 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"331"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B26 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"299"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B27 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"301"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B20 (%L, %L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"174"
+                        }
+                        , {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"198"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B21 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"178"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B22 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"181"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B19 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"411"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B16 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"390"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B17 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"394"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"fnnls.B40 (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"617"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"See %L for more information."
+              , "links":
+              [
+                {
+                  "guide":"Best Practices Guide : Nested Loops"
+                  , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                }
+              ]
+            }
+            , {
+              "type":"text"
+              , "text":"See %L for more information"
+              , "links":
+              [
+                {
+                  "guide":"Best Practices Guide : Nested Loops"
+                  , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                }
+              ]
+            }
+          ]
+          , "children":
+          [
+            {
+              "name":"fnnls.B4"
+              , "data":
+              ["Yes", ">=1", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":39
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":39
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":" "
+                }
+                , {
+                  "type":"text"
+                  , "text":"II is an approximation due to variable inner loop trip count."
+                  , "links":
+                  [
+                    {
+                      "view":"Verification statistics"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"Coalesced loop"
+                  , "data":
+                  ["n/a", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":42
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Coalesced by #pragma loop_coalesce"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+                , {
+                  "name":"fnnls.B5"
+                  , "data":
+                  ["Yes", "~1", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":45
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":45
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"II is an approximation."
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"II is an approximation due to the following stallable instructions:"
+                      , "links":
+                      [
+                        {
+                          "view":"Verification statistics"
+                        }
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Load Operation (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"46"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Load Operation (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"46"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"fnnls.B7"
+              , "data":
+              ["Yes", "~4", "II"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":66
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":66
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"The critical path that prevented successful II = 3 scheduling:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"4 clock cycles Hardened Floating-point Multiply-Add Operation (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"71"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"1.3 clock cycle Select Operation (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"Unknown location"
+                          , "line":"0"
+                        }
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "type":"brief"
+                  , "text":"Data dependency"
+                }
+                , {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                      , "link":"https://www.altera.com/documentation/mwh1391807516407.html#wfa1476380079940"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"Coalesced loop"
+                  , "data":
+                  ["n/a", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":70
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Coalesced by #pragma loop_coalesce"
+                    }
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"fnnls.B8"
+              , "data":
+              ["Yes", "1", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":378
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":378
+                  }
+                ]
+              ]
+              , "children":
+              [
+              ]
+            }
+            , {
+              "name":"fnnls.B2"
+              , "data":
+              ["Yes", "~1", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":434
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":434
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":435
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"II is an approximation."
+                }
+                , {
+                  "type":"text"
+                  , "text":"II is an approximation due to the following stallable instruction:"
+                  , "links":
+                  [
+                    {
+                      "view":"Verification statistics"
+                    }
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Store Operation (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"435"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+            , {
+              "name":"fnnls.B9"
+              , "data":
+              ["Yes", "~1", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":458
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":458
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":459
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"II is an approximation."
+                }
+                , {
+                  "type":"text"
+                  , "text":"II is an approximation due to the following stallable instruction:"
+                  , "links":
+                  [
+                    {
+                      "view":"Verification statistics"
+                    }
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Load Operation (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"459"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+            , {
+              "name":"fnnls.B10"
+              , "data":
+              ["No", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":470
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":470
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":481
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":516
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Divergent inner loop and..."
+                }
+                , {
+                  "type":"text"
+                  , "text":"Loop not pipelined due to:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Loop contains divergent inner loops. Making all inner loops unconditional should fix this problem. Not pipelining this loop will most likely lead to poor performance."
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Loop iteration ordering: iterations of inner loop shown may get out of order with respect to the listed inner loop, as the number of iterations of the listed inner loop may be different for different iterations of this loop."
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"fnnls.B10 (%L, %L, %L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"470"
+                            }
+                            , {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"481"
+                            }
+                            , {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"516"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B15 (%L, %L, %L, %L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"536"
+                            }
+                            , {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"582"
+                            }
+                            , {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"615"
+                            }
+                            , {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"643"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B41 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"626"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B38 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"604"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B35 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"570"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B34 (%L, %L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"554"
+                            }
+                            , {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"555"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B30 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"329"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B31 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"331"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B26 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"299"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B27 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"301"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B20 (%L, %L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"174"
+                            }
+                            , {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"198"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B21 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"178"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B22 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"181"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B19 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"411"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B16 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"390"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B17 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"394"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B13 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"498"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B12 (%L, %L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"493"
+                            }
+                            , {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"495"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B11 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"83"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"fnnls.B40 (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"617"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"See %L for more information."
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Nested Loops"
+                      , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Nested Loops"
+                      , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"fnnls.B11"
+                  , "data":
+                  ["Yes", "4", "II"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":83
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":83
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"The critical path that prevented successful II = 3 scheduling:"
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"4 clock cycles Hardened Floating-point Multiply-Add Operation (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                              , "line":"88"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"1.3 clock cycle Select Operation (%L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"Unknown location"
+                              , "line":"0"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"brief"
+                      , "text":"Data dependency"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                          , "link":"https://www.altera.com/documentation/mwh1391807516407.html#wfa1476380079940"
+                        }
+                      ]
+                    }
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"Coalesced loop"
+                      , "data":
+                      ["n/a", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":87
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Coalesced by #pragma loop_coalesce"
+                        }
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "name":"fnnls.B12"
+                  , "data":
+                  ["Yes", "1", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":493
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":493
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":495
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+                , {
+                  "name":"fnnls.B13"
+                  , "data":
+                  ["Yes", "1", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":498
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":498
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+                , {
+                  "name":"fnnls.B15"
+                  , "data":
+                  ["No", "n/a", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":536
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":582
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":615
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":643
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":"Out-of-order inner loop"
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"Loop not pipelined due to:"
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Loop iteration ordering: iterations of inner loop shown may get out of order with respect to the listed inner loop, as the number of iterations of the listed inner loop may be different for different iterations of this loop."
+                          , "details":
+                          [
+                            {
+                              "type":"text"
+                              , "text":"fnnls.B41 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"626"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B38 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"604"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B35 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"570"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B34 (%L, %L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"554"
+                                }
+                                , {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"555"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B30 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"329"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B31 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"331"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B26 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"299"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B27 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"301"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B20 (%L, %L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"174"
+                                }
+                                , {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"198"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B21 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"178"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B22 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"181"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B19 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"411"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B16 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"390"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"fnnls.B17 (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"394"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"See %L for more information."
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Nested Loops"
+                          , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                        }
+                      ]
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"See %L for more information"
+                      , "links":
+                      [
+                        {
+                          "guide":"Best Practices Guide : Nested Loops"
+                          , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                        }
+                      ]
+                    }
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"fnnls.B20"
+                      , "data":
+                      ["No", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":174
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":174
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":198
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"brief"
+                          , "text":"Out-of-order inner loop"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Loop not pipelined due to:"
+                          , "details":
+                          [
+                            {
+                              "type":"text"
+                              , "text":"Loop iteration ordering: iterations of inner loop shown may get out of order with respect to the listed inner loop, as the number of iterations of the listed inner loop may be different for different iterations of this loop."
+                              , "details":
+                              [
+                                {
+                                  "type":"text"
+                                  , "text":"fnnls.B21 (%L)"
+                                  , "links":
+                                  [
+                                    {
+                                      "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                      , "line":"178"
+                                    }
+                                  ]
+                                }
+                                , {
+                                  "type":"text"
+                                  , "text":"fnnls.B22 (%L)"
+                                  , "links":
+                                  [
+                                    {
+                                      "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                      , "line":"181"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information."
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#wfa1476380079940"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Nested Loops"
+                              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                            }
+                          ]
+                        }
+                      ]
+                      , "children":
+                      [
+                        {
+                          "name":"fnnls.B21"
+                          , "data":
+                          ["No", "n/a", "n/a"]
+                          , "debug":
+                          [
+                            [
+                              {
+                                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                , "line":178
+                              }
+                            ]
+                            , [
+                              {
+                                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                , "line":178
+                              }
+                            ]
+                          ]
+                          , "details":
+                          [
+                            {
+                              "type":"brief"
+                              , "text":"Out-of-order inner loop"
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"Loop not pipelined due to:"
+                              , "details":
+                              [
+                                {
+                                  "type":"text"
+                                  , "text":"Loop iteration ordering: iterations of inner loop shown may get out of order with respect to the listed inner loop, as the number of iterations of the listed inner loop may be different for different iterations of this loop."
+                                  , "details":
+                                  [
+                                    {
+                                      "type":"text"
+                                      , "text":"fnnls.B22 (%L)"
+                                      , "links":
+                                      [
+                                        {
+                                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                          , "line":"181"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"See %L for more information."
+                              , "links":
+                              [
+                                {
+                                  "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                                  , "link":"https://www.altera.com/documentation/mwh1391807516407.html#wfa1476380079940"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"See %L for more information"
+                              , "links":
+                              [
+                                {
+                                  "guide":"Best Practices Guide : Nested Loops"
+                                  , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                                }
+                              ]
+                            }
+                          ]
+                          , "children":
+                          [
+                            {
+                              "name":"fnnls.B22"
+                              , "data":
+                              ["Yes", "1", "n/a"]
+                              , "debug":
+                              [
+                                [
+                                  {
+                                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                    , "line":181
+                                  }
+                                ]
+                                , [
+                                  {
+                                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                    , "line":181
+                                  }
+                                ]
+                              ]
+                              , "children":
+                              [
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                    , {
+                      "name":"fnnls.B26"
+                      , "data":
+                      ["No", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":299
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":299
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"brief"
+                          , "text":"Out-of-order inner loop"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Loop not pipelined due to:"
+                          , "details":
+                          [
+                            {
+                              "type":"text"
+                              , "text":"Loop iteration ordering: iterations of inner loop shown may get out of order with respect to the listed inner loop, as the number of iterations of the listed inner loop may be different for different iterations of this loop."
+                              , "details":
+                              [
+                                {
+                                  "type":"text"
+                                  , "text":"fnnls.B27 (%L)"
+                                  , "links":
+                                  [
+                                    {
+                                      "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                      , "line":"301"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information."
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#wfa1476380079940"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Nested Loops"
+                              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                            }
+                          ]
+                        }
+                      ]
+                      , "children":
+                      [
+                        {
+                          "name":"fnnls.B27"
+                          , "data":
+                          ["Yes", "1", "n/a"]
+                          , "debug":
+                          [
+                            [
+                              {
+                                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                , "line":301
+                              }
+                            ]
+                            , [
+                              {
+                                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                , "line":301
+                              }
+                            ]
+                          ]
+                          , "children":
+                          [
+                          ]
+                        }
+                      ]
+                    }
+                    , {
+                      "name":"fnnls.B30"
+                      , "data":
+                      ["No", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":329
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":329
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"brief"
+                          , "text":"Out-of-order inner loop"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Loop not pipelined due to:"
+                          , "details":
+                          [
+                            {
+                              "type":"text"
+                              , "text":"Loop iteration ordering: iterations of inner loop shown may get out of order with respect to the listed inner loop, as the number of iterations of the listed inner loop may be different for different iterations of this loop."
+                              , "details":
+                              [
+                                {
+                                  "type":"text"
+                                  , "text":"fnnls.B31 (%L)"
+                                  , "links":
+                                  [
+                                    {
+                                      "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                      , "line":"331"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information."
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#wfa1476380079940"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Nested Loops"
+                              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                            }
+                          ]
+                        }
+                      ]
+                      , "children":
+                      [
+                        {
+                          "name":"fnnls.B31"
+                          , "data":
+                          ["Yes", "1", "n/a"]
+                          , "debug":
+                          [
+                            [
+                              {
+                                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                , "line":331
+                              }
+                            ]
+                            , [
+                              {
+                                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                , "line":331
+                              }
+                            ]
+                          ]
+                          , "children":
+                          [
+                          ]
+                        }
+                      ]
+                    }
+                    , {
+                      "name":"fnnls.B16"
+                      , "data":
+                      ["No", "n/a", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":390
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":390
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"brief"
+                          , "text":"Out-of-order inner loop"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"Loop not pipelined due to:"
+                          , "details":
+                          [
+                            {
+                              "type":"text"
+                              , "text":"Loop iteration ordering: iterations of inner loop shown may get out of order with respect to the listed inner loop, as the number of iterations of the listed inner loop may be different for different iterations of this loop."
+                              , "details":
+                              [
+                                {
+                                  "type":"text"
+                                  , "text":"fnnls.B17 (%L)"
+                                  , "links":
+                                  [
+                                    {
+                                      "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                      , "line":"394"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information."
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#wfa1476380079940"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Nested Loops"
+                              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                            }
+                          ]
+                        }
+                      ]
+                      , "children":
+                      [
+                        {
+                          "name":"fnnls.B17"
+                          , "data":
+                          ["Yes", "1", "n/a"]
+                          , "debug":
+                          [
+                            [
+                              {
+                                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                , "line":394
+                              }
+                            ]
+                            , [
+                              {
+                                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                , "line":394
+                              }
+                            ]
+                          ]
+                          , "children":
+                          [
+                          ]
+                        }
+                      ]
+                    }
+                    , {
+                      "name":"fnnls.B19"
+                      , "data":
+                      ["Yes", "1", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":411
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":411
+                          }
+                        ]
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                    , {
+                      "name":"fnnls.B34"
+                      , "data":
+                      ["Yes", "1", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":554
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":554
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":555
+                          }
+                        ]
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                    , {
+                      "name":"fnnls.B35"
+                      , "data":
+                      ["Yes", "1", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":570
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":570
+                          }
+                        ]
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                    , {
+                      "name":"fnnls.B38"
+                      , "data":
+                      ["Yes", "1", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":604
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":604
+                          }
+                        ]
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                    , {
+                      "name":"fnnls.B41"
+                      , "data":
+                      ["Yes", "7", "II"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":626
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                            , "line":626
+                          }
+                        ]
+                      ]
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"Compiler failed to schedule this loop with smaller II due to data dependency on variable(s):"
+                          , "details":
+                          [
+                            {
+                              "type":"text"
+                              , "text":"final_s (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"448"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"The critical path that prevented successful II = 6 scheduling:"
+                          , "details":
+                          [
+                            {
+                              "type":"text"
+                              , "text":"4 clock cycles Hardened Floating-point Multiply-Add Operation (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"629"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"4 clock cycles Hardened Floating-point Subtract Operation (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                                  , "line":"629"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"1.4 clock cycle Select Operation (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"Unknown location"
+                                  , "line":"0"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"1.4 clock cycle Select Operation (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"Unknown location"
+                                  , "line":"0"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"1.4 clock cycle Select Operation (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"Unknown location"
+                                  , "line":"0"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"1.4 clock cycle Select Operation (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"Unknown location"
+                                  , "line":"0"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"1.4 clock cycle Select Operation (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"Unknown location"
+                                  , "line":"0"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"1.4 clock cycle Select Operation (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"Unknown location"
+                                  , "line":"0"
+                                }
+                              ]
+                            }
+                            , {
+                              "type":"text"
+                              , "text":"1.4 clock cycle Select Operation (%L)"
+                              , "links":
+                              [
+                                {
+                                  "filename":"Unknown location"
+                                  , "line":"0"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"brief"
+                          , "text":"Data dependency"
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"See %L for more information"
+                          , "links":
+                          [
+                            {
+                              "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#wfa1476380079940"
+                            }
+                          ]
+                        }
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "name":"fnnls.B37"
+                  , "data":
+                  ["Yes", "1", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":587
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":587
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+                , {
+                  "name":"fnnls.B40"
+                  , "data":
+                  ["Yes", "1", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":617
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                        , "line":617
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"fnnls.B44"
+              , "data":
+              ["Yes", "~1", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":653
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":653
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                    , "line":655
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"II is an approximation."
+                }
+                , {
+                  "type":"text"
+                  , "text":"II is an approximation due to the following stallable instruction:"
+                  , "links":
+                  [
+                    {
+                      "view":"Verification statistics"
+                    }
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Store Operation (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl"
+                          , "line":"654"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

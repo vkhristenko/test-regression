@@ -1,0 +1,809 @@
+{
+  "columns":
+  ["", "Pipelined", "II", "Bottleneck", "Details"]
+  , "children":
+  [
+    {
+      "name":"Kernel: dispatcher_matrix_units"
+      , "data":
+      ["", "", ""]
+      , "debug":
+      [
+        [
+          {
+            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+            , "line":37
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"brief"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Kernels"
+              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#ipp1476408832230"
+            }
+          ]
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"dispatcher_matrix_units.B1"
+          , "data":
+          ["Yes", ">=1", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                , "line":38
+              }
+            ]
+            , [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                , "line":38
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":" "
+            }
+            , {
+              "type":"text"
+              , "text":"II is an approximation due to variable inner loop trip count."
+              , "links":
+              [
+                {
+                  "view":"Verification statistics"
+                }
+              ]
+            }
+          ]
+          , "children":
+          [
+            {
+              "name":"dispatcher_matrix_units.B2"
+              , "data":
+              ["Yes", "~1", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":44
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":44
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":45
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"II is an approximation."
+                }
+                , {
+                  "type":"text"
+                  , "text":"II is an approximation due to the following stallable instruction:"
+                  , "links":
+                  [
+                    {
+                      "view":"Verification statistics"
+                    }
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Load Operation (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                          , "line":"45"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+            , {
+              "name":"dispatcher_matrix_units.B4"
+              , "data":
+              ["Yes", "~1", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":48
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":48
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":49
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"II is an approximation."
+                }
+                , {
+                  "type":"text"
+                  , "text":"II is an approximation due to the following stallable instruction:"
+                  , "links":
+                  [
+                    {
+                      "view":"Verification statistics"
+                    }
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Load Operation (%L)"
+                      , "links":
+                      [
+                        {
+                          "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                          , "line":"49"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+            , {
+              "name":"dispatcher_matrix_units.B6"
+              , "data":
+              ["No", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":53
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Out-of-order inner loop"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Loop not pipelined due to:"
+                  , "details":
+                  [
+                    {
+                      "type":"text"
+                      , "text":"Loop iteration ordering: iterations of inner loop shown may get out of order with respect to the listed inner loop, as the number of iterations of the listed inner loop may be different for different iterations of this loop."
+                      , "details":
+                      [
+                        {
+                          "type":"text"
+                          , "text":"dispatcher_matrix_units.B7 (%L, %L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                              , "line":"55"
+                            }
+                            , {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                              , "line":"61"
+                            }
+                          ]
+                        }
+                        , {
+                          "type":"text"
+                          , "text":"dispatcher_matrix_units.B8 (%L, %L)"
+                          , "links":
+                          [
+                            {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                              , "line":"58"
+                            }
+                            , {
+                              "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                              , "line":"59"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"See %L for more information."
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                      , "link":"https://www.altera.com/documentation/mwh1391807516407.html#wfa1476380079940"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"See %L for more information"
+                  , "links":
+                  [
+                    {
+                      "guide":"Best Practices Guide : Nested Loops"
+                      , "link":"https://www.altera.com/documentation/mwh1391807516407.html#rfr1469543500580"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"dispatcher_matrix_units.B7"
+                  , "data":
+                  ["Yes", ">=1", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                        , "line":55
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                        , "line":55
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                        , "line":61
+                      }
+                    ]
+                  ]
+                  , "details":
+                  [
+                    {
+                      "type":"brief"
+                      , "text":" "
+                    }
+                    , {
+                      "type":"text"
+                      , "text":"II is an approximation due to variable inner loop trip count."
+                      , "links":
+                      [
+                        {
+                          "view":"Verification statistics"
+                        }
+                      ]
+                    }
+                  ]
+                  , "children":
+                  [
+                    {
+                      "name":"dispatcher_matrix_units.B8"
+                      , "data":
+                      ["Yes", "1", "n/a"]
+                      , "debug":
+                      [
+                        [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                            , "line":58
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                            , "line":58
+                          }
+                        ]
+                        , [
+                          {
+                            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                            , "line":59
+                          }
+                        ]
+                      ]
+                      , "children":
+                      [
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "name":"dispatcher_matrix_units.B10"
+              , "data":
+              ["Yes", ">=1", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":64
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":64
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":71
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":" "
+                }
+                , {
+                  "type":"text"
+                  , "text":"II is an approximation due to variable inner loop trip count."
+                  , "links":
+                  [
+                    {
+                      "view":"Verification statistics"
+                    }
+                  ]
+                }
+              ]
+              , "children":
+              [
+                {
+                  "name":"dispatcher_matrix_units.B11"
+                  , "data":
+                  ["Yes", "1", "n/a"]
+                  , "debug":
+                  [
+                    [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                        , "line":67
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                        , "line":67
+                      }
+                    ]
+                    , [
+                      {
+                        "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                        , "line":69
+                      }
+                    ]
+                  ]
+                  , "children":
+                  [
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"Kernel: collector"
+      , "data":
+      ["", "", ""]
+      , "debug":
+      [
+        [
+          {
+            "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+            , "line":133
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"brief"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Kernels"
+              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#ipp1476408832230"
+            }
+          ]
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"collector.B1"
+          , "data":
+          ["Yes", "~85", "II"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                , "line":140
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"text"
+              , "text":"Compiler failed to schedule this loop with smaller II due to memory dependency:"
+              , "details":
+              [
+                {
+                  "type":"text"
+                  , "text":"From: Store Operation (%L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                      , "line":"137"
+                    }
+                  ]
+                }
+                , {
+                  "type":"text"
+                  , "text":"To: Store Operation (%L)"
+                  , "links":
+                  [
+                    {
+                      "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                      , "line":"138"
+                    }
+                  ]
+                }
+              ]
+            }
+            , {
+              "type":"brief"
+              , "text":"Memory dependency"
+            }
+            , {
+              "type":"text"
+              , "text":"See %L for more information"
+              , "links":
+              [
+                {
+                  "guide":"Best Practices Guide : Loops in a Single Work-Item Kernel"
+                  , "link":"https://www.altera.com/documentation/mwh1391807516407.html#wfa1476380079940"
+                }
+              ]
+            }
+          ]
+          , "children":
+          [
+            {
+              "name":"Fully unrolled loop"
+              , "data":
+              ["n/a", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":137
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Auto-unrolled"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Auto-unrolled"
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+            , {
+              "name":"Fully unrolled loop"
+              , "data":
+              ["n/a", "n/a", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":138
+                  }
+                ]
+              ]
+              , "details":
+              [
+                {
+                  "type":"brief"
+                  , "text":"Auto-unrolled"
+                }
+                , {
+                  "type":"text"
+                  , "text":"Auto-unrolled"
+                }
+              ]
+              , "children":
+              [
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"Kernel: fnnls_worker_0_0_0"
+      , "data":
+      ["", "", ""]
+      , "debug":
+      [
+        [
+          {
+            "filename":"Unknown location"
+            , "line":0
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"brief"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Kernels"
+              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#ipp1476408832230"
+            }
+          ]
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"fnnls_worker_0_0_0.B1"
+          , "data":
+          ["Yes", ">=1", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                , "line":110
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":" "
+            }
+            , {
+              "type":"text"
+              , "text":"II is an approximation due to variable inner loop trip count."
+              , "links":
+              [
+                {
+                  "view":"Verification statistics"
+                }
+              ]
+            }
+          ]
+          , "children":
+          [
+            {
+              "name":"fnnls_worker_0_0_0.B2"
+              , "data":
+              ["Yes", "1", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":104
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":104
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":105
+                  }
+                ]
+              ]
+              , "children":
+              [
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    , {
+      "name":"Kernel: fnnls_worker_1_0_0"
+      , "data":
+      ["", "", ""]
+      , "debug":
+      [
+        [
+          {
+            "filename":"Unknown location"
+            , "line":0
+          }
+        ]
+      ]
+      , "details":
+      [
+        {
+          "type":"brief"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"Single work-item execution"
+        }
+        , {
+          "type":"text"
+          , "text":"See %L for more information"
+          , "links":
+          [
+            {
+              "guide":"Best Practices Guide : Kernels"
+              , "link":"https://www.altera.com/documentation/mwh1391807516407.html#ipp1476408832230"
+            }
+          ]
+        }
+      ]
+      , "children":
+      [
+        {
+          "name":"fnnls_worker_1_0_0.B1"
+          , "data":
+          ["Yes", ">=1", "n/a"]
+          , "debug":
+          [
+            [
+              {
+                "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                , "line":110
+              }
+            ]
+          ]
+          , "details":
+          [
+            {
+              "type":"brief"
+              , "text":" "
+            }
+            , {
+              "type":"text"
+              , "text":"II is an approximation due to variable inner loop trip count."
+              , "links":
+              [
+                {
+                  "view":"Verification statistics"
+                }
+              ]
+            }
+          ]
+          , "children":
+          [
+            {
+              "name":"fnnls_worker_1_0_0.B2"
+              , "data":
+              ["Yes", "1", "n/a"]
+              , "debug":
+              [
+                [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":104
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":104
+                  }
+                ]
+                , [
+                  {
+                    "filename":"/data/vkhriste/test-regression/multifit_ocl/device/fnnls_channels_pass_thru_channels.cl"
+                    , "line":105
+                  }
+                ]
+              ]
+              , "children":
+              [
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
