@@ -14,6 +14,21 @@ using data_type = float;
 using my_matrix = matrix_t<data_type>;
 using my_vector = vector_t<data_type>;
 
+template<typename T>
+struct duration_measurer {
+    duration_measurer(std::string const& msg)
+        : msg{msg}, start{std::chrono::high_resolution_clock::now()}
+    {}
+    ~duration_measurer() {
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<T>(end - start).count();
+        std::cout << msg << " duration = " << duration << std::endl;
+    }
+
+    std::string msg;
+    std::chrono::high_resolution_clock::time_point start;
+};
+
 std::vector<my_matrix> generate_As(unsigned int n) {
     std::vector<my_matrix> result(n);
     for (int i=0; i<n; ++i)
@@ -214,7 +229,8 @@ int main(int argc, char **argv ) {
     int error = 0;
     cl::Program program;
     if (dtype_to_use == CL_DEVICE_TYPE_ACCELERATOR) {
-        std::string binary_file {"regression_inplace_fnnls.aocx"};
+        duration_measurer<std::chrono::milliseconds> raid{"program creation"};
+        std::string binary_file {"inplace_fnnls_original.aocx"};
         std::cout << "trying to get binary " << binary_file << std::endl;
         auto bin = get_binary(binary_file);
         std::cout << "got a binary image of size " << bin.size() << std::endl;
@@ -244,6 +260,7 @@ int main(int argc, char **argv ) {
 
     int status;
     try {
+        duration_measurer<std::chrono::milliseconds> raid{"program building"};
         status = program.build(devices);
     } catch (cl::BuildError &err) {
         std::cout << "build error: " << err.what() << std::endl;
@@ -269,79 +286,79 @@ int main(int argc, char **argv ) {
         return 0;
     }
 
-    // a queue
-    std::cout << "initialize a command queue" << std::endl;
-    cl::CommandQueue queue{ctx, d};
+    {
+        duration_measurer<std::chrono::milliseconds> raid{"fpga execution"};
 
-    // create a kernel functor
-//    auto k_vector_add = cl::Kernel{program, "vector_add"};
-    std::cout << "create a kernel wrapper" << std::endl;
-    auto status_kernel = 0;
-    auto k_fnnls = cl::compatibility::make_kernel<cl::Buffer, cl::Buffer, cl::Buffer, unsigned int, double, unsigned int>(
-        program, "inplace_fnnls", &status_kernel);
-    if (status_kernel != CL_SUCCESS) {
-        std::cout << "failed creating a 'make_kernel' wrapper " << std::endl;
-        exit(1);
-    }
+        // a queue
+        std::cout << "initialize a command queue" << std::endl;
+        cl::CommandQueue queue{ctx, d};
 
-    // link host's memory to device buffers
-    std::cout << "create buffers" << std::endl;
-    cl::Buffer d_vA, d_vb, d_vx;
-    d_vA = cl::Buffer{ctx, CL_MEM_READ_ONLY, h_vA.size() * sizeof(data_type)};
-    d_vb = cl::Buffer{ctx, CL_MEM_READ_ONLY, h_vb.size() * sizeof(data_type)};
-    d_vx = cl::Buffer{ctx, CL_MEM_WRITE_ONLY, sizeof(data_type) * h_vb.size()};
-
-    // explicit transfer
-    queue.enqueueWriteBuffer(d_vA, CL_TRUE, 0, h_vA.size() * sizeof(data_type), 
-        h_vA.data());
-    queue.enqueueWriteBuffer(d_vb, CL_TRUE, 0, h_vb.size() * sizeof(data_type),
-        h_vb.data());
-
-    std::cout << "launch the kernel" << std::endl;
-    int const count = num_channels;
-    auto event = k_fnnls(cl::EnqueueArgs{queue, 1},
-         d_vA, d_vb, d_vx, static_cast<unsigned int>(num_channels), epsilon, max_iterations);
-    if (status_kernel != CL_SUCCESS) {
-        std::cout << "problem with launching a kernel" << std::endl;
-        exit(1);
-    }
-    event.wait();
-
-    std::cout << "copy the data back to the host" << std::endl;
-    cl::copy(queue, d_vx, std::begin(h_vx), std::end(h_vx));
-//    queue.enqueueReadBuffer(d_c, CL_TRUE, 0, h_a.size() * sizeof(float), h_c.data());
-    queue.finish();
-
-    std::cout << "validate against the reference" << std::endl;
-    float precision = 1e-4; // 1e-5 starts having issues
-    bool all_good = true;
-    for (unsigned int i=0; i<num_channels; i++) {
-        auto const& A = As[i];
-        auto const& b = bs[i];
-        my_vector x = my_vector::Zero();
-        cpu_inplace_fnnls(A, b, x);
-
-        for (int ts=0; ts<NUM_SAMPLES; ++ts) {
-            all_good &= std::abs(x(ts) - h_vx[i*NUM_SAMPLES + ts]) < precision;
+        // create a kernel functor
+    //    auto k_vector_add = cl::Kernel{program, "vector_add"};
+        std::cout << "create a kernel wrapper" << std::endl;
+        auto status_kernel = 0;
+        auto k_fnnls = cl::compatibility::make_kernel<cl::Buffer, cl::Buffer, cl::Buffer, unsigned int, double, unsigned int>(
+            program, "inplace_fnnls", &status_kernel);
+        if (status_kernel != CL_SUCCESS) {
+            std::cout << "failed creating a 'make_kernel' wrapper " << std::endl;
+            exit(1);
         }
-        
-        if (i%100 == 0) {
-            std::cout << "**************** " << i << " ****************" << std::endl;
-            print_vectors_side_by_side(&h_vx[i*NUM_SAMPLES], x, NUM_SAMPLES);
+
+        // link host's memory to device buffers
+        std::cout << "create buffers" << std::endl;
+        cl::Buffer d_vA, d_vb, d_vx;
+        d_vA = cl::Buffer{ctx, CL_MEM_READ_ONLY, h_vA.size() * sizeof(data_type)};
+        d_vb = cl::Buffer{ctx, CL_MEM_READ_ONLY, h_vb.size() * sizeof(data_type)};
+        d_vx = cl::Buffer{ctx, CL_MEM_WRITE_ONLY, sizeof(data_type) * h_vb.size()};
+
+        // explicit transfer
+        queue.enqueueWriteBuffer(d_vA, CL_TRUE, 0, h_vA.size() * sizeof(data_type), 
+            h_vA.data());
+        queue.enqueueWriteBuffer(d_vb, CL_TRUE, 0, h_vb.size() * sizeof(data_type),
+            h_vb.data());
+
+        std::cout << "launch the kernel" << std::endl;
+        int const count = num_channels;
+        auto event = k_fnnls(cl::EnqueueArgs{queue, 1},
+             d_vA, d_vb, d_vx, static_cast<unsigned int>(num_channels), epsilon, max_iterations);
+        if (status_kernel != CL_SUCCESS) {
+            std::cout << "problem with launching a kernel" << std::endl;
+            exit(1);
         }
+        event.wait();
+
+        std::cout << "copy the data back to the host" << std::endl;
+        cl::copy(queue, d_vx, std::begin(h_vx), std::end(h_vx));
+    //    queue.enqueueReadBuffer(d_c, CL_TRUE, 0, h_a.size() * sizeof(float), h_c.data());
+        queue.finish();
     }
-    /*
-    for (int i=0; i<SIZE; ++i) {
-        all_good &= (h_c[i] == i+i+i);
-#ifdef DEBUG
-        if (i % 1000 == 0)
-            std::cout << "array[ " << i << " ] = " << h_c[i] << std::endl;
-#endif
-    }*/
-    if (all_good)
-        std::cout << "PASS TEST" << std::endl;
-    else 
-        std::cout << "FAILED TEST" << std::endl;
+
+    {
+        duration_measurer<std::chrono::milliseconds> raid{"cpu execution + comparison"};
+
+        std::cout << "validate against the reference" << std::endl;
+        float precision = 1e-4; // 1e-5 starts having issues
+        bool all_good = true;
+        for (unsigned int i=0; i<num_channels; i++) {
+            auto const& A = As[i];
+            auto const& b = bs[i];
+            my_vector x = my_vector::Zero();
+            cpu_inplace_fnnls(A, b, x);
+
+            for (int ts=0; ts<NUM_SAMPLES; ++ts) {
+                all_good &= std::abs(x(ts) - h_vx[i*NUM_SAMPLES + ts]) < precision;
+            }
+            
+            if (i%100 == 0) {
+                std::cout << "**************** " << i << " ****************" << std::endl;
+                print_vectors_side_by_side(&h_vx[i*NUM_SAMPLES], x, NUM_SAMPLES);
+            }
+        }
+        if (all_good)
+            std::cout << "PASS TEST" << std::endl;
+        else 
+            std::cout << "FAILED TEST" << std::endl;
+    }
 
     return 0;
 }
