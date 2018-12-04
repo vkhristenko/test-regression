@@ -230,7 +230,7 @@ int main(int argc, char **argv ) {
     cl::Program program;
     if (dtype_to_use == CL_DEVICE_TYPE_ACCELERATOR) {
         duration_measurer<std::chrono::milliseconds> raid{"program creation"};
-        std::string binary_file {"inplace_fnnls_original.aocx"};
+        std::string binary_file {"fnnls_original.aocx"};
         std::cout << "trying to get binary " << binary_file << std::endl;
         auto bin = get_binary(binary_file);
         std::cout << "got a binary image of size " << bin.size() << std::endl;
