@@ -414,7 +414,7 @@ inline void fill_subvector(data_type* restrict dest,
 
 __attribute__((max_global_work_dim(0)))
 __kernel
-void inplace_fnnls(__global data_type const * restrict As,
+void fnnls(__global data_type const * restrict As,
                    __global data_type const * restrict bs,
                    __global data_type *restrict xs,
                    unsigned int size,
@@ -514,7 +514,7 @@ void inplace_fnnls(__global data_type const * restrict As,
                 break;
 
             // update the active set
-            active_set[max_index] = false;
+            active_set[ max_w_idx ] = false;
 
 #ifdef NNLS_DEBUG
                 printf("after swap AtA = \n");
@@ -538,8 +538,8 @@ void inplace_fnnls(__global data_type const * restrict As,
                 data_type pL[NUM_TIME_SAMPLES_SQ];
                 data_type py[NUM_TIME_SAMPLES];
                 data_type tmp_s[NUM_TIME_SAMPLES];
-                fill_submatrix(sub_AtA, AtA, active_set, npassive);
-                fill_subvector(sub_Atb, Atb, active_set, npassive);
+                fill_submatrix(sub_AtA, AtA, active_set);
+                fill_subvector(sub_Atb, Atb, active_set);
                 cholesky_decomp(sub_AtA, pL, NUM_TIME_SAMPLES, npassive);
                 solve_forward_substitution(pL, sub_Atb, py, 
                     NUM_TIME_SAMPLES, npassive);
