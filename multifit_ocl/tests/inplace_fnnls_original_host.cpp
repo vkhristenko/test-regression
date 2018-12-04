@@ -227,7 +227,7 @@ int main(int argc, char **argv ) {
         // for now hardcode this guy
         // should be obtained somehow, env?
         std::string path_to_source_file = "/Users/vk/software/test-regression/multifit_ocl/device";
-        std::string source_file {path_to_source_file + "/" + "regression_inplace_fnnls.cl"};
+        std::string source_file {path_to_source_file + "/" + "inplace_fnnls_original.cl"};
         auto source = get_source(source_file);
         std::cout << "got a source file: " << source.size() << " Bytes in total"<< std::endl;
         if (dump_source) {
@@ -277,8 +277,8 @@ int main(int argc, char **argv ) {
 //    auto k_vector_add = cl::Kernel{program, "vector_add"};
     std::cout << "create a kernel wrapper" << std::endl;
     auto status_kernel = 0;
-    auto k_fnnls = cl::compatibility::make_kernel<cl::Buffer, cl::Buffer, cl::Buffer, double, unsigned int>(
-        program, "inplace_fnnls_facade", &status_kernel);
+    auto k_fnnls = cl::compatibility::make_kernel<cl::Buffer, cl::Buffer, cl::Buffer, unsigned int, double, unsigned int>(
+        program, "inplace_fnnls", &status_kernel);
     if (status_kernel != CL_SUCCESS) {
         std::cout << "failed creating a 'make_kernel' wrapper " << std::endl;
         exit(1);
@@ -300,7 +300,7 @@ int main(int argc, char **argv ) {
     std::cout << "launch the kernel" << std::endl;
     int const count = num_channels;
     auto event = k_fnnls(cl::EnqueueArgs{queue, cl::NDRange(count)},
-         d_vA, d_vb, d_vx, epsilon, max_iterations);
+         d_vA, d_vb, d_vx, static_cast<unsigned int>(num_channels), epsilon, max_iterations);
     if (status_kernel != CL_SUCCESS) {
         std::cout << "problem with launching a kernel" << std::endl;
         exit(1);
@@ -325,10 +325,10 @@ int main(int argc, char **argv ) {
             all_good &= std::abs(x(ts) - h_vx[i*NUM_SAMPLES + ts]) < precision;
         }
         
-        if (i%100 == 0) {
+//        if (i%100 == 0) {
             std::cout << "****************" << std::endl;
             print_vectors_side_by_side(&h_vx[i*NUM_SAMPLES], x, NUM_SAMPLES);
-        }
+//        }
     }
     /*
     for (int i=0; i<SIZE; ++i) {
