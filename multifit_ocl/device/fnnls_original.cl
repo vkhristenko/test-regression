@@ -373,6 +373,13 @@ void print_gmatrix(__global data_type const *pm, int size) {
 
 #endif
 
+inline void set_true(bool* set);
+inline void set_true(bool* set) {
+#pragma unroll 1
+    for (unsigned int i=0; i<NUM_TIME_SAMPLES; i++)
+        set[i] = true;
+}
+
 __attribute__((max_global_work_dim(0)))
 __kernel
 void inplace_fnnls(__global data_type const * restrict As,
@@ -407,8 +414,10 @@ void inplace_fnnls(__global data_type const * restrict As,
         NNLS_LOCAL data_type AtAx[NUM_TIME_SAMPLES];
         NNLS_LOCAL data_type pL[NUM_TIME_SAMPLES_SQ];
         NNLS_LOCAL data_type py[NUM_TIME_SAMPLES];
+        bool active_set[NUM_TIME_SAMPLES];
         transpose_multiply_m_m(A, AtA);
         transpose_multiply_m_v_v(A, b, Atb);
+        set_true(active_set);
 
 #pragma unroll 1
         for (int i=0; i<NUM_TIME_SAMPLES; ++i)
