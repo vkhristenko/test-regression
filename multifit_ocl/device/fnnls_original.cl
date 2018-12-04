@@ -455,14 +455,19 @@ void inplace_fnnls(__global data_type const * restrict As,
             data_type max_w_value = FLT_MIN; int max_w_idx; 
             int iii = 0;
 #pragma unroll 1
-            for (int i=npassive; i<NUM_TIME_SAMPLES; ++i) {
+            for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
                 w [ i ] = Atb [ i ] - AtAx [ i ];
-
-                if (iii == 0 || w [ i ] > max_w_value) {
-                    max_w_value = w [ i ];
-                    max_w_idx = i;
+            }
+            
+#pragma unroll 1
+            for (int i=0; i<NUM_TIME_SAMPLES; ++i) {
+                if (active_set[i]) {
+                    if (iii == 0 || w [ i ] > max_w_value) {
+                        max_w_value = w [ i ];
+                        max_w_idx = i;
+                    }
+                    ++iii;
                 }
-                ++iii;
             }
 
 #ifdef NNLS_DEBUG
@@ -476,12 +481,8 @@ void inplace_fnnls(__global data_type const * restrict As,
             if (max_w_value < epsilon)
                 break;
 
-            // note, max_w_idx already points to the right location in the vector
-            // run swaps
-            swap_row_column(AtA, npassive, max_w_idx, 
-                NUM_TIME_SAMPLES, NUM_TIME_SAMPLES);
-            swap_element(Atb, npassive, max_w_idx);
-            swap_element(final_s, npassive, max_w_idx);
+            // update the active set
+            active_set[max_index] = false;
 
 #ifdef NNLS_DEBUG
                 printf("after swap AtA = \n");
@@ -498,35 +499,25 @@ void inplace_fnnls(__global data_type const * restrict As,
             int inner_iteration = 0;
             int position_removed = -1;
             while (npassive > 0) {
-                if (npassive == 1) {
-                    // scalar case
-                    data_type l_0_0 = sqrt(AtA[0]);
-                    data_type y_0_0 = Atb[0] / l_0_0;
-                    pL[0] = l_0_0;
-                    py[0] = y_0_0;
-                    s[0] = y_0_0 / l_0_0;
-                    position_removed = -1;
-#ifdef NNLS_DEBUG
-                        printf("npassive == 1 branch\n");
-#endif
-                } else {
-                    if (inner_iteration == 0) {
-                    fused_cholesky_forward_substitution_solver_rcadd(
-                        AtA, pL, Atb, py, NUM_TIME_SAMPLES, npassive);
-                    //solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
-#ifdef NNLS_DEBUG
-                        printf("npassive != 1 else inner_iteration == 0 branch\n");
-#endif
-                    } else {
-                    fused_cholesky_forward_substitution_solver_inbetween_removal(
-                        AtA, pL, Atb, py, position_removed, NUM_TIME_SAMPLES, npassive);
-                    //solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
-#ifdef NNLS_DEBUG
-                        printf("npassive != 1 else inner_iteration!=0 else branch\n");
-#endif
-                    }
-                    solve_backward_substitution(pL, py, s, NUM_TIME_SAMPLES, npassive);
-                }
+                // extract a submatrix for the passive set
+                // compute solution
+                data_type sub_AtA[NUM_TIME_SAMPLES_SQ];
+                data_type sub_Atb[NUM_TIME_SAMPLES];
+                data_type pL[NUM_TIME_SAMPLES_SQ];
+                data_type py[NUM_TIME_SAMPLES];
+                data_type tmp_s[NUM_TIME_SAMPLES];
+                fill_submatrix(sub_AtA, AtA, active_set, npassive);
+                fill_subvector(sub_Atb, Atb, active_set, npassive);
+                cholesky_decomp(sub_AtA, pL, NUM_TIME_SAMPLES, npassive);
+                solve_forward_substitution(pL, sub_Atb, py, 
+                    NUM_TIME_SAMPLES, npassive);
+                solve_backward_substitution(pL, py, tmp_s, 
+                    NUM_TIME_SAMPLES, npassive);
+                
+                // set the s vector
+#pragma unroll 1
+                for (unsigned int i=0, idx=0; i<NUM_TIME_SAMPLES; i++)
+                    s [ i ] = active_set[ i ] ? 0 : tmp_s[ idx++ ];
 
 #ifdef NNLS_DEBUG
                     printf("***** inner iteration %d *****\n", inner_iteration);
@@ -539,7 +530,7 @@ void inplace_fnnls(__global data_type const * restrict As,
 #endif
 
                 // update the elements from the passive set
-                data_type min_s_value = s [ 0 ];
+                data_type min_s_value = FLT_MAX;
 #pragma unroll 1
                 for (int i=1; i<npassive; ++i) {
                     if (s [ i ] < min_s_value)
