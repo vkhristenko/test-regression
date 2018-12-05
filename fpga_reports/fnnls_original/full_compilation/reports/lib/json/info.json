@@ -1,0 +1,8 @@
+{"name":"Info","rows":[
+{"name":"Project Name","data":["fnnls_original"],"classes":["info-table"]},
+{"name":"Target Family, Device, Board","data":["Arria 10, 10AX115S2F45I2SGES, dcp_bsp:pac_a10"]},
+{"name":"AOC Version","data":["17.1.1 Build 273"]},
+{"name":"Quartus Version","data":["17.1.1 Build 273"]},
+{"name":"Command","data":["aoc /data/vkhriste/test-regression/multifit_ocl/device/fnnls_original.cl -board pac_a10"]},
+{"name":"Reports Generated At", "data":["Wed Dec  5 11:48:05 2018"]}
+]}

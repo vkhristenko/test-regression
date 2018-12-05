@@ -1,0 +1,2 @@
+/usr/bin/ar qc liblinalgebra.a  CMakeFiles/linalgebra.dir/src/dummy.cpp.o
+/usr/bin/ranlib liblinalgebra.a
